@@ -1282,20 +1282,18 @@ export default function App() {
                 const wanpaiTiles = wanpai || [];
                 const currentKanCount = Math.min(Math.max(typeof kanCount === 'number' ? kanCount : 0, 0), 4);
 
-                // 1. 左端：残っている嶺上牌 (wanpai[0 .. 3 - currentKanCount])
-                // ・カン0回：wanpai[0..3]（4枚）を「嶺上牌1〜4」として表示
-                // ・カン1回：wanpai[0..2]（3枚）を「嶺上牌1〜3」として表示（wanpai[3] は補充牌なのでスキップ）
-                // ・カン2回：wanpai[0..1]（2枚）を「嶺上牌1〜2」として表示（wanpai[2..3] は補充牌なのでスキップ）
-                const remainingRinshanCount = 4 - currentKanCount;
-                for (let i = 0; i < remainingRinshanCount; i++) {
+                // 1. 左端：残っている嶺上牌
+                // 配列の先頭 (0 〜 currentKanCount - 1) は補充牌のため表示対象から外し、
+                // wanpai[currentKanCount] 以降を嶺上牌として左側に並べます。
+                for (let i = currentKanCount; i < 4; i++) {
                   slots.push({
                     tile: wanpaiTiles[i],
-                    label: `嶺上牌${i + 1}`,
+                    label: `嶺上牌${i - currentKanCount + 1}`,
                     labelColor: 'text-blue-400',
                   });
                 }
 
-                // 2. 中央：ドラ・裏ドラ表示牌群 (wanpai[4..13] 位置固定)
+                // 2. 中央：ドラ・裏ドラ表示牌群 (wanpai[4..13] 固定)
                 slots.push({ tile: wanpaiTiles[4], label: '表ドラ', labelColor: 'text-red-400 font-bold' });
                 slots.push({ tile: wanpaiTiles[9], label: '裏ドラ', labelColor: 'text-purple-400 font-bold' });
 
@@ -1312,9 +1310,8 @@ export default function App() {
                 slots.push({ tile: wanpaiTiles[13], label: '槓裏ドラ4', labelColor: 'text-purple-400 font-bold' });
 
                 // 3. 右端：王牌へ補填された牌
-                // カン1回なら wanpai[3] を右端に表示して「王牌補填」とする
-                // カン2回なら wanpai[2], wanpai[3] を右端に表示して「王牌補填」とする
-                for (let i = remainingRinshanCount; i < 4; i++) {
+                // 配列の先頭 (0 〜 currentKanCount - 1) にある補充牌を右端へ配置します。
+                for (let i = 0; i < currentKanCount; i++) {
                   slots.push({
                     tile: wanpaiTiles[i],
                     label: '王牌補填',
