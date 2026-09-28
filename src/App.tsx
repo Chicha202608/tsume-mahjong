@@ -1247,18 +1247,16 @@ export default function App() {
                 <div className="flex flex-wrap gap-1">
                   {fullWall.map((tile, idx) => {
                     const isDrawn = idx < wallDrawnCount;
-                    const isNext = idx === wallDrawnCount && idx < fullWall.length;
                     return (
                       <div key={tile.id} className="flex flex-col items-center gap-1">
-                        <span className={`text-[10px] ${isNext ? 'text-amber-400 font-bold' : isDrawn ? 'text-gray-600' : 'text-green-600'}`}>
+                        <span className={`text-[10px] ${isDrawn ? 'text-gray-600' : 'text-green-600'}`}>
                           {idx + 1}
                         </span>
                         <TileCard
                           tile={tile}
                           size="sm"
-                          className={`${isDrawn ? 'opacity-30 grayscale' : ''} ${isNext ? 'ring-2 ring-amber-400 border-amber-400' : ''}`}
+                          className={isDrawn ? 'opacity-30 grayscale' : ''}
                         />
-                        {isNext && <span className="text-amber-400 text-[9px] font-bold">次</span>}
                       </div>
                     );
                   })}
