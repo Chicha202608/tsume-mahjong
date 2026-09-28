@@ -1279,12 +1279,12 @@ export default function App() {
                 type WanpaiSlot = { tile: Tile | undefined; label: string; labelColor: string };
                 const slots: WanpaiSlot[] = [];
                 
-                // wanpai が存在しない場合の安全ガード
-                const wanpaiTiles = cur?.wanpai || [];
-                const kanCount = Math.min(Math.max(cur?.kanCount || 0, 0), 4);
+                // cur ではなく、スコープ内の wanpai と kanCount を参照
+                const wanpaiTiles = wanpai || [];
+                const currentKanCount = Math.min(Math.max(typeof kanCount === 'number' ? kanCount : 0, 0), 4);
 
-                // 1. 残っている嶺上牌 (左端配置) — wanpai[0 .. 3 - kanCount]
-                for (let i = 0; i < 4 - kanCount; i++) {
+                // 1. 残っている嶺上牌 (左端配置) — wanpai[0 .. 3 - currentKanCount]
+                for (let i = 0; i < 4 - currentKanCount; i++) {
                   slots.push({ tile: wanpaiTiles[i], label: `嶺上牌${i + 1}`, labelColor: 'text-blue-400' });
                 }
 
@@ -1305,7 +1305,7 @@ export default function App() {
                 slots.push({ tile: wanpaiTiles[13], label: '槓裏ドラ4', labelColor: 'text-purple-400 font-bold' });
 
                 // 3. 王牌へ補填された牌 (右端配置)
-                for (let i = 4 - kanCount; i < 4; i++) {
+                for (let i = 4 - currentKanCount; i < 4; i++) {
                   slots.push({ tile: wanpaiTiles[i], label: '王牌補填', labelColor: 'text-slate-500' });
                 }
 
