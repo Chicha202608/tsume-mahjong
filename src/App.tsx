@@ -1276,7 +1276,7 @@ export default function App() {
                 王牌（{WANPAI_COUNT}枚）
               </h3>
               {(() => {
-                type WanpaiSlot = { tile: Tile | undefined; label: string; labelColor: string };
+                type WanpaiSlot = { tile: Tile | undefined; label: string; labelColor: string; faceDown?: boolean };
                 const slots: WanpaiSlot[] = [];
                 
                 const wanpaiTiles = wanpai || [];
@@ -1314,6 +1314,7 @@ export default function App() {
                     tile: wanpaiTiles[i],
                     label: '王牌補填',
                     labelColor: 'text-slate-500',
+                    faceDown: true,
                   });
                 }
 
@@ -1323,7 +1324,7 @@ export default function App() {
                       <div key={i} className="flex flex-col items-center gap-0.5">
                         <span className={`text-[8px] ${slot.labelColor} whitespace-nowrap`}>{slot.label}</span>
                         {slot.tile ? (
-                          <TileCard tile={slot.tile} size="sm" />
+                          <TileCard tile={slot.tile} size="sm" faceDown={slot.faceDown} />
                         ) : (
                           <div className="w-10 h-14 rounded-md border border-[#3a5a3a] bg-[#1a3a1a]" />
                         )}
