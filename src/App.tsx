@@ -859,7 +859,7 @@ export default function App() {
             return (
               <TileCard
                 key={i}
-                tile={wanpai[4 + i * 2] ?? { id: `dummy-${i}`, suit: 'man', value: 1 }}
+                tile={wanpai[4 + i] ?? { id: `dummy-${i}`, suit: 'man', value: 1 }}
                 size="sm"
                 faceDown={!isRevealed}
               />
@@ -1280,15 +1280,14 @@ export default function App() {
                 const slots: WanpaiSlot[] = [];
                 
                 const wanpaiTiles = wanpai || [];
-                const currentKanCount = Math.min(Math.max(typeof kanCount === 'number' ? kanCount : 0, 0), 4);
+                const currentKanCount = Math.min(Math.max(doraCount - 1, 0), 4);
+                const remainingRinshanCount = 4 - currentKanCount;
 
-                // 1. 左端：残っている嶺上牌
-                // 配列の先頭 (0 〜 currentKanCount - 1) は補充牌のため表示対象から外し、
-                // wanpai[currentKanCount] 以降を嶺上牌として左側に並べます。
-                for (let i = currentKanCount; i < 4; i++) {
+                // 1. 左端：残っている嶺上牌 (wanpai[0 .. remainingRinshanCount-1])
+                for (let i = 0; i < remainingRinshanCount; i++) {
                   slots.push({
                     tile: wanpaiTiles[i],
-                    label: `嶺上牌${i - currentKanCount + 1}`,
+                    label: `嶺上牌${i + 1}`,
                     labelColor: 'text-blue-400',
                   });
                 }
@@ -1309,9 +1308,8 @@ export default function App() {
                 slots.push({ tile: wanpaiTiles[8], label: '槓ドラ4', labelColor: 'text-red-400 font-bold' });
                 slots.push({ tile: wanpaiTiles[13], label: '槓裏ドラ4', labelColor: 'text-purple-400 font-bold' });
 
-                // 3. 右端：王牌へ補填された牌
-                // 配列の先頭 (0 〜 currentKanCount - 1) にある補充牌を右端へ配置します。
-                for (let i = 0; i < currentKanCount; i++) {
+                // 3. 右端：王牌へ補填された牌 (wanpai[remainingRinshanCount .. 3])
+                for (let i = remainingRinshanCount; i < 4; i++) {
                   slots.push({
                     tile: wanpaiTiles[i],
                     label: '王牌補填',
