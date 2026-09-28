@@ -1269,7 +1269,7 @@ export default function App() {
               )}
             </div>
 
-            {/* Wanpai section — below the live wall, simple flex-wrap, no gap */}
+{/* Wanpai section — below the live wall, simple flex-wrap, no gap */}
             <div className="mt-4 rounded-lg p-3 bg-[#0e1e0e]">
               <h3 className="text-amber-400 text-sm font-bold mb-3 flex items-center gap-2">
                 <Layers size={14} />
@@ -1282,11 +1282,27 @@ export default function App() {
                 const wanpaiTiles = wanpai || [];
                 const currentKanCount = Math.min(Math.max(typeof kanCount === 'number' ? kanCount : 0, 0), 4);
 
-                // 1. 左端：残っている嶺上牌 (wanpai[0 .. 3 - currentKanCount - 1])
-                // ※ カン0回なら wanpai[0..2] の3枚、カン1回なら wanpai[0..1] の2枚...
-                const remainingRinshanCount = Math.max(4 - currentKanCount - 1, 0);
-                for (let i = 0; i < remainingRinshanCount; i++) {
-                  slots.push({ tile: wanpaiTiles[i], label: `嶺上牌${i + 1}`, labelColor: 'text-blue-400' });
+                if (currentKanCount === 0) {
+                  // ■ カン0回（初期状態）
+                  // wanpai[0..3] をそのまま嶺上牌1〜4として左に表示
+                  for (let i = 0; i < 4; i++) {
+                    slots.push({
+                      tile: wanpaiTiles[i],
+                      label: `嶺上牌${i + 1}`,
+                      labelColor: 'text-blue-400',
+                    });
+                  }
+                } else {
+                  // ■ カン1回以上
+                  // 先頭(wanpai[0..currentKanCount-1])に「補充牌」が入っているため、
+                  // 残りの嶺上牌(wanpai[currentKanCount..3])だけを左側に表示
+                  for (let i = currentKanCount; i < 4; i++) {
+                    slots.push({
+                      tile: wanpaiTiles[i],
+                      label: `嶺上牌${i + 1}`,
+                      labelColor: 'text-blue-400',
+                    });
+                  }
                 }
 
                 // 2. 中央：ドラ・裏ドラ表示牌群 (wanpai[4..13] 位置固定)
@@ -1305,21 +1321,16 @@ export default function App() {
                 slots.push({ tile: wanpaiTiles[8], label: '槓ドラ4', labelColor: 'text-red-400 font-bold' });
                 slots.push({ tile: wanpaiTiles[13], label: '槓裏ドラ4', labelColor: 'text-purple-400 font-bold' });
 
-                // 3. 右端：王牌へ補填された牌 (wanpai[3] など、嶺上エリアの後ろに入った補充牌)
-                // カンが行われている場合、wanpai[3] (およびそれ以前の補充位置) を右端に描画
+                // 3. 右端：王牌へ補填された牌
+                // 配列の先頭(wanpai[0..currentKanCount-1])に入っている補充牌をドラ群の右側に回す
                 if (currentKanCount > 0) {
                   for (let i = 0; i < currentKanCount; i++) {
-                    const suppIndex = 3 - i; // カン1回目なら wanpai[3]
                     slots.push({
-                      tile: wanpaiTiles[suppIndex],
+                      tile: wanpaiTiles[i],
                       label: '王牌補填',
                       labelColor: 'text-slate-500',
                     });
                   }
-                } else {
-                  // カンが0回の場合は本来の嶺上牌4 (wanpai[3]) を左から4番目...ではなく、ルール通りの初期位置に表示
-                  // （※初期表示で嶺上牌4枚を左に並べる場合はここで調整）
-                  slots.unshift({ tile: wanpaiTiles[3], label: '嶺上牌4', labelColor: 'text-blue-400' });
                 }
 
                 return (
@@ -1337,7 +1348,7 @@ export default function App() {
                   </div>
                 );
               })()}
-            </div>
+            </div> 
           </div>   
         </div>    
       )}          
