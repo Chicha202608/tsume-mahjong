@@ -1278,34 +1278,35 @@ export default function App() {
               {(() => {
                 type WanpaiSlot = { tile: Tile | undefined; label: string; labelColor: string };
                 const slots: WanpaiSlot[] = [];
-                const kanCount = cur.kanCount || 0;
+                
+                // wanpai が存在しない場合の安全ガード
+                const wanpaiTiles = cur?.wanpai || [];
+                const kanCount = Math.min(Math.max(cur?.kanCount || 0, 0), 4);
 
                 // 1. 残っている嶺上牌 (左端配置) — wanpai[0 .. 3 - kanCount]
                 for (let i = 0; i < 4 - kanCount; i++) {
-                  slots.push({ tile: wanpai[i], label: `嶺上牌${i + 1}`, labelColor: 'text-blue-400' });
+                  slots.push({ tile: wanpaiTiles[i], label: `嶺上牌${i + 1}`, labelColor: 'text-blue-400' });
                 }
 
                 // 2. ドラ・裏ドラ表示牌群 (中央配置・固定)
-                // 表ドラ — wanpai[4]
-                slots.push({ tile: wanpai[4], label: '表ドラ', labelColor: 'text-red-400 font-bold' });
-                // 裏ドラ — wanpai[9]
-                slots.push({ tile: wanpai[9], label: '裏ドラ', labelColor: 'text-purple-400 font-bold' });
-                // 槓ドラ1 / 槓裏ドラ1 — wanpai[5], wanpai[10]
-                slots.push({ tile: wanpai[5], label: '槓ドラ1', labelColor: 'text-red-400 font-bold' });
-                slots.push({ tile: wanpai[10], label: '槓裏ドラ1', labelColor: 'text-purple-400 font-bold' });
-                // 槓ドラ2 / 槓裏ドラ2 — wanpai[6], wanpai[11]
-                slots.push({ tile: wanpai[6], label: '槓ドラ2', labelColor: 'text-red-400 font-bold' });
-                slots.push({ tile: wanpai[11], label: '槓裏ドラ2', labelColor: 'text-purple-400 font-bold' });
-                // 槓ドラ3 / 槓裏ドラ3 — wanpai[7], wanpai[12]
-                slots.push({ tile: wanpai[7], label: '槓ドラ3', labelColor: 'text-red-400 font-bold' });
-                slots.push({ tile: wanpai[12], label: '槓裏ドラ3', labelColor: 'text-purple-400 font-bold' });
-                // 槓ドラ4 / 槓裏ドラ4 — wanpai[8], wanpai[13]
-                slots.push({ tile: wanpai[8], label: '槓ドラ4', labelColor: 'text-red-400 font-bold' });
-                slots.push({ tile: wanpai[13], label: '槓裏ドラ4', labelColor: 'text-purple-400 font-bold' });
+                slots.push({ tile: wanpaiTiles[4], label: '表ドラ', labelColor: 'text-red-400 font-bold' });
+                slots.push({ tile: wanpaiTiles[9], label: '裏ドラ', labelColor: 'text-purple-400 font-bold' });
 
-                // 3. 王牌へ補填された牌 (右端配置) — wanpai[3 - kanCount + 1 .. 3]
+                slots.push({ tile: wanpaiTiles[5], label: '槓ドラ1', labelColor: 'text-red-400 font-bold' });
+                slots.push({ tile: wanpaiTiles[10], label: '槓裏ドラ1', labelColor: 'text-purple-400 font-bold' });
+
+                slots.push({ tile: wanpaiTiles[6], label: '槓ドラ2', labelColor: 'text-red-400 font-bold' });
+                slots.push({ tile: wanpaiTiles[11], label: '槓裏ドラ2', labelColor: 'text-purple-400 font-bold' });
+
+                slots.push({ tile: wanpaiTiles[7], label: '槓ドラ3', labelColor: 'text-red-400 font-bold' });
+                slots.push({ tile: wanpaiTiles[12], label: '槓裏ドラ3', labelColor: 'text-purple-400 font-bold' });
+
+                slots.push({ tile: wanpaiTiles[8], label: '槓ドラ4', labelColor: 'text-red-400 font-bold' });
+                slots.push({ tile: wanpaiTiles[13], label: '槓裏ドラ4', labelColor: 'text-purple-400 font-bold' });
+
+                // 3. 王牌へ補填された牌 (右端配置)
                 for (let i = 4 - kanCount; i < 4; i++) {
-                  slots.push({ tile: wanpai[i], label: '王牌補填', labelColor: 'text-slate-500' });
+                  slots.push({ tile: wanpaiTiles[i], label: '王牌補填', labelColor: 'text-slate-500' });
                 }
 
                 return (
