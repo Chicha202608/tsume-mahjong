@@ -1279,7 +1279,6 @@ export default function App() {
                 type WanpaiSlot = { tile: Tile | undefined; label: string; labelColor: string };
                 const slots: WanpaiSlot[] = [];
                 
-                // cur ではなく、スコープ内の wanpai と kanCount を参照
                 const wanpaiTiles = wanpai || [];
                 const currentKanCount = Math.min(Math.max(typeof kanCount === 'number' ? kanCount : 0, 0), 4);
 
@@ -1288,25 +1287,39 @@ export default function App() {
                   slots.push({ tile: wanpaiTiles[i], label: `嶺上牌${i + 1}`, labelColor: 'text-blue-400' });
                 }
 
-                // 2. ドラ・裏ドラ表示牌群 (中央配置・固定)
+                // 2. ドラ・裏ドラ表示牌群 (中央配置)
+                // 表ドラ / 裏ドラ (固定)
                 slots.push({ tile: wanpaiTiles[4], label: '表ドラ', labelColor: 'text-red-400 font-bold' });
                 slots.push({ tile: wanpaiTiles[9], label: '裏ドラ', labelColor: 'text-purple-400 font-bold' });
 
-                slots.push({ tile: wanpaiTiles[5], label: '槓ドラ1', labelColor: 'text-red-400 font-bold' });
-                slots.push({ tile: wanpaiTiles[10], label: '槓裏ドラ1', labelColor: 'text-purple-400 font-bold' });
+                // 槓ドラ1〜4 / 槓裏ドラ1〜4
+                // ※ カンによって末尾（wanpai[13]側）から補填牌に置き換わるため、
+                //   補填枠になっていない箇所のみドラ枠として表示する
+                const doraPairs = [
+                  { doraIdx: 5, uradoraIdx: 10, labelNum: 1 },
+                  { doraIdx: 6, uradoraIdx: 11, labelNum: 2 },
+                  { doraIdx: 7, uradoraIdx: 12, labelNum: 3 },
+                  { doraIdx: 8, uradoraIdx: 13, labelNum: 4 },
+                ];
 
-                slots.push({ tile: wanpaiTiles[6], label: '槓ドラ2', labelColor: 'text-red-400 font-bold' });
-                slots.push({ tile: wanpaiTiles[11], label: '槓裏ドラ2', labelColor: 'text-purple-400 font-bold' });
-
-                slots.push({ tile: wanpaiTiles[7], label: '槓ドラ3', labelColor: 'text-red-400 font-bold' });
-                slots.push({ tile: wanpaiTiles[12], label: '槓裏ドラ3', labelColor: 'text-purple-400 font-bold' });
-
-                slots.push({ tile: wanpaiTiles[8], label: '槓ドラ4', labelColor: 'text-red-400 font-bold' });
-                slots.push({ tile: wanpaiTiles[13], label: '槓裏ドラ4', labelColor: 'text-purple-400 font-bold' });
+                doraPairs.forEach(({ doraIdx, uradoraIdx, labelNum }) => {
+                  // そのインデックスが右端からの補填領域（14 - currentKanCount 以降）にかかっていない場合のみドラ表示
+                  if (doraIdx < 14 - currentKanCount) {
+                    slots.push({ tile: wanpaiTiles[doraIdx], label: `槓ドラ${labelNum}`, labelColor: 'text-red-400 font-bold' });
+                  }
+                  if (uradoraIdx < 14 - currentKanCount) {
+                    slots.push({ tile: wanpaiTiles[uradoraIdx], label: `槓裏ドラ${labelNum}`, labelColor: 'text-purple-400 font-bold' });
+                  }
+                });
 
                 // 3. 王牌へ補填された牌 (右端配置)
-                for (let i = 4 - currentKanCount; i < 4; i++) {
-                  slots.push({ tile: wanpaiTiles[i], label: '王牌補填', labelColor: 'text-slate-500' });
+                // カンにより配列の末尾（14 - currentKanCount 〜 13）に入った補充牌をここに集める
+                for (let i = 14 - currentKanCount; i < 14; i++) {
+                  slots.push({
+                    tile: wanpaiTiles[i],
+                    label: '王牌補填',
+                    labelColor: 'text-slate-500',
+                  });
                 }
 
                 return (
