@@ -617,7 +617,12 @@ export default function App() {
       if (cur.wall.length > 0) {
         const supplement = cur.wall[cur.wall.length - 1];
         newWall = cur.wall.slice(0, -1);
-        newWanpai = [...restWanpai, supplement];
+        // 1. 嶺上牌（index 0）を1枚消費した残りの嶺上牌3枚（index 0..2）
+        const remainingRinshan = restWanpai.slice(0, 3);
+        // 2. ドラ・裏ドラ群（index 3 以降の10枚）
+        const doraAndUraDora = restWanpai.slice(3);        
+        // 3. 嶺上牌の最後尾（3枚目とドラ表示牌の間）に supplement を挟み込んで14枚に戻す
+        newWanpai = [...remainingRinshan, supplement, ...doraAndUraDora];
       }
 
       // カンドラ開帳
