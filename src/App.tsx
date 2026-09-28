@@ -1324,6 +1324,7 @@ export default function App() {
                 );
               })()}
             </div>
+                      
       {/* Confirm overwrite popup */}
       {pendingAction && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60]">
