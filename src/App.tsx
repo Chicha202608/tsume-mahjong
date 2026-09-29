@@ -142,6 +142,7 @@ export default function App() {
           doraCount={doraCount}
           wanpai={wanpai}
           phase={phase}
+          turnCount={turnCount}
           onClose={() => setShowWall(false)}
         />
       )}
