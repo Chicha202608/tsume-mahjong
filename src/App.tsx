@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Tile, Phase, Furo } from '@/types';
+import { Tile, Furo } from '@/types';
 import { createDeck, shuffle, sortHand, findAnkanOptions, findKakanOptions, isMenzen as isMenzenLogic, canRiichi as canRiichiLogic, validRiichiDiscards, getDoraTileKeys, NakiOption } from '@/gameLogic';
 import { State, makeInitialState, makeInitialStateBase } from '@/game/gameState';
 import {
@@ -17,6 +17,14 @@ import {
   applyDeclareRiichi,
   applyRiichiDiscard,
 } from '@/game/transitions';
+import {
+  isStopState,
+  actionMatchesNext,
+  commitNewState,
+  findPrevStopIndex,
+  findNextStopIndex,
+  riichiDiscardMatchesNext,
+} from '@/game/history';
 import StatusBar from '@/components/StatusBar';
 import GameOverOverlay from '@/components/GameOverOverlay';
 import ConfirmPopup from '@/components/ConfirmPopup';
@@ -30,47 +38,6 @@ import PlayerFuro from '@/components/PlayerFuro';
 import NakiRonButtons from '@/components/NakiRonButtons';
 import HandSection from '@/components/HandSection';
 import WallModal from '@/components/WallModal';
-
-type PlayerAction = 'passNaki' | 'passTsumo' | 'callRon' | 'declareTsumo' | 'callNaki' | 'playerDiscard' | 'playerNakiDiscard';
-
-function isStopState(s: State): boolean {
-  return s.phase === 'playerDiscard' || s.phase === 'riichiSelect' || s.phase === 'naki' || s.phase === 'playerNakiDiscard' || s.phase === 'win' || s.phase === 'exhausted' || s.tsumoAvailable;
-}
-
-function actionMatchesNext(
-  cur: State,
-  next: State | undefined,
-  action: PlayerAction,
-  tile?: Tile,
-  option?: NakiOption,
-): boolean {
-  if (!next) return false;
-  switch (action) {
-    case 'passNaki':
-      return (next.phase === 'playerDraw' || next.phase === 'exhausted') && next.nakiOptions.length === 0 && !next.ronAvailable;
-    case 'passTsumo':
-      return next.phase === 'playerDiscard' && !next.tsumoAvailable;
-    case 'callRon':
-      return next.phase === 'win' && next.winType === 'ron';
-    case 'declareTsumo':
-      return next.phase === 'win' && next.winType === 'tsumo';
-    case 'callNaki': {
-      if (next.phase !== 'playerNakiDiscard' || next.playerFuro.length !== cur.playerFuro.length + 1) return false;
-      const newFuro = next.playerFuro[next.playerFuro.length - 1];
-      const expectedIds = new Set([...(option?.tiles ?? []), cur.lastCpuDiscard].filter(t => t).map(t => t!.id));
-      const actualIds = new Set(newFuro.tiles.map(t => t.id));
-      return expectedIds.size === actualIds.size && [...expectedIds].every(id => actualIds.has(id));
-    }
-    case 'playerDiscard':
-    case 'playerNakiDiscard': {
-      if (next.phase !== 'cpuTurn' && next.phase !== 'exhausted') return false;
-      if (next.playerDiscards.length !== cur.playerDiscards.length + 1) return false;
-      return next.playerDiscards[next.playerDiscards.length - 1]?.id === tile?.id;
-    }
-    default:
-      return false;
-  }
-}
 
 export default function App() {
   const [history, setHistory] = useState<State[]>(() => [makeInitialState()]);
@@ -145,12 +112,6 @@ export default function App() {
     setHistory([newState]);
     setHistoryIndex(0);
     setDismissedIndex(-1);
-  }, []);
-
-  const commitNewState = useCallback((prev: State[], idx: number, newState: State | null): State[] => {
-    if (!newState) return prev;
-    const truncated = prev.slice(0, idx + 1);
-    return [...truncated, newState];
   }, []);
 
   const playerDraw = useCallback(() => {
@@ -448,7 +409,7 @@ export default function App() {
     if (isViewingPast) {
       const cur = history[historyIndex];
       const next = history[historyIndex + 1];
-      if (cur && next && next.phase === 'cpuTurn' && next.isRiichi === true && next.playerDiscards.length === cur.playerDiscards.length + 1 && next.playerDiscards[next.playerDiscards.length - 1]?.id === tile.id) {
+      if (cur && next && riichiDiscardMatchesNext(cur, next, tile)) {
         setHistoryIndex(prev => prev + 1);
         return;
       }
@@ -486,9 +447,7 @@ export default function App() {
       });
       return;
     }
-    // Latest step: go back to previous stop state, no popup
-    let idx = historyIndex - 1;
-    while (idx > 0 && !isStopState(history[idx])) idx--;
+    const idx = findPrevStopIndex(history, historyIndex);
     setHistory(prev => prev.slice(0, idx + 1));
     setHistoryIndex(idx);
     setDismissedIndex(-1);
@@ -497,17 +456,13 @@ export default function App() {
   // "1手戻る" — navigate back to previous stop state for viewing
   const stepBack = useCallback(() => {
     if (historyIndex <= 0) return;
-    let idx = historyIndex - 1;
-    while (idx > 0 && !isStopState(history[idx])) idx--;
-    setHistoryIndex(Math.max(0, idx));
+    setHistoryIndex(findPrevStopIndex(history, historyIndex));
   }, [historyIndex, history]);
 
   // "1手進む" — navigate forward to next stop state for viewing
   const stepForward = useCallback(() => {
     if (historyIndex >= history.length - 1) return;
-    let idx = historyIndex + 1;
-    while (idx < history.length - 1 && !isStopState(history[idx])) idx++;
-    setHistoryIndex(Math.min(history.length - 1, idx));
+    setHistoryIndex(findNextStopIndex(history, historyIndex));
   }, [historyIndex, history]);
 
   const confirmPendingAction = useCallback(() => {
