@@ -12,17 +12,33 @@ interface Props {
   wanpai: Tile[];
   phase: Phase;
   onClose: () => void;
+  turnCount: number;
 }
 
-export default function WallModal({ wall, fullWall, wallDrawnCount, doraCount, wanpai, phase, onClose }: Props) {
+export default function WallModal({ wall, fullWall, wallDrawnCount, doraCount, wanpai, phase, turnCount,onClose }: Props) {
   const supplementCount = Math.max(doraCount - 1, 0);
+  const MAX_DRAWS = 18;
+  
   const nextDrawIsPlayer = phase === 'playerDraw' || phase === 'naki';
+  
+  const futurePlayerDrawCount =
+    phase === 'playerDiscard' || phase === 'riichiSelect'
+      ? Math.max(MAX_DRAWS - turnCount - 1, 0)
+      : Math.max(MAX_DRAWS - turnCount, 0);
+  
   const isPlayerFutureDraw = (idx: number) => {
     if (idx < wallDrawnCount) return false;
     if (idx >= fullWall.length - supplementCount) return false;
+  
     const offset = idx - wallDrawnCount;
-    if (nextDrawIsPlayer) return offset % 2 === 0;
-    return offset % 2 === 1;
+    const playerDrawIndex = nextDrawIsPlayer
+      ? Math.floor(offset / 2)
+      : Math.floor((offset - 1) / 2);
+  
+    return (
+      playerDrawIndex >= 0 &&
+      playerDrawIndex < futurePlayerDrawCount
+    );
   };
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={onClose}>
