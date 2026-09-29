@@ -28,7 +28,9 @@ export default function TileCard({ tile, size = 'md', onClick, highlighted, face
   const base =
     'relative flex flex-col items-center justify-center rounded-md select-none transition-all duration-150 overflow-hidden bg-[#f8f4e8] border border-[#d0c8b0]';
   const interactive = onClick ? 'cursor-pointer' : '';
-  const highlight = highlighted ? 'ring-2 ring-amber-400 border-amber-400' : '';
+  const highlight = highlighted
+  ? 'ring-4 ring-yellow-300 border-yellow-300 shadow-[0_0_8px_2px_rgba(250,204,21,0.9)]'
+  : '';
   const hoverStyle = onClick && !faceDown ? 'hover:-translate-y-1 hover:shadow-lg' : '';
 
   if (rotated) {
