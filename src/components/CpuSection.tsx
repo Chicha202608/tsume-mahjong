@@ -30,7 +30,7 @@ export default function CpuSection({ cpuHand, cpuFuro, cpuDiscards, lastCpuDisca
         ))}
       </div>
       {cpuFuro.length > 0 && (
-        <div className="mt-2 -wrap gap-3">
+        <div className="mt-2 flex flex-wrap gap-3">
           {cpuFuro.map((f, i) => (
             <div key={i} className="flex gap-0.5 bg-[#0e1e0e] rounded p-1 items-center">
               {f.tiles.map(t => (
@@ -43,7 +43,7 @@ export default function CpuSection({ cpuHand, cpuFuro, cpuDiscards, lastCpuDisca
       {cpuDiscards.length > 0 && (
         <div className="mt-2">
           <span className="text-green-600 text-xs">捨て牌: </span>
-          <div className="inline--wrap gap-0.5 mt-1">
+          <div className="flex flex-wrap gap-0.5 mt-1">
             {cpuDiscards.map(tile => (
               <TileCard
                 key={tile.id}
