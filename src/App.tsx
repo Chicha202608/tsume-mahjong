@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Tile, Phase, Furo } from '@/types';
-import { initGame, createDeck, shuffle, sortHand, checkWinConcealed, canRonConcealed, findNakiOptions, findAnkanOptions, findKakanOptions, isMenzen as isMenzenLogic, canRiichi as canRiichiLogic, validRiichiDiscards, sameTile, getWaits, isFuriten, getDoraTileKeys, NakiOption } from '@/gameLogic';
+import { createDeck, shuffle, sortHand, checkWinConcealed, canRonConcealed, findNakiOptions, findAnkanOptions, findKakanOptions, isMenzen as isMenzenLogic, canRiichi as canRiichiLogic, validRiichiDiscards, sameTile, getWaits, isFuriten, getDoraTileKeys, NakiOption } from '@/gameLogic';
+import { State, makeInitialState, makeInitialStateBase } from '@/game/gameState';
 import StatusBar from '@/components/StatusBar';
 import GameOverOverlay from '@/components/GameOverOverlay';
 import ConfirmPopup from '@/components/ConfirmPopup';
@@ -16,30 +17,6 @@ import HandSection from '@/components/HandSection';
 import WallModal from '@/components/WallModal';
 
 const MAX_DRAWS = 18;
-
-interface State {
-  playerHand: Tile[];
-  playerDrawnTile: Tile | null;
-  cpuHand: Tile[];
-  wall: Tile[];
-  fullWall: Tile[];
-  wanpai: Tile[];
-  wallDrawnCount: number;
-  playerDiscards: Tile[];
-  cpuDiscards: Tile[];
-  playerFuro: Furo[];
-  cpuFuro: Furo[];
-  phase: Phase;
-  turnCount: number;
-  lastCpuDiscard: Tile | null;
-  nakiOptions: NakiOption[];
-  ronAvailable: boolean;
-  winType: 'tsumo' | 'ron' | null;
-  doraCount: number;
-  isRiichi: boolean;
-  tsumoAvailable: boolean;
-  missedRonAfterRiichi: boolean;
-}
 
 type PlayerAction = 'passNaki' | 'passTsumo' | 'callRon' | 'declareTsumo' | 'callNaki' | 'playerDiscard' | 'playerNakiDiscard';
 
@@ -80,29 +57,6 @@ function actionMatchesNext(
     default:
       return false;
   }
-}
-
-function makeInitialState(): State {
-  const { playerHand, cpuHand, wall, wanpai } = initGame();
-  return makeInitialStateBase(playerHand, cpuHand, wall, wanpai);
-}
-
-function makeInitialStateBase(playerHand: Tile[], cpuHand: Tile[], wall: Tile[], wanpai: Tile[]): State {
-  return {
-    playerHand, playerDrawnTile: null,
-    cpuHand, wall,
-    fullWall: [...wall],
-    wanpai,
-    wallDrawnCount: 0,
-    playerDiscards: [], cpuDiscards: [],
-    playerFuro: [], cpuFuro: [],
-    phase: 'playerDraw', turnCount: 0,
-    lastCpuDiscard: null, nakiOptions: [], ronAvailable: false, winType: null,
-    doraCount: 1,
-    isRiichi: false,
-    tsumoAvailable: false,
-    missedRonAfterRiichi: false,
-  };
 }
 
 export default function App() {
