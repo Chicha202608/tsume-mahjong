@@ -1,7 +1,22 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Tile, Phase, Furo } from '@/types';
-import { createDeck, shuffle, sortHand, checkWinConcealed, canRonConcealed, findNakiOptions, findAnkanOptions, findKakanOptions, isMenzen as isMenzenLogic, canRiichi as canRiichiLogic, validRiichiDiscards, sameTile, getWaits, isFuriten, getDoraTileKeys, NakiOption } from '@/gameLogic';
+import { createDeck, shuffle, sortHand, findAnkanOptions, findKakanOptions, isMenzen as isMenzenLogic, canRiichi as canRiichiLogic, validRiichiDiscards, getDoraTileKeys, NakiOption } from '@/gameLogic';
 import { State, makeInitialState, makeInitialStateBase } from '@/game/gameState';
+import {
+  MAX_DRAWS,
+  applyPlayerDraw,
+  applyPlayerDiscard,
+  applyCpuTurn,
+  applyCallRon,
+  applyCallNaki,
+  applyPlayerNakiDiscard,
+  applyPassNaki,
+  applyPassTsumo,
+  applyDeclareTsumo,
+  applyDeclareKan,
+  applyDeclareRiichi,
+  applyRiichiDiscard,
+} from '@/game/transitions';
 import StatusBar from '@/components/StatusBar';
 import GameOverOverlay from '@/components/GameOverOverlay';
 import ConfirmPopup from '@/components/ConfirmPopup';
@@ -15,8 +30,6 @@ import PlayerFuro from '@/components/PlayerFuro';
 import NakiRonButtons from '@/components/NakiRonButtons';
 import HandSection from '@/components/HandSection';
 import WallModal from '@/components/WallModal';
-
-const MAX_DRAWS = 18;
 
 type PlayerAction = 'passNaki' | 'passTsumo' | 'callRon' | 'declareTsumo' | 'callNaki' | 'playerDiscard' | 'playerNakiDiscard';
 
@@ -134,26 +147,20 @@ export default function App() {
     setDismissedIndex(-1);
   }, []);
 
+  const commitNewState = useCallback((prev: State[], idx: number, newState: State | null): State[] => {
+    if (!newState) return prev;
+    const truncated = prev.slice(0, idx + 1);
+    return [...truncated, newState];
+  }, []);
+
   const playerDraw = useCallback(() => {
     setHistory(prev => {
       const cur = prev[historyIndex];
-      if (!cur || cur.phase !== 'playerDraw' || cur.wall.length === 0) return prev;
-      const [drawn, ...rest] = cur.wall;
-      if (!drawn) return prev;
-      const won = checkWinConcealed([...cur.playerHand, drawn], cur.playerFuro.length);
-      const newState: State = {
-        ...cur,
-        playerDrawnTile: drawn,
-        wall: rest,
-        wallDrawnCount: cur.wallDrawnCount + 1,
-        phase: 'playerDiscard',
-        tsumoAvailable: won,
-      };
-      const truncated = prev.slice(0, historyIndex + 1);
-      return [...truncated, newState];
+      const newState = cur ? applyPlayerDraw(cur) : null;
+      return commitNewState(prev, historyIndex, newState);
     });
     setHistoryIndex(prev => prev + 1);
-  }, [historyIndex]);
+  }, [historyIndex, commitNewState]);
 
   const playerDiscard = useCallback((tile: Tile) => {
     if (isViewingPast) {
@@ -168,23 +175,8 @@ export default function App() {
         action: () => {
           setHistory(prev => {
             const c = prev[historyIndex];
-            if (!c || c.phase !== 'playerDiscard' || !c.playerDrawnTile) return prev;
-            let newHand: Tile[];
-            if (tile.id === c.playerDrawnTile.id) {
-              newHand = c.playerHand;
-            } else {
-              newHand = sortHand([...c.playerHand.filter(t => t.id !== tile.id), c.playerDrawnTile]);
-            }
-            const newDiscards = [...c.playerDiscards, tile];
-            const newTurnCount = c.turnCount + 1;
-            let newState: State;
-            if (c.wall.length === 0 || newTurnCount >= MAX_DRAWS) {
-              newState = { ...c, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'exhausted', turnCount: newTurnCount };
-            } else {
-              newState = { ...c, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'cpuTurn', turnCount: newTurnCount };
-            }
-            const truncated = prev.slice(0, historyIndex + 1);
-            return [...truncated, newState];
+            const newState = c ? applyPlayerDiscard(c, tile) : null;
+            return commitNewState(prev, historyIndex, newState);
           });
           setHistoryIndex(prev => prev + 1);
         },
@@ -193,58 +185,20 @@ export default function App() {
     }
     setHistory(prev => {
       const cur = prev[historyIndex];
-      if (!cur || cur.phase !== 'playerDiscard' || !cur.playerDrawnTile) return prev;
-      let newHand: Tile[];
-      if (tile.id === cur.playerDrawnTile.id) {
-        newHand = cur.playerHand;
-      } else {
-        newHand = sortHand([...cur.playerHand.filter(t => t.id !== tile.id), cur.playerDrawnTile]);
-      }
-      const newDiscards = [...cur.playerDiscards, tile];
-      const newTurnCount = cur.turnCount + 1;
-      let newState: State;
-      if (cur.wall.length === 0 || newTurnCount >= MAX_DRAWS) {
-        newState = { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'exhausted', turnCount: newTurnCount };
-      } else {
-        newState = { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'cpuTurn', turnCount: newTurnCount };
-      }
-      const truncated = prev.slice(0, historyIndex + 1);
-      return [...truncated, newState];
+      const newState = cur ? applyPlayerDiscard(cur, tile) : null;
+      return commitNewState(prev, historyIndex, newState);
     });
     setHistoryIndex(prev => prev + 1);
-  }, [historyIndex, isViewingPast, history]);
+  }, [historyIndex, isViewingPast, history, commitNewState]);
 
   const cpuTurn = useCallback(() => {
     setHistory(prev => {
       const cur = prev[historyIndex];
-      if (!cur || cur.phase !== 'cpuTurn' || cur.wall.length === 0) return prev;
-      const [drawn, ...rest] = cur.wall;
-      const cpuDiscard = drawn;
-      const cpuAfterDiscard = cur.cpuHand;
-      const newCpuDiscards = [...cur.cpuDiscards, cpuDiscard];
-
-      const rawRon = canRonConcealed(cur.playerHand, cpuDiscard, cur.playerFuro.length);
-      const furiten = isFuriten(getWaits(cur.playerHand, cur.playerFuro), cur.playerDiscards);
-      const ron = rawRon && !furiten && !cur.missedRonAfterRiichi;
-      const naki = cur.isRiichi ? [] : findNakiOptions(cur.playerHand, cpuDiscard);
-
-      let newState: State;
-      if (ron || naki.length > 0) {
-        newState = {
-          ...cur, cpuHand: cpuAfterDiscard, wall: rest, wallDrawnCount: cur.wallDrawnCount + 1,
-          cpuDiscards: newCpuDiscards, phase: 'naki',
-          lastCpuDiscard: cpuDiscard, nakiOptions: naki, ronAvailable: ron,
-        };
-      } else if (rest.length === 0) {
-        newState = { ...cur, cpuHand: cpuAfterDiscard, wall: rest, wallDrawnCount: cur.wallDrawnCount + 1, cpuDiscards: newCpuDiscards, phase: 'exhausted' };
-      } else {
-        newState = { ...cur, cpuHand: cpuAfterDiscard, wall: rest, wallDrawnCount: cur.wallDrawnCount + 1, cpuDiscards: newCpuDiscards, phase: 'playerDraw' };
-      }
-      const truncated = prev.slice(0, historyIndex + 1);
-      return [...truncated, newState];
+      const newState = cur ? applyCpuTurn(cur) : null;
+      return commitNewState(prev, historyIndex, newState);
     });
     setHistoryIndex(prev => prev + 1);
-  }, [historyIndex]);
+  }, [historyIndex, commitNewState]);
 
   useEffect(() => {
     if (isViewingPast) {
@@ -282,11 +236,9 @@ export default function App() {
         message: 'これ以降の牌譜は消去されますが、よろしいですか？',
         action: () => {
           setHistory(prev => {
-            const cur = prev[historyIndex];
-            if (!cur || cur.phase !== 'naki' || !cur.ronAvailable || !cur.lastCpuDiscard) return prev;
-            const newState = { ...cur, phase: 'win' as Phase, winType: 'ron' as const };
-            const truncated = prev.slice(0, historyIndex + 1);
-            return [...truncated, newState];
+            const c = prev[historyIndex];
+            const newState = c ? applyCallRon(c) : null;
+            return commitNewState(prev, historyIndex, newState);
           });
           setHistoryIndex(prev => prev + 1);
         },
@@ -295,13 +247,11 @@ export default function App() {
     }
     setHistory(prev => {
       const cur = prev[historyIndex];
-      if (!cur || cur.phase !== 'naki' || !cur.ronAvailable || !cur.lastCpuDiscard) return prev;
-      const newState = { ...cur, phase: 'win' as Phase, winType: 'ron' as const };
-      const truncated = prev.slice(0, historyIndex + 1);
-      return [...truncated, newState];
+      const newState = cur ? applyCallRon(cur) : null;
+      return commitNewState(prev, historyIndex, newState);
     });
     setHistoryIndex(prev => prev + 1);
-  }, [historyIndex, isViewingPast, history]);
+  }, [historyIndex, isViewingPast, history, commitNewState]);
 
   const callNaki = useCallback((option: NakiOption) => {
     if (isViewingPast) {
@@ -315,21 +265,9 @@ export default function App() {
         message: 'これ以降の牌譜は消去されますが、よろしいですか？',
         action: () => {
           setHistory(prev => {
-            const cur = prev[historyIndex];
-            if (!cur || cur.phase !== 'naki' || !cur.lastCpuDiscard) return prev;
-            const tilesToRemove = new Set(option.tiles.map(t => t.id));
-            const newHand = sortHand(cur.playerHand.filter(t => !tilesToRemove.has(t.id)));
-            const newFuro: Furo = {
-              tiles: [...option.tiles, cur.lastCpuDiscard],
-              type: option.type,
-              calledTile: cur.lastCpuDiscard,
-            };
-            const newState = {
-              ...cur, playerHand: newHand, playerFuro: [...cur.playerFuro, newFuro],
-              phase: 'playerNakiDiscard' as Phase, nakiOptions: [], ronAvailable: false,
-            };
-            const truncated = prev.slice(0, historyIndex + 1);
-            return [...truncated, newState];
+            const c = prev[historyIndex];
+            const newState = c ? applyCallNaki(c, option) : null;
+            return commitNewState(prev, historyIndex, newState);
           });
           setHistoryIndex(prev => prev + 1);
         },
@@ -338,23 +276,11 @@ export default function App() {
     }
     setHistory(prev => {
       const cur = prev[historyIndex];
-      if (!cur || cur.phase !== 'naki' || !cur.lastCpuDiscard) return prev;
-      const tilesToRemove = new Set(option.tiles.map(t => t.id));
-      const newHand = sortHand(cur.playerHand.filter(t => !tilesToRemove.has(t.id)));
-      const newFuro: Furo = {
-        tiles: [...option.tiles, cur.lastCpuDiscard],
-        type: option.type,
-        calledTile: cur.lastCpuDiscard,
-      };
-      const newState = {
-        ...cur, playerHand: newHand, playerFuro: [...cur.playerFuro, newFuro],
-        phase: 'playerNakiDiscard' as Phase, nakiOptions: [], ronAvailable: false,
-      };
-      const truncated = prev.slice(0, historyIndex + 1);
-      return [...truncated, newState];
+      const newState = cur ? applyCallNaki(cur, option) : null;
+      return commitNewState(prev, historyIndex, newState);
     });
     setHistoryIndex(prev => prev + 1);
-  }, [historyIndex, isViewingPast, history]);
+  }, [historyIndex, isViewingPast, history, commitNewState]);
 
   const playerNakiDiscard = useCallback((tile: Tile) => {
     if (isViewingPast) {
@@ -368,18 +294,9 @@ export default function App() {
         message: 'これ以降の牌譜は消去されますが、よろしいですか？',
         action: () => {
           setHistory(prev => {
-            const cur = prev[historyIndex];
-            if (!cur || cur.phase !== 'playerNakiDiscard') return prev;
-            const newHand = sortHand(cur.playerHand.filter(t => t.id !== tile.id));
-            const newDiscards = [...cur.playerDiscards, tile];
-            let newState: State;
-            if (cur.wall.length === 0) {
-              newState = { ...cur, playerHand: newHand, playerDiscards: newDiscards, phase: 'exhausted' };
-            } else {
-              newState = { ...cur, playerHand: newHand, playerDiscards: newDiscards, phase: 'cpuTurn', lastCpuDiscard: null };
-            }
-            const truncated = prev.slice(0, historyIndex + 1);
-            return [...truncated, newState];
+            const c = prev[historyIndex];
+            const newState = c ? applyPlayerNakiDiscard(c, tile) : null;
+            return commitNewState(prev, historyIndex, newState);
           });
           setHistoryIndex(prev => prev + 1);
         },
@@ -388,20 +305,11 @@ export default function App() {
     }
     setHistory(prev => {
       const cur = prev[historyIndex];
-      if (!cur || cur.phase !== 'playerNakiDiscard') return prev;
-      const newHand = sortHand(cur.playerHand.filter(t => t.id !== tile.id));
-      const newDiscards = [...cur.playerDiscards, tile];
-      let newState: State;
-      if (cur.wall.length === 0) {
-        newState = { ...cur, playerHand: newHand, playerDiscards: newDiscards, phase: 'exhausted' };
-      } else {
-        newState = { ...cur, playerHand: newHand, playerDiscards: newDiscards, phase: 'cpuTurn', lastCpuDiscard: null };
-      }
-      const truncated = prev.slice(0, historyIndex + 1);
-      return [...truncated, newState];
+      const newState = cur ? applyPlayerNakiDiscard(cur, tile) : null;
+      return commitNewState(prev, historyIndex, newState);
     });
     setHistoryIndex(prev => prev + 1);
-  }, [historyIndex, isViewingPast, history]);
+  }, [historyIndex, isViewingPast, history, commitNewState]);
 
   const passNaki = useCallback(() => {
     if (isViewingPast) {
@@ -415,17 +323,9 @@ export default function App() {
         message: 'これ以降の牌譜は消去されますが、よろしいですか？',
         action: () => {
           setHistory(prev => {
-            const cur = prev[historyIndex];
-            if (!cur || cur.phase !== 'naki') return prev;
-            const missed = cur.isRiichi && cur.ronAvailable;
-            let newState: State;
-            if (cur.wall.length === 0) {
-              newState = { ...cur, phase: 'exhausted', nakiOptions: [], ronAvailable: false, missedRonAfterRiichi: cur.missedRonAfterRiichi || missed };
-            } else {
-              newState = { ...cur, phase: 'playerDraw', nakiOptions: [], ronAvailable: false, lastCpuDiscard: null, missedRonAfterRiichi: cur.missedRonAfterRiichi || missed };
-            }
-            const truncated = prev.slice(0, historyIndex + 1);
-            return [...truncated, newState];
+            const c = prev[historyIndex];
+            const newState = c ? applyPassNaki(c) : null;
+            return commitNewState(prev, historyIndex, newState);
           });
           setHistoryIndex(prev => prev + 1);
         },
@@ -434,19 +334,11 @@ export default function App() {
     }
     setHistory(prev => {
       const cur = prev[historyIndex];
-      if (!cur || cur.phase !== 'naki') return prev;
-      const missed = cur.isRiichi && cur.ronAvailable;
-      let newState: State;
-      if (cur.wall.length === 0) {
-        newState = { ...cur, phase: 'exhausted', nakiOptions: [], ronAvailable: false, missedRonAfterRiichi: cur.missedRonAfterRiichi || missed };
-      } else {
-        newState = { ...cur, phase: 'playerDraw', nakiOptions: [], ronAvailable: false, lastCpuDiscard: null, missedRonAfterRiichi: cur.missedRonAfterRiichi || missed };
-      }
-      const truncated = prev.slice(0, historyIndex + 1);
-      return [...truncated, newState];
+      const newState = cur ? applyPassNaki(cur) : null;
+      return commitNewState(prev, historyIndex, newState);
     });
     setHistoryIndex(prev => prev + 1);
-  }, [historyIndex, isViewingPast, history]);
+  }, [historyIndex, isViewingPast, history, commitNewState]);
 
   const passTsumo = useCallback(() => {
     if (isViewingPast) {
@@ -460,11 +352,9 @@ export default function App() {
         message: 'これ以降の牌譜は消去されますが、よろしいですか？',
         action: () => {
           setHistory(prev => {
-            const cur = prev[historyIndex];
-            if (!cur || !cur.tsumoAvailable) return prev;
-            const newState: State = { ...cur, tsumoAvailable: false };
-            const truncated = prev.slice(0, historyIndex + 1);
-            return [...truncated, newState];
+            const c = prev[historyIndex];
+            const newState = c ? applyPassTsumo(c) : null;
+            return commitNewState(prev, historyIndex, newState);
           });
           setHistoryIndex(prev => prev + 1);
         },
@@ -473,13 +363,11 @@ export default function App() {
     }
     setHistory(prev => {
       const cur = prev[historyIndex];
-      if (!cur || !cur.tsumoAvailable) return prev;
-      const newState: State = { ...cur, tsumoAvailable: false };
-      const truncated = prev.slice(0, historyIndex + 1);
-      return [...truncated, newState];
+      const newState = cur ? applyPassTsumo(cur) : null;
+      return commitNewState(prev, historyIndex, newState);
     });
     setHistoryIndex(prev => prev + 1);
-  }, [historyIndex, isViewingPast, history]);
+  }, [historyIndex, isViewingPast, history, commitNewState]);
 
   const declareTsumo = useCallback(() => {
     if (isViewingPast) {
@@ -493,11 +381,9 @@ export default function App() {
         message: 'これ以降の牌譜は消去されますが、よろしいですか？',
         action: () => {
           setHistory(prev => {
-            const cur = prev[historyIndex];
-            if (!cur || !cur.tsumoAvailable) return prev;
-            const newState = { ...cur, phase: 'win' as Phase, winType: 'tsumo' as const, tsumoAvailable: false };
-            const truncated = prev.slice(0, historyIndex + 1);
-            return [...truncated, newState];
+            const c = prev[historyIndex];
+            const newState = c ? applyDeclareTsumo(c) : null;
+            return commitNewState(prev, historyIndex, newState);
           });
           setHistoryIndex(prev => prev + 1);
         },
@@ -506,123 +392,21 @@ export default function App() {
     }
     setHistory(prev => {
       const cur = prev[historyIndex];
-      if (!cur || !cur.tsumoAvailable) return prev;
-      const newState = { ...cur, phase: 'win' as Phase, winType: 'tsumo' as const, tsumoAvailable: false };
-      const truncated = prev.slice(0, historyIndex + 1);
-      return [...truncated, newState];
+      const newState = cur ? applyDeclareTsumo(cur) : null;
+      return commitNewState(prev, historyIndex, newState);
     });
     setHistoryIndex(prev => prev + 1);
-  }, [historyIndex, isViewingPast, history]);
+  }, [historyIndex, isViewingPast, history, commitNewState]);
 
   const declareKan = useCallback((option: NakiOption) => {
-    const executeKan = (cur: State): State | null => {
-      const tilesToRemove = new Set(option.tiles.map(t => t.id));
-      const isAnkan = option.type === 'ankan';
-      const isKakan = option.type === 'kakan';
-      const isDaiminkan = option.type === 'daiminkan';
-
-      let newHand: Tile[];
-      let newFuroList: Furo[];
-
-      if (isKakan) {
-        // 加槓: find the pung furo to upgrade, remove the 4th tile from hand/drawn
-        const kakanTile = option.tiles[0];
-        const targetKey = `${kakanTile.suit}-${kakanTile.value}`;
-        const pungIdx = cur.playerFuro.findIndex(f => f.type === 'pung' && sameTile(f.tiles[0], kakanTile));
-        if (pungIdx === -1) return null;
-        const pungFuro = cur.playerFuro[pungIdx];
-        const upgradedFuro: Furo = {
-          tiles: [...pungFuro.tiles, kakanTile],
-          type: 'kakan',
-          calledTile: pungFuro.calledTile,
-        };
-        newFuroList = [...cur.playerFuro];
-        newFuroList[pungIdx] = upgradedFuro;
-        // Remove the kakan tile from hand or drawn
-        if (cur.playerDrawnTile && kakanTile.id === cur.playerDrawnTile.id) {
-          newHand = cur.playerHand;
-        } else {
-          newHand = sortHand(cur.playerHand.filter(t => t.id !== kakanTile.id));
-        }
-      } else if (isAnkan) {
-        newHand = sortHand(cur.playerHand.filter(t => !tilesToRemove.has(t.id)));
-        const newFuro: Furo = {
-          tiles: option.tiles,
-          type: 'ankan',
-          calledTile: option.tiles[0],
-        };
-        newFuroList = [...cur.playerFuro, newFuro];
-      } else if (isDaiminkan) {
-        newHand = sortHand(cur.playerHand.filter(t => !tilesToRemove.has(t.id)));
-        const newFuro: Furo = {
-          tiles: [...option.tiles, cur.lastCpuDiscard!],
-          type: 'daiminkan',
-          calledTile: cur.lastCpuDiscard!,
-        };
-        newFuroList = [...cur.playerFuro, newFuro];
-      } else {
-        // Legacy 'kan' type (shouldn't occur anymore, but handle gracefully)
-        newHand = sortHand(cur.playerHand.filter(t => !tilesToRemove.has(t.id)));
-        const newFuro: Furo = {
-          tiles: option.tiles,
-          type: 'kan',
-          calledTile: cur.lastCpuDiscard ?? option.tiles[0],
-        };
-        newFuroList = [...cur.playerFuro, newFuro];
-      }
-
-      // 嶺上ツモ: take from wanpai[0] (rinshan tiles)
-      const [rinshan, ...restWanpai] = cur.wanpai;
-      if (!rinshan) return null;
-
-      // 王牌補充: move last tile from wall to end of wanpai
-      let newWall = cur.wall;
-      let newWanpai = restWanpai;
-      if (cur.wall.length > 0) {
-        const supplement = cur.wall[cur.wall.length - 1];
-        newWall = cur.wall.slice(0, -1);
-        // 1. 嶺上牌（index 0）を1枚消費した残りの嶺上牌3枚（index 0..2）
-        const remainingRinshan = restWanpai.slice(0, 3);
-        // 2. ドラ・裏ドラ群（index 3 以降の10枚）
-        const doraAndUraDora = restWanpai.slice(3);        
-        // 3. 嶺上牌の最後尾（3枚目とドラ表示牌の間）に supplement を挟み込んで14枚に戻す
-        newWanpai = [...remainingRinshan, supplement, ...doraAndUraDora];
-      }
-
-      // カンドラ開帳
-      const newDoraCount = cur.doraCount + 1;
-
-      // ツモアガリ判定
-      const won = checkWinConcealed([...newHand, rinshan], newFuroList.length);
-
-      const newState: State = {
-        ...cur,
-        playerHand: newHand,
-        playerFuro: newFuroList,
-        playerDrawnTile: rinshan,
-        wall: newWall,
-        wanpai: newWanpai,
-        doraCount: newDoraCount,
-        phase: 'playerDiscard',
-        tsumoAvailable: won,
-        nakiOptions: [],
-        ronAvailable: false,
-        lastCpuDiscard: null,
-      };
-      return newState;
-    };
-
     if (isViewingPast) {
       setPendingAction({
         message: 'これ以降の牌譜は消去されますが、よろしいですか？',
         action: () => {
           setHistory(prev => {
             const cur = prev[historyIndex];
-            if (!cur) return prev;
-            const newState = executeKan(cur);
-            if (!newState) return prev;
-            const truncated = prev.slice(0, historyIndex + 1);
-            return [...truncated, newState];
+            const newState = cur ? applyDeclareKan(cur, option) : null;
+            return commitNewState(prev, historyIndex, newState);
           });
           setHistoryIndex(prev => prev + 1);
         },
@@ -631,14 +415,11 @@ export default function App() {
     }
     setHistory(prev => {
       const cur = prev[historyIndex];
-      if (!cur) return prev;
-      const newState = executeKan(cur);
-      if (!newState) return prev;
-      const truncated = prev.slice(0, historyIndex + 1);
-      return [...truncated, newState];
+      const newState = cur ? applyDeclareKan(cur, option) : null;
+      return commitNewState(prev, historyIndex, newState);
     });
     setHistoryIndex(prev => prev + 1);
-  }, [historyIndex, isViewingPast]);
+  }, [historyIndex, isViewingPast, commitNewState]);
 
   const declareRiichi = useCallback(() => {
     if (isViewingPast) {
@@ -646,11 +427,9 @@ export default function App() {
         message: 'これ以降の牌譜は消去されますが、よろしいですか？',
         action: () => {
           setHistory(prev => {
-            const cur = prev[historyIndex];
-            if (!cur || cur.phase !== 'playerDiscard') return prev;
-            const newState: State = { ...cur, phase: 'riichiSelect' as Phase };
-            const truncated = prev.slice(0, historyIndex + 1);
-            return [...truncated, newState];
+            const c = prev[historyIndex];
+            const newState = c ? applyDeclareRiichi(c) : null;
+            return commitNewState(prev, historyIndex, newState);
           });
           setHistoryIndex(prev => prev + 1);
         },
@@ -659,13 +438,11 @@ export default function App() {
     }
     setHistory(prev => {
       const cur = prev[historyIndex];
-      if (!cur || cur.phase !== 'playerDiscard') return prev;
-      const newState: State = { ...cur, phase: 'riichiSelect' as Phase };
-      const truncated = prev.slice(0, historyIndex + 1);
-      return [...truncated, newState];
+      const newState = cur ? applyDeclareRiichi(cur) : null;
+      return commitNewState(prev, historyIndex, newState);
     });
     setHistoryIndex(prev => prev + 1);
-  }, [historyIndex, isViewingPast]);
+  }, [historyIndex, isViewingPast, commitNewState]);
 
   const riichiDiscard = useCallback((tile: Tile) => {
     if (isViewingPast) {
@@ -679,24 +456,9 @@ export default function App() {
         message: 'これ以降の牌譜は消去されますが、よろしいですか？',
         action: () => {
           setHistory(prev => {
-            const cur = prev[historyIndex];
-            if (!cur || cur.phase !== 'riichiSelect' || !cur.playerDrawnTile) return prev;
-            let newHand: Tile[];
-            if (tile.id === cur.playerDrawnTile.id) {
-              newHand = cur.playerHand;
-            } else {
-              newHand = sortHand([...cur.playerHand.filter(t => t.id !== tile.id), cur.playerDrawnTile]);
-            }
-            const newDiscards = [...cur.playerDiscards, tile];
-            const newTurnCount = cur.turnCount + 1;
-            let newState: State;
-            if (cur.wall.length === 0 || newTurnCount >= MAX_DRAWS) {
-              newState = { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'exhausted', turnCount: newTurnCount, isRiichi: true };
-            } else {
-              newState = { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'cpuTurn', turnCount: newTurnCount, isRiichi: true };
-            }
-            const truncated = prev.slice(0, historyIndex + 1);
-            return [...truncated, newState];
+            const c = prev[historyIndex];
+            const newState = c ? applyRiichiDiscard(c, tile) : null;
+            return commitNewState(prev, historyIndex, newState);
           });
           setHistoryIndex(prev => prev + 1);
         },
@@ -705,26 +467,11 @@ export default function App() {
     }
     setHistory(prev => {
       const cur = prev[historyIndex];
-      if (!cur || cur.phase !== 'riichiSelect' || !cur.playerDrawnTile) return prev;
-      let newHand: Tile[];
-      if (tile.id === cur.playerDrawnTile.id) {
-        newHand = cur.playerHand;
-      } else {
-        newHand = sortHand([...cur.playerHand.filter(t => t.id !== tile.id), cur.playerDrawnTile]);
-      }
-      const newDiscards = [...cur.playerDiscards, tile];
-      const newTurnCount = cur.turnCount + 1;
-      let newState: State;
-      if (cur.wall.length === 0 || newTurnCount >= MAX_DRAWS) {
-        newState = { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'exhausted', turnCount: newTurnCount, isRiichi: true };
-      } else {
-        newState = { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'cpuTurn', turnCount: newTurnCount, isRiichi: true };
-      }
-      const truncated = prev.slice(0, historyIndex + 1);
-      return [...truncated, newState];
+      const newState = cur ? applyRiichiDiscard(cur, tile) : null;
+      return commitNewState(prev, historyIndex, newState);
     });
     setHistoryIndex(prev => prev + 1);
-  }, [historyIndex, isViewingPast, history]);
+  }, [historyIndex, isViewingPast, history, commitNewState]);
 
   // "待った" — undo last move or commit rollback from past view
   const matta = useCallback(() => {
@@ -807,7 +554,7 @@ export default function App() {
         isViewingPast={isViewingPast}
         onDeclareKan={declareKan}
       />
-          
+
       <HistoryControls
         canUndo={canUndo}
         canStepForward={historyIndex < history.length - 1}
@@ -873,8 +620,8 @@ export default function App() {
           wanpai={wanpai}
           onClose={() => setShowWall(false)}
         />
-      )}          
-      
+      )}
+
       {pendingAction && (
         <ConfirmPopup
           message={pendingAction.message}
@@ -908,5 +655,3 @@ export default function App() {
     </div>
   );
 }
-
-
