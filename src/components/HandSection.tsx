@@ -119,7 +119,6 @@ export default function HandSection({
             <TileCard
               tile={playerDrawnTile}
               size="lg"
-              highlighted
               dora={isDora(playerDrawnTile)}
               className={`w-full h-full object-contain ${phase === 'riichiSelect' && !riichiValidTiles.has(playerDrawnTile.id) ? 'opacity-30 grayscale pointer-events-none' : ''}`}
               onClick={
