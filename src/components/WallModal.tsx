@@ -31,14 +31,17 @@ export default function WallModal({ wall, fullWall, wallDrawnCount, doraCount, w
     if (idx >= fullWall.length - supplementCount) return false;
   
     const offset = idx - wallDrawnCount;
-    const playerDrawIndex = nextDrawIsPlayer
-      ? Math.floor(offset / 2)
-      : Math.floor((offset - 1) / 2);
-  
-    return (
-      playerDrawIndex >= 0 &&
-      playerDrawIndex < futurePlayerDrawCount
-    );
+    
+    // プレイヤーがツモる位置だけを対象にする
+    const isPlayerDrawPosition = nextDrawIsPlayer
+      ? offset % 2 === 0
+      : offset % 2 === 1;
+    
+    if (!isPlayerDrawPosition) return false;
+    
+    const playerDrawIndex = Math.floor(offset / 2);
+    
+    return playerDrawIndex < futurePlayerDrawCount;
   };
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={onClose}>
