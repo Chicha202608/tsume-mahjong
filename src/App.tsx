@@ -1,11 +1,21 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Tile, Phase, Furo } from '@/types';
 import { initGame, createDeck, shuffle, sortHand, checkWinConcealed, canRonConcealed, findNakiOptions, findAnkanOptions, findKakanOptions, isMenzen as isMenzenLogic, canRiichi as canRiichiLogic, validRiichiDiscards, sameTile, getWaits, isFuriten, getDoraTileKeys, NakiOption } from '@/gameLogic';
-import TileCard from '@/components/TileCard';
-import { RefreshCw, Trophy, Hand, X, Layers, Undo2, Redo2, Undo, Zap, Bug } from 'lucide-react';
+import StatusBar from '@/components/StatusBar';
+import GameOverOverlay from '@/components/GameOverOverlay';
+import ConfirmPopup from '@/components/ConfirmPopup';
+import HistoryControls from '@/components/HistoryControls';
+import DebugButtons from '@/components/DebugButtons';
+import Header from '@/components/Header';
+import DoraIndicator from '@/components/DoraIndicator';
+import CpuSection from '@/components/CpuSection';
+import PlayerDiscards from '@/components/PlayerDiscards';
+import PlayerFuro from '@/components/PlayerFuro';
+import NakiRonButtons from '@/components/NakiRonButtons';
+import HandSection from '@/components/HandSection';
+import WallModal from '@/components/WallModal';
 
 const MAX_DRAWS = 18;
-const WANPAI_COUNT = 14;
 
 interface State {
   playerHand: Tile[];
@@ -817,553 +827,106 @@ export default function App() {
   const kakanOptions = playerDrawnTile ? findKakanOptions(playerHand, playerDrawnTile, playerFuro) : [];
 
   const isMenzen = isMenzenLogic(playerFuro);
-  const canRiichi = !isRiichi && isMenzen && phase === 'playerDiscard' && playerDrawnTile && canRiichiLogic(playerHand, playerDrawnTile, playerFuro);
+  const canRiichi = !isRiichi && isMenzen && phase === 'playerDiscard' && !!playerDrawnTile && canRiichiLogic(playerHand, playerDrawnTile!, playerFuro);
   const riichiValidTiles = phase === 'riichiSelect' && playerDrawnTile ? validRiichiDiscards(playerHand, playerDrawnTile, playerFuro) : new Set<string>();
   const doraKeys = getDoraTileKeys(wanpai, doraCount);
   const isDora = (t: Tile) => doraKeys.has(`${t.suit}-${t.value}`);
 
   return (
     <div className="min-h-screen bg-[#1a2e1a] -col" style={{ fontFamily: "'Segoe UI', system-ui', sans-serif" }}>
-      {/* Header */}
-      <header className="flex items-center justify-between px-6 py-3 bg-[#0f1f0f] border-b border-[#2d4a2d]">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center">
-            <span className="text-white font-black text-sm">麻</span>
-          </div>
-          <h1 className="text-white font-bold text-xl tracking-wide">詰め麻雀</h1>
-        </div>
-        <div className="flex items-center gap-3 text-sm text-green-300">
-          {isViewingPast && (
-            <span className="text-amber-400 text-xs font-semibold">
-              牌譜 {historyIndex + 1}/{history.length}
-            </span>
-          )}
-          <span>巡目 <span className="text-white font-bold">{turnCount}</span>/{MAX_DRAWS}</span>
-          <span>山 <span className="text-white font-bold">{wall.length}</span>枚</span>
-          <button
-            onClick={restart}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-green-700 hover:bg-green-600 text-white text-sm font-medium transition-colors"
-          >
-            <RefreshCw size={14} />
-            新局
-          </button>
-        </div>
-      </header>
+      <Header
+        turnCount={turnCount}
+        maxDraws={MAX_DRAWS}
+        wallCount={wall.length}
+        isViewingPast={isViewingPast}
+        historyIndex={historyIndex}
+        historyLength={history.length}
+        onRestart={restart}
+      />
 
-      {/* Dora indicator area */}
-      <div className="flex items-center gap-3 px-4 py-2 bg-[#0a1a0a] border-b border-[#2d4a2d]">
-        <span className="text-red-400 text-xs font-bold tracking-wider">ドラ表示</span>
-        <div className="flex gap-0.5">
-          {Array.from({ length: 5 }).map((_, i) => {
-            const isRevealed = i < doraCount;
-            return (
-              <TileCard
-                key={i}
-                tile={wanpai[4 + i] ?? { id: `dummy-${i}`, suit: 'man', value: 1 }}
-                size="sm"
-                faceDown={!isRevealed}
-              />
-            );
-          })}
-        </div>
-        {((ankanOptions.length > 0 || kakanOptions.length > 0) && phase === 'playerDiscard' && !isViewingPast) && (
-          <div className="flex items-center gap-2 ml-4">
-            {(ankanOptions.length > 0 || kakanOptions.length > 0) && (
-              <span className="text-blue-400 text-xs font-semibold">カン可能:</span>
-            )}
-            {ankanOptions.map((opt, idx) => (
-              <button
-                key={`ankan-${idx}`}
-                onClick={() => declareKan(opt)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-600 active:scale-95 text-white font-bold text-xs transition-all shadow-md"
-              >
-                <span>暗カン</span>
-                <span className="flex gap-0.5 ml-1 bg-[#f8f4e8] rounded p-0.5">
-                  {opt.tiles.map(t => (
-                    <MiniTile key={t.id} tile={t} />
-                  ))}
-                </span>
-              </button>
-            ))}
-            {kakanOptions.map((opt, idx) => (
-              <button
-                key={`kakan-${idx}`}
-                onClick={() => declareKan(opt)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 active:scale-95 text-white font-bold text-xs transition-all shadow-md"
-              >
-                <span>加槓</span>
-                <span className="flex gap-0.5 ml-1 bg-[#f8f4e8] rounded p-0.5">
-                  <MiniTile key={opt.tiles[0].id} tile={opt.tiles[0]} />
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      <DoraIndicator
+        wanpai={wanpai}
+        doraCount={doraCount}
+        ankanOptions={ankanOptions}
+        kakanOptions={kakanOptions}
+        phase={phase}
+        isViewingPast={isViewingPast}
+        onDeclareKan={declareKan}
+      />
           
-      {/* History controls */}
-      <div className="flex items-center justify-center gap-2 px-4 py-2 bg-[#0f1f0f] border-b border-[#2d4a2d]">
-        <button
-          onClick={matta}
-          disabled={!canUndo}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-orange-700 hover:bg-orange-600 active:scale-95 text-white text-sm font-bold transition-all shadow-md disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          <Undo size={14} />
-          待った
-        </button>
-        <button
-          onClick={stepBack}
-          disabled={!canUndo}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gray-700 hover:bg-gray-600 active:scale-95 text-white text-sm font-bold transition-all shadow-md disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          <Undo2 size={14} />
-          1手戻る
-        </button>
-        <button
-          onClick={stepForward}
-          disabled={historyIndex >= history.length - 1}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gray-700 hover:bg-gray-600 active:scale-95 text-white text-sm font-bold transition-all shadow-md disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          <Redo2 size={14} />
-          1手進む
-        </button>
-      </div>
-      {/* Debug test buttons */}
-      <div className="flex items-center justify-center gap-2 px-4 py-1.5 bg-[#0a1a0a] border-b border-[#2d4a2d]">
-        <span className="text-gray-500 text-xs font-semibold flex items-center gap-1">
-          <Bug size={12} />
-          テスト:
-        </span>
-        <button
-          onClick={() => setupTestState('ankan')}
-          className="px-3 py-1 rounded-md bg-gray-800 hover:bg-gray-700 active:scale-95 text-gray-300 text-xs font-medium transition-all"
-        >
-          暗カン準備
-        </button>
-        <button
-          onClick={() => setupTestState('kakan')}
-          className="px-3 py-1 rounded-md bg-gray-800 hover:bg-gray-700 active:scale-95 text-gray-300 text-xs font-medium transition-all"
-        >
-          加槓準備
-        </button>
-        <button
-          onClick={() => setupTestState('daiminkan')}
-          className="px-3 py-1 rounded-md bg-gray-800 hover:bg-gray-700 active:scale-95 text-gray-300 text-xs font-medium transition-all"
-        >
-          大明槓準備
-        </button>
-      </div>
+      <HistoryControls
+        canUndo={canUndo}
+        canStepForward={historyIndex < history.length - 1}
+        onMatta={matta}
+        onStepBack={stepBack}
+        onStepForward={stepForward}
+      />
+      <DebugButtons onSetupTest={setupTestState} />
 
       <div className="-col flex-1 gap-0 overflow-hidden">
-        {/* CPU section */}
-        <section className="px-4 py-3 bg-[#152615] border-b border-[#2d4a2d]">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-green-400 text-sm font-semibold tracking-widest uppercase">
-              対面 (CPU)
-            </h2>
-            <span className="text-green-600 text-xs">{cpuHand.length}枚</span>
-          </div>
-          <div className="flex flex-nowrap justify-start items-center gap-0.5 sm:gap-1 w-full max-w-full overflow-hidden px-2">
-            {cpuHand.map((tile, idx) => (
-              <div key={tile.id ?? idx} className="flex-1 min-w-0 max-w-[40px] flex justify-center aspect-[3/4]">
-                <TileCard 
-                  tile={tile} 
-                  size="sm" 
-                  faceDown 
-                  className="w-full h-full object-contain"
-                />
-              </div>
-            ))}
-          </div>
-          {/* CPU furo */}
-          {state.cpuFuro.length > 0 && (
-            <div className="mt-2 -wrap gap-3">
-              {state.cpuFuro.map((f, i) => (
-                <div key={i} className="flex gap-0.5 bg-[#0e1e0e] rounded p-1 items-center">
-                  {f.tiles.map(t => (
-                    <TileCard key={t.id} tile={t} size="xs" rotated={t.id === f.calledTile.id} />
-                  ))}
-                </div>
-              ))}
-            </div>
-          )}
-          {cpuDiscards.length > 0 && (
-            <div className="mt-2">
-              <span className="text-green-600 text-xs">捨て牌: </span>
-              <div className="inline--wrap gap-0.5 mt-1">
-                {cpuDiscards.map(tile => (
-                  <TileCard
-                    key={tile.id}
-                    tile={tile}
-                    size="xs"
-                    className={tile.id === lastCpuDiscard?.id ? 'ring-2 ring-red-400' : ''}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </section>
+        <CpuSection
+          cpuHand={cpuHand}
+          cpuFuro={state.cpuFuro}
+          cpuDiscards={cpuDiscards}
+          lastCpuDiscard={lastCpuDiscard}
+        />
 
-        {/* Player discards */}
-        {playerDiscards.length > 0 && (
-          <section className="px-4 py-2 bg-[#172917] border-b border-[#2d4a2d]">
-            <span className="text-green-600 text-xs">自分の捨て牌: </span>
-            <div className="inline--wrap gap-0.5 mt-1">
-              {playerDiscards.map(tile => (
-                <TileCard key={tile.id} tile={tile} size="xs" dora={isDora(tile)} />
-              ))}
-            </div>
-          </section>
-        )}
+        <PlayerDiscards playerDiscards={playerDiscards} isDora={isDora} />
 
-        {/* Player furo (副露エリア) */}
-        {playerFuro.length > 0 && (
-          <section className="px-4 py-2 bg-[#1e3a1e] border-b border-[#2d4a2d]">
-            <span className="text-amber-400 text-xs font-semibold">副露（晒し牌）: </span>
-            <div className="-wrap gap-3 mt-1">
-              {playerFuro.map((f, i) => {
-                if (f.type === 'ankan') {
-                  return (
-                    <div key={i} className="flex gap-0.5 bg-[#0e1e0e] rounded p-1 items-end">
-                      {f.tiles.map((t, idx) => (
-                        <TileCard
-                          key={t.id}
-                          tile={t}
-                          size="sm"
-                          dora={isDora(t)}
-                          faceDown={idx === 0 || idx === 3}
-                        />
-                      ))}
-                    </div>
-                  );
-                }
-                if (f.type === 'kakan') {
-                  const extraTile = f.tiles[3];
-                  return (
-                    <div key={i} className="flex gap-0.5 bg-[#0e1e0e] rounded p-1 items-end">
-                      {f.tiles.slice(0, 3).map(t => {
-                        const isCalled = t.id === f.calledTile.id;
-                        if (isCalled) {
-                          return (
-                            <div key={t.id} className="-col gap-0">
-                              <TileCard tile={extraTile} size="sm" rotated dora={isDora(extraTile)} />
-                              <TileCard tile={t} size="sm" rotated dora={isDora(t)} />
-                            </div>
-                          );
-                        }
-                        return <TileCard key={t.id} tile={t} size="sm" dora={isDora(t)} />;
-                      })}
-                    </div>
-                  );
-                }
-                return (
-                  <div key={i} className="flex gap-0.5 bg-[#0e1e0e] rounded p-1 items-center">
-                    {f.tiles.map(t => (
-                      <TileCard
-                        key={t.id}
-                        tile={t}
-                        size="sm"
-                        dora={isDora(t)}
-                        rotated={t.id === f.calledTile.id}
-                      />
-                    ))}
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
+        <PlayerFuro playerFuro={playerFuro} isDora={isDora} />
 
-        {/* Naki / Ron buttons */}
-        {phase === 'naki' && lastCpuDiscard && (
-          <div className="px-4 py-3 bg-[#1e3a1e] border-b border-[#2d4a2d] flex items-center justify-center gap-3 flex-wrap">
-            {ronAvailable && (
-              <button
-                onClick={callRon}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 active:scale-95 text-white font-bold text-base transition-all shadow-lg animate-pulse"
-              >
-                <Trophy size={18} />
-                ロン
-              </button>
-            )}
-            {nakiOptions.map((opt, idx) => (
-              <button
-                key={idx}
-                onClick={() => (opt.type === 'daiminkan' || opt.type === 'kan') ? declareKan(opt) : callNaki(opt)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg ${(opt.type === 'daiminkan' || opt.type === 'kan') ? 'bg-purple-600 hover:bg-purple-500' : 'bg-blue-600 hover:bg-blue-500'} active:scale-95 text-white font-bold text-sm transition-all shadow-lg`}
-              >
-                <Hand size={16} />
-                <span>{opt.type === 'pung' ? 'ポン' : (opt.type === 'daiminkan' || opt.type === 'kan') ? 'カン' : 'チー'}</span>
-                <span className="flex gap-0.5 ml-1 bg-[#f8f4e8] rounded p-0.5">
-                  {[...opt.tiles, opt.calledTile].sort((a, b) =>
-                    a.suit === b.suit ? a.value - b.value : 0
-                  ).map(t => (
-                    <MiniTile key={t.id} tile={t} />
-                  ))}
-                </span>
-              </button>
-            ))}
-            <button
-              onClick={passNaki}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gray-600 hover:bg-gray-500 active:scale-95 text-white font-bold text-base transition-all shadow-lg"
-            >
-              <X size={18} />
-              キャンセル
-            </button>
-          </div>
-        )}
+        <NakiRonButtons
+          phase={phase}
+          lastCpuDiscard={lastCpuDiscard}
+          ronAvailable={ronAvailable}
+          nakiOptions={nakiOptions}
+          onRon={callRon}
+          onNaki={callNaki}
+          onDeclareKan={declareKan}
+          onPassNaki={passNaki}
+        />
 
         {/* Status bar */}
         <div className="px-4 py-2 bg-[#1a2e1a]">
           <StatusBar phase={phase} wallCount={wall.length} isViewingPast={isViewingPast} tsumoAvailable={tsumoAvailable} />
         </div>
 
-        {/* Hand section */}
-        <section className="flex-1 -col items-center justify-center px-4 py-6">
-          <div className="flex items-center gap-3 mb-4 flex-wrap justify-center">
-            <h2 className="text-green-400 text-sm font-semibold tracking-widest uppercase">
-              手牌 — {playerHand.length}枚
-              {playerDrawnTile && <span className="text-amber-400"> + ツモ1枚</span>}
-            </h2>
-            <button
-              onClick={() => setShowWall(true)}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 active:scale-95 text-white font-bold text-sm transition-all shadow-md"
-            >
-              <Layers size={14} />
-              牌山を確認
-            </button>
-            {canTsumo && (
-              <button
-                onClick={declareTsumo}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-yellow-500 hover:bg-yellow-400 active:scale-95 text-yellow-900 font-bold text-sm transition-all shadow-md animate-pulse"
-              >
-                <Trophy size={14} />
-                ツモ
-              </button>
-            )}
-            {canTsumo && (
-              <button
-                onClick={passTsumo}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-gray-600 hover:bg-gray-500 active:scale-95 text-white font-bold text-sm transition-all shadow-md"
-              >
-                <X size={14} />
-                キャンセル
-              </button>
-            )}
-            {canRiichi && !isViewingPast && (
-              <button
-                onClick={declareRiichi}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold text-sm transition-all shadow-md"
-              >
-                <Zap size={14} />
-                リーチ
-              </button>
-            )}
-            {phase === 'riichiSelect' && !isViewingPast && (
-              <span className="text-blue-400 font-normal normal-case text-xs animate-pulse">
-                リーチ — 宣言牌（捨て牌）をクリック
-              </span>
-            )}
-            {phase === 'playerDiscard' && !canTsumo && !isViewingPast && (
-              <span className="text-amber-400 font-normal normal-case text-xs animate-pulse">
-                捨てる牌をクリック
-              </span>
-            )}
-            {canTsumo && !isViewingPast && (
-              <span className="text-yellow-400 font-normal normal-case text-xs animate-pulse">
-                ツモ和了可能 — ツモ or キャンセル
-              </span>
-            )}
-            {phase === 'playerNakiDiscard' && !isViewingPast && (
-              <span className="text-blue-400 font-normal normal-case text-xs animate-pulse">
-                鳴きました — 捨てる牌をクリック
-              </span>
-            )}
-            {isViewingPast && (phase === 'playerDiscard' || phase === 'playerNakiDiscard') && (
-              <span className="text-amber-400 font-normal normal-case text-xs">
-                牌譜閲覧中 — 牌をクリックで新しく打ち直せます
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-nowrap justify-center items-end gap-0.5 sm:gap-1 w-full max-w-full overflow-hidden px-2">
-            {playerHand.map(tile => {
-              const isRiichiInvalid = phase === 'riichiSelect' && !riichiValidTiles.has(tile.id);
-              return (
-                <div key={tile.id} className="flex-1 min-w-0 max-w-[56px] flex justify-center aspect-[3/4]">
-                  <TileCard
-                    tile={tile}
-                    size="lg"
-                    dora={isDora(tile)}
-                    className={`w-full h-full object-contain ${isRiichiInvalid ? 'opacity-30 grayscale pointer-events-none' : ''}`}
-                    onClick={
-                      phase === 'playerDiscard' ? () => playerDiscard(tile) :
-                      phase === 'playerNakiDiscard' ? () => playerNakiDiscard(tile) :
-                      phase === 'riichiSelect' && !isRiichiInvalid ? () => riichiDiscard(tile) :
-                      undefined
-                    }
-                  />
-                </div>
-              );
-            })}
-            {playerDrawnTile && (
-              <div className="ml-2 sm:ml-4 flex-1 min-w-0 max-w-[56px] flex justify-center aspect-[3/4] shrink-0">
-                <TileCard
-                  tile={playerDrawnTile}
-                  size="lg"
-                  highlighted
-                  dora={isDora(playerDrawnTile)}
-                  className={`w-full h-full object-contain ${phase === 'riichiSelect' && !riichiValidTiles.has(playerDrawnTile.id) ? 'opacity-30 grayscale pointer-events-none' : ''}`}
-                  onClick={
-                    phase === 'playerDiscard' ? () => playerDiscard(playerDrawnTile) :
-                    phase === 'playerNakiDiscard' ? () => playerNakiDiscard(playerDrawnTile) :
-                    phase === 'riichiSelect' && riichiValidTiles.has(playerDrawnTile.id) ? () => riichiDiscard(playerDrawnTile) :
-                    undefined
-                  }
-                />
-              </div>
-            )}
-          </div>
-        </section>
+        <HandSection
+          playerHand={playerHand}
+          playerDrawnTile={playerDrawnTile}
+          phase={phase}
+          isViewingPast={isViewingPast}
+          canTsumo={canTsumo}
+          canRiichi={canRiichi}
+          riichiValidTiles={riichiValidTiles}
+          isDora={isDora}
+          onDiscard={playerDiscard}
+          onNakiDiscard={playerNakiDiscard}
+          onRiichiDiscard={riichiDiscard}
+          onDeclareTsumo={declareTsumo}
+          onPassTsumo={passTsumo}
+          onDeclareRiichi={declareRiichi}
+          onShowWall={() => setShowWall(true)}
+        />
       </div>
 
-      {/* Wall modal — shows full wall and wanpai */}
       {showWall && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={() => setShowWall(false)}>
-          <div className="bg-[#152615] border border-green-700 rounded-2xl p-6 max-w-4xl w-full mx-4 shadow-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white font-bold text-lg flex items-center gap-2">
-                <Layers size={20} className="text-amber-400" />
-                ツモ山 — 残り{wall.length}枚 / 全{fullWall.length}枚
-              </h2>
-              <button
-                onClick={() => setShowWall(false)}
-                className="text-green-400 hover:text-white transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            {/* Live wall */}
-            <div className="rounded-lg p-3 bg-[#0e1e0e]">
-              {fullWall.length === 0 ? (
-                <p className="text-green-700 text-sm text-center py-8">山がありません</p>
-              ) : (
-                <div className="flex flex-wrap gap-1">
-                  {fullWall.map((tile, idx) => {
-                    const isDrawn = idx < wallDrawnCount;
-                    const supplementCount = Math.max(doraCount - 1, 0);
-                    const isSupplement = idx >= fullWall.length - supplementCount;
-                    const dimmed = isDrawn || isSupplement;
-                    return (
-                      <div key={tile.id} className="flex flex-col items-center gap-1">
-                        <span className={`text-[10px] ${dimmed ? 'text-gray-600' : 'text-green-600'}`}>
-                          {idx + 1}
-                        </span>
-                        <TileCard
-                          tile={tile}
-                          size="sm"
-                          className={dimmed ? 'opacity-30 grayscale' : ''}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-{/* Wanpai section — below the live wall, simple flex-wrap, no gap */}
-            <div className="mt-4 rounded-lg p-3 bg-[#0e1e0e]">
-              <h3 className="text-amber-400 text-sm font-bold mb-3 flex items-center gap-2">
-                <Layers size={14} />
-                王牌（{WANPAI_COUNT}枚）
-              </h3>
-              {(() => {
-                type WanpaiSlot = { tile: Tile | undefined; label: string; labelColor: string };
-                const slots: WanpaiSlot[] = [];
-                
-                const wanpaiTiles = wanpai || [];
-                const currentKanCount = Math.min(Math.max(doraCount - 1, 0), 4);
-                const remainingRinshanCount = 4 - currentKanCount;
-
-                // 1. 左端：残っている嶺上牌 (wanpai[0 .. remainingRinshanCount-1])
-                for (let i = 0; i < remainingRinshanCount; i++) {
-                  slots.push({
-                    tile: wanpaiTiles[i],
-                    label: `嶺上牌${i + 1}`,
-                    labelColor: 'text-blue-400',
-                  });
-                }
-
-                // 2. 中央：ドラ・裏ドラ表示牌群 (wanpai[4..13] 固定)
-                slots.push({ tile: wanpaiTiles[4], label: '表ドラ', labelColor: 'text-red-400 font-bold' });
-                slots.push({ tile: wanpaiTiles[9], label: '裏ドラ', labelColor: 'text-purple-400 font-bold' });
-
-                slots.push({ tile: wanpaiTiles[5], label: '槓ドラ1', labelColor: 'text-red-400 font-bold' });
-                slots.push({ tile: wanpaiTiles[10], label: '槓裏ドラ1', labelColor: 'text-purple-400 font-bold' });
-
-                slots.push({ tile: wanpaiTiles[6], label: '槓ドラ2', labelColor: 'text-red-400 font-bold' });
-                slots.push({ tile: wanpaiTiles[11], label: '槓裏ドラ2', labelColor: 'text-purple-400 font-bold' });
-
-                slots.push({ tile: wanpaiTiles[7], label: '槓ドラ3', labelColor: 'text-red-400 font-bold' });
-                slots.push({ tile: wanpaiTiles[12], label: '槓裏ドラ3', labelColor: 'text-purple-400 font-bold' });
-
-                slots.push({ tile: wanpaiTiles[8], label: '槓ドラ4', labelColor: 'text-red-400 font-bold' });
-                slots.push({ tile: wanpaiTiles[13], label: '槓裏ドラ4', labelColor: 'text-purple-400 font-bold' });
-
-                // 3. 右端：王牌へ補填された牌 (wanpai[remainingRinshanCount .. 3])
-                for (let i = remainingRinshanCount; i < 4; i++) {
-                  slots.push({
-                    tile: wanpaiTiles[i],
-                    label: '王牌補填',
-                    labelColor: 'text-slate-500',
-                  });
-                }
-
-                return (
-                  <div className="flex flex-wrap gap-0">
-                    {slots.map((slot, i) => (
-                      <div key={i} className="flex flex-col items-center gap-0.5">
-                        <span className={`text-[8px] ${slot.labelColor} whitespace-nowrap`}>{slot.label}</span>
-                        {slot.tile ? (
-                          <TileCard tile={slot.tile} size="sm" />
-                        ) : (
-                          <div className="w-10 h-14 rounded-md border border-[#3a5a3a] bg-[#1a3a1a]" />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
-            </div>
-          </div>   
-        </div>    
+        <WallModal
+          wall={wall}
+          fullWall={fullWall}
+          wallDrawnCount={wallDrawnCount}
+          doraCount={doraCount}
+          wanpai={wanpai}
+          onClose={() => setShowWall(false)}
+        />
       )}          
       
-      {/* Confirm overwrite popup */}
       {pendingAction && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60]">
-          <div className="bg-[#1e2a1e] border border-amber-500 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center gap-4">
-            <h2 className="text-amber-300 font-bold text-lg text-center">確認</h2>
-            <p className="text-green-200 text-sm text-center">
-              {pendingAction.message}
-            </p>
-            <div className="flex gap-3 mt-2">
-              <button
-                onClick={confirmPendingAction}
-                className="px-6 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 active:scale-95 text-white font-bold text-sm transition-all shadow-md"
-              >
-                OK
-              </button>
-              <button
-                onClick={cancelPendingAction}
-                className="px-6 py-2.5 rounded-lg bg-gray-600 hover:bg-gray-500 active:scale-95 text-white font-bold text-sm transition-all shadow-md"
-              >
-                キャンセル
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmPopup
+          message={pendingAction.message}
+          onConfirm={confirmPendingAction}
+          onCancel={cancelPendingAction}
+        />
       )}
 
       {/* Game over overlays */}
@@ -1392,80 +955,4 @@ export default function App() {
   );
 }
 
-function MiniTile({ tile }: { tile: Tile }) {
-  const label = (() => {
-    switch (tile.suit) {
-      case 'man': return `${tile.value}m`;
-      case 'pin': return `${tile.value}p`;
-      case 'sou': return `${tile.value}s`;
-      case 'wind': return ['東', '南', '西', '北'][tile.value - 1];
-      case 'dragon': return ['白', '發', '中'][tile.value - 1];
-    }
-  })();
-  return (
-    <span className="inline-flex items-center justify-center w-6 h-8 text-[10px] font-bold text-[#1a237e] bg-[#f8f4e8] rounded-sm border border-[#d0c8b0]">
-      {label}
-    </span>
-  );
-}
 
-function StatusBar({ phase, wallCount, isViewingPast, tsumoAvailable }: { phase: Phase; wallCount: number; isViewingPast: boolean; tsumoAvailable: boolean }) {
-  if (isViewingPast) {
-    return <p className="text-sm text-center text-amber-300">牌譜閲覧中</p>;
-  }
-  if (tsumoAvailable) {
-    return <p className="text-sm text-center text-yellow-300 animate-pulse">ツモ和了可能 — ツモ or キャンセル</p>;
-  }
-  const messages: Record<string, string> = {
-    playerDraw: wallCount > 0 ? 'ツモ中...' : '山牌がなくなりました',
-    playerDiscard: '手牌から1枚選んで捨ててください',
-    cpuTurn: 'CPUが思考中...',
-    naki: 'CPUの捨て牌に対してアクションを選んでください',
-    playerNakiDiscard: '鳴いた牌を含めて1枚を捨ててください',
-    win: 'あがり！',
-    exhausted: '流局です',
-  };
-
-  const colors: Record<string, string> = {
-    playerDraw: 'text-green-300',
-    playerDiscard: 'text-amber-300',
-    cpuTurn: 'text-blue-300',
-    naki: 'text-red-300',
-    playerNakiDiscard: 'text-blue-300',
-    win: 'text-yellow-300',
-    exhausted: 'text-gray-400',
-  };
-
-  return (
-    <p className={`text-sm text-center ${colors[phase] ?? 'text-green-300'}`}>
-      {messages[phase] ?? ''}
-    </p>
-  );
-}
-
-function GameOverOverlay({ title, message, onRestart, onOk, isWin }: { title: string; message: string; onRestart: () => void; onOk: () => void; isWin?: boolean }) {
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className={`border rounded-2xl p-8 flex flex-col items-center gap-4 shadow-2xl ${isWin ? 'bg-[#2a2a1a] border-yellow-500' : 'bg-[#1a2e1a] border-green-700'}`}>
-        {isWin && <Trophy size={48} className="text-yellow-400" />}
-        <h2 className={`text-3xl font-black ${isWin ? 'text-yellow-300' : 'text-white'}`}>{title}</h2>
-        <p className={`text-base ${isWin ? 'text-yellow-200' : 'text-green-400'}`}>{message}</p>
-        <div className="flex gap-3 mt-2">
-          <button
-            onClick={onOk}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gray-600 hover:bg-gray-500 text-white font-bold text-lg transition-colors"
-          >
-            OK
-          </button>
-          <button
-            onClick={onRestart}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-green-700 hover:bg-green-600 text-white font-bold text-lg transition-colors"
-          >
-            <RefreshCw size={18} />
-            もう一局
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
