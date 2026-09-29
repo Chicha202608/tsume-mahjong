@@ -46,6 +46,9 @@ export default function TileCard({ tile, size = 'md', onClick, highlighted, face
           title={label}
         >
           {showShimmer && <div className="dora-shimmer-overlay" />}
+          {highlighted && (
+            <div className="absolute inset-0 bg-yellow-300/20 pointer-events-none z-10" />
+          )}
           <img
             src={faceDown ? tileBackUrl() : tileImageUrl(tile)}
             alt={label}
@@ -65,6 +68,9 @@ export default function TileCard({ tile, size = 'md', onClick, highlighted, face
       title={label}
     >
       {showShimmer && <div className="dora-shimmer-overlay" />}
+      {highlighted && (
+        <div className="absolute inset-0 bg-yellow-300/20 pointer-events-none z-10" />
+      )}
       <img
         src={faceDown ? tileBackUrl() : tileImageUrl(tile)}
         alt={label}
