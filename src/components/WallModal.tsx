@@ -1,4 +1,4 @@
-import { Tile } from '@/types';
+import { Tile, Phase } from '@/types';
 import TileCard from '@/components/TileCard';
 import { X, Layers } from 'lucide-react';
 
@@ -10,10 +10,20 @@ interface Props {
   wallDrawnCount: number;
   doraCount: number;
   wanpai: Tile[];
+  phase: Phase;
   onClose: () => void;
 }
 
-export default function WallModal({ wall, fullWall, wallDrawnCount, doraCount, wanpai, onClose }: Props) {
+export default function WallModal({ wall, fullWall, wallDrawnCount, doraCount, wanpai, phase, onClose }: Props) {
+  const supplementCount = Math.max(doraCount - 1, 0);
+  const nextDrawIsPlayer = phase === 'playerDraw' || phase === 'naki';
+  const isPlayerFutureDraw = (idx: number) => {
+    if (idx < wallDrawnCount) return false;
+    if (idx >= fullWall.length - supplementCount) return false;
+    const offset = idx - wallDrawnCount;
+    if (nextDrawIsPlayer) return offset % 2 === 0;
+    return offset % 2 === 1;
+  };
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={onClose}>
       <div className="bg-[#152615] border border-green-700 rounded-2xl p-6 max-w-4xl w-full mx-4 shadow-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -38,9 +48,9 @@ export default function WallModal({ wall, fullWall, wallDrawnCount, doraCount, w
             <div className="flex flex-wrap gap-1">
               {fullWall.map((tile, idx) => {
                 const isDrawn = idx < wallDrawnCount;
-                const supplementCount = Math.max(doraCount - 1, 0);
                 const isSupplement = idx >= fullWall.length - supplementCount;
                 const dimmed = isDrawn || isSupplement;
+                const isPlayerDraw = isPlayerFutureDraw(idx);
                 return (
                   <div key={tile.id} className="flex flex-col items-center gap-1">
                     <span className={`text-[10px] ${dimmed ? 'text-gray-600' : 'text-green-600'}`}>
@@ -50,6 +60,7 @@ export default function WallModal({ wall, fullWall, wallDrawnCount, doraCount, w
                       tile={tile}
                       size="sm"
                       className={dimmed ? 'opacity-30 grayscale' : ''}
+                      highlighted={isPlayerDraw}
                     />
                   </div>
                 );

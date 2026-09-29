@@ -141,6 +141,7 @@ export default function App() {
           wallDrawnCount={wallDrawnCount}
           doraCount={doraCount}
           wanpai={wanpai}
+          phase={phase}
           onClose={() => setShowWall(false)}
         />
       )}
