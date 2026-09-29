@@ -1252,15 +1252,18 @@ export default function App() {
                 <div className="flex flex-wrap gap-1">
                   {fullWall.map((tile, idx) => {
                     const isDrawn = idx < wallDrawnCount;
+                    const supplementCount = Math.max(doraCount - 1, 0);
+                    const isSupplement = idx >= fullWall.length - supplementCount;
+                    const dimmed = isDrawn || isSupplement;
                     return (
                       <div key={tile.id} className="flex flex-col items-center gap-1">
-                        <span className={`text-[10px] ${isDrawn ? 'text-gray-600' : 'text-green-600'}`}>
+                        <span className={`text-[10px] ${dimmed ? 'text-gray-600' : 'text-green-600'}`}>
                           {idx + 1}
                         </span>
                         <TileCard
                           tile={tile}
                           size="sm"
-                          className={isDrawn ? 'opacity-30 grayscale' : ''}
+                          className={dimmed ? 'opacity-30 grayscale' : ''}
                         />
                       </div>
                     );
@@ -1276,7 +1279,7 @@ export default function App() {
                 王牌（{WANPAI_COUNT}枚）
               </h3>
               {(() => {
-                type WanpaiSlot = { tile: Tile | undefined; label: string; labelColor: string; faceDown?: boolean };
+                type WanpaiSlot = { tile: Tile | undefined; label: string; labelColor: string };
                 const slots: WanpaiSlot[] = [];
                 
                 const wanpaiTiles = wanpai || [];
@@ -1314,7 +1317,6 @@ export default function App() {
                     tile: wanpaiTiles[i],
                     label: '王牌補填',
                     labelColor: 'text-slate-500',
-                    faceDown: true,
                   });
                 }
 
@@ -1324,7 +1326,7 @@ export default function App() {
                       <div key={i} className="flex flex-col items-center gap-0.5">
                         <span className={`text-[8px] ${slot.labelColor} whitespace-nowrap`}>{slot.label}</span>
                         {slot.tile ? (
-                          <TileCard tile={slot.tile} size="sm" faceDown={slot.faceDown} />
+                          <TileCard tile={slot.tile} size="sm" />
                         ) : (
                           <div className="w-10 h-14 rounded-md border border-[#3a5a3a] bg-[#1a3a1a]" />
                         )}
