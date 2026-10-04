@@ -6,7 +6,12 @@ export function createDeck(): Tile[] {
   for (const suit of ['man', 'pin', 'sou'] as const) {
     for (let v = 1; v <= 9; v++) {
       for (let c = 0; c < 4; c++) {
-        tiles.push({ id: String(id++), suit, value: v });
+        tiles.push({
+          id: String(id++),
+          suit,
+          value: v,
+          isRed: v === 5 && c === 0,
+        });
       }
     }
   }
