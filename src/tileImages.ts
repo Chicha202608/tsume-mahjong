@@ -14,7 +14,9 @@ export function tileImageUrl(tile: Tile): string {
   const prefix = FILE_MAP[tile.suit];
   let file: string;
   if (typeof prefix === 'string') {
-    file = `${prefix}${tile.value}.svg`;
+    file = tile.isRed && tile.value === 5
+      ? `${prefix}5-Dora.svg`
+      : `${prefix}${tile.value}.svg`;
   } else {
     file = `${prefix[tile.value]}.svg`;
   }
