@@ -5,6 +5,7 @@ export interface Tile {
   id: string;
   suit: Suit;
   value: number;
+  isRed?: boolean;
 }
 
 export interface Furo {
