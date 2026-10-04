@@ -24,7 +24,7 @@ export default function TileCard({ tile, size = 'md', onClick, highlighted, face
   const { label } = tileDisplay(tile);
   const { outer, w, h, shadow } = sizeMap[size];
   const showShimmer = dora && !faceDown;
-  const showRedMarker = tile.isRed && !faceDown;
+  const showRedMarker = tile.isRed;
 
   const base =
     'relative flex flex-col items-center justify-center rounded-md select-none transition-all duration-150 overflow-hidden bg-[#f8f4e8] border border-[#d0c8b0]';
@@ -48,8 +48,11 @@ export default function TileCard({ tile, size = 'md', onClick, highlighted, face
         >
           {showShimmer && <div className="dora-shimmer-overlay" />}
           {showRedMarker && (
-            <div className="absolute top-0.5 right-0.5 z-20 rounded-full bg-red-600 text-white text-[7px] leading-none font-bold px-1 py-0.5 pointer-events-none">
-              赤
+            <div className="absolute inset-0 pointer-events-none z-20">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-red-600" />
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-red-600" />
+              <div className="absolute top-0 bottom-0 left-0 w-1 bg-red-600" />
+              <div className="absolute top-0 bottom-0 right-0 w-1 bg-red-600" />
             </div>
           )}
           {highlighted && (
