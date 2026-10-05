@@ -1,23 +1,53 @@
 import { Furo, Tile, Wind } from '@/types';
 
 export type YakuId =
+  // 1 han
   | 'riichi'
+  | 'ippatsu'
   | 'menzenTsumo'
   | 'tanyao'
   | 'pinfu'
   | 'iipeikou'
-  | 'yakuhai'
+  | 'yakuhaiRoundWind'
+  | 'yakuhaiSeatWind'
+  | 'yakuhaiHaku'
+  | 'yakuhaiHatsu'
+  | 'yakuhaiChun'
+  | 'chankan'
+  | 'rinshanKaihou'
+  | 'haitei'
+  | 'houtei'
+  // 2 han
+  | 'doubleRiichi'
   | 'chiitoitsu'
-  | 'honitsu'
-  | 'chinitsu'
+  | 'chanta'
   | 'toitoi'
   | 'sanankou'
-  | 'sanshoku'
+  | 'sankantsu'
+  | 'sanshokuDoujun'
+  | 'sanshokuDoukou'
   | 'ittsu'
-  | 'chanta'
-  | 'junchan'
   | 'honroutou'
-  | 'shousangen';
+  | 'shousangen'
+  | 'honitsu'
+  // 3 han
+  | 'junchan'
+  | 'ryanpeikou'
+  // 6 han
+  | 'chinitsu'
+  // Yakuman
+  | 'kokushiMusou'
+  | 'suuankou'
+  | 'daisangen'
+  | 'shousuushii'
+  | 'daisuushii'
+  | 'tsuuiisou'
+  | 'chinroutou'
+  | 'ryuuiisou'
+  | 'chuurenPoutou'
+  | 'suukantsu'
+  | 'tenhou'
+  | 'chiihou';
 
 export interface YakuResult {
   id: YakuId;
