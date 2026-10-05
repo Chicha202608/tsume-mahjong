@@ -1,4 +1,4 @@
-import { Tile, Phase, Furo } from '@/types';
+import { Tile, Phase, Furo, Wind } from '@/types';
 import { initGame, NakiOption } from '@/gameLogic';
 
 export interface State {
@@ -23,6 +23,8 @@ export interface State {
   isRiichi: boolean;
   tsumoAvailable: boolean;
   missedRonAfterRiichi: boolean;
+  roundWind: Wind;
+  playerWind: Wind;
 }
 
 export function makeInitialState(): State {
@@ -45,5 +47,7 @@ export function makeInitialStateBase(playerHand: Tile[], cpuHand: Tile[], wall: 
     isRiichi: false,
     tsumoAvailable: false,
     missedRonAfterRiichi: false,
+    roundWind: 'east',
+    playerWind: 'east',
   };
 }

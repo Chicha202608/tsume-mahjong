@@ -1,4 +1,5 @@
 export type Suit = 'man' | 'pin' | 'sou' | 'wind' | 'dragon';
+export type Wind = 'east' | 'south' | 'west' | 'north';
 export type Phase = 'playerDraw' | 'playerDiscard' | 'cpuTurn' | 'naki' | 'playerNakiDiscard' | 'win' | 'exhausted' | 'riichiSelect';
 
 export interface Tile {
