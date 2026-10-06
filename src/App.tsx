@@ -78,13 +78,15 @@ export default function App() {
         onDeclareKan={declareKan}
       />
 
-      <HistoryControls
-        canUndo={canUndo}
-        canStepForward={canStepForward}
-        onMatta={matta}
-        onStepBack={stepBack}
-        onStepForward={stepForward}
-      />
+      <div className="flex items-center justify-center gap-2 px-4 py-2">
+        <HistoryControls
+          canUndo={canUndo}
+          canStepForward={canStepForward}
+          onMatta={matta}
+          onStepBack={stepBack}
+          onStepForward={stepForward}
+        />
+      </div>
       <DebugButtons onSetupTest={setupTestState} />
 
       <div className="flex flex-col flex-1 min-h-0 gap-0 overflow-hidden">
