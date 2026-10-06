@@ -87,7 +87,7 @@ export default function HandSection({
               </button>
             )}
           </div>
-          <div className="min-w-[180px] shrink-0 text-left">
+          <div className="w-[300px] shrink-0 text-left">
             {phase === 'riichiSelect' && !isViewingPast && (
               <span className="text-blue-400 font-normal normal-case text-xs animate-pulse">
                 リーチ — 宣言牌（捨て牌）をクリック
