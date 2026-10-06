@@ -35,7 +35,7 @@ export default function HandSection({
 }: Props) {
   return (
     <section className="shrink-0 h-[22vh] min-h-[140px] max-h-[190px] flex flex-col items-center justify-center px-4 py-4">
-      <div className="h-10 w-full flex items-center gap-3 mb-4 flex-nowrap justify-center overflow-x-auto">
+      <div className="h-10 w-full flex items-center gap-3 mb-4 flex-nowrap justify-start overflow-x-auto">
         <h2 className="text-green-400 text-sm font-semibold tracking-widest uppercase">
           手牌
         </h2>
