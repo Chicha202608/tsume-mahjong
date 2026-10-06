@@ -35,8 +35,8 @@ export default function HandSection({
 }: Props) {
   return (
     <section className="shrink-0 h-[22vh] min-h-[140px] max-h-[190px] flex flex-col items-center justify-center px-2 py-3">
-      <div className="h-10 w-full mb-3 flex items-center justify-center overflow-x-auto overflow-y-hidden [scrollbar-width:thin]">
-        <div className="flex items-center gap-2 flex-nowrap mx-auto">
+      <div className="min-h-[44px] w-full mb-3 flex items-center justify-center overflow-x-auto [scrollbar-width:thin]">
+        <div className="flex items-center gap-2 flex-nowrap mx-auto py-1">
           <h2 className="text-green-400 text-sm font-semibold tracking-widest uppercase shrink-0">
             手牌
           </h2>
@@ -49,7 +49,7 @@ export default function HandSection({
           />
           <button
             onClick={onShowWall}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 active:scale-95 text-white font-bold text-sm transition-all shadow-md shrink-0"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 active:scale-95 text-white font-bold text-sm transition-all shadow-md shrink-0 whitespace-nowrap"
           >
             <Layers size={14} />
             山
@@ -58,7 +58,7 @@ export default function HandSection({
             {canTsumo && (
               <button
                 onClick={onDeclareTsumo}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-yellow-500 hover:bg-yellow-400 active:scale-95 text-yellow-900 font-bold text-sm transition-all shadow-md animate-pulse"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-500 hover:bg-yellow-400 active:scale-95 text-yellow-900 font-bold text-sm transition-all shadow-md animate-pulse whitespace-nowrap"
               >
                 <Trophy size={14} />
                 ツモ
@@ -69,7 +69,7 @@ export default function HandSection({
             {canTsumo && (
               <button
                 onClick={onPassTsumo}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-gray-600 hover:bg-gray-500 active:scale-95 text-white font-bold text-sm transition-all shadow-md"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-600 hover:bg-gray-500 active:scale-95 text-white font-bold text-sm transition-all shadow-md whitespace-nowrap"
               >
                 <X size={14} />
                 キャンセル
@@ -80,7 +80,7 @@ export default function HandSection({
             {canRiichi && !isViewingPast && (
               <button
                 onClick={onDeclareRiichi}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold text-sm transition-all shadow-md"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold text-sm transition-all shadow-md whitespace-nowrap"
               >
                 <Zap size={14} />
                 リーチ
@@ -117,11 +117,11 @@ export default function HandSection({
         </div>
       </div>
 
-      <div className="flex flex-nowrap justify-center items-end gap-0.5 sm:gap-1 w-full max-w-full overflow-hidden px-2">
+      <div className="flex flex-nowrap justify-center items-end gap-0.5 sm:gap-1 w-full max-w-full overflow-x-auto [scrollbar-width:thin] px-2">
         {playerHand.map(tile => {
           const isRiichiInvalid = phase === 'riichiSelect' && !riichiValidTiles.has(tile.id);
           return (
-            <div key={tile.id} className="flex-1 min-w-0 max-w-[56px] flex justify-center aspect-[3/4]">
+            <div key={tile.id} className="w-[52px] shrink-0 flex justify-center aspect-[3/4]">
               <TileCard
                 tile={tile}
                 size="lg"
@@ -138,7 +138,7 @@ export default function HandSection({
           );
         })}
         {playerDrawnTile && (
-          <div className="ml-2 sm:ml-4 flex-1 min-w-0 max-w-[56px] flex justify-center aspect-[3/4] shrink-0">
+          <div className="ml-2 sm:ml-4 w-[52px] shrink-0 flex justify-center aspect-[3/4]">
             <TileCard
               tile={playerDrawnTile}
               size="lg"

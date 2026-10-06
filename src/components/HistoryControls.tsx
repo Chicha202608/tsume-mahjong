@@ -10,11 +10,11 @@ interface Props {
 
 export default function HistoryControls({ canUndo, canStepForward, onMatta, onStepBack, onStepForward }: Props) {
   return (
-    <div className="flex items-center justify-center gap-1 px-2 py-1 bg-[#0f1f0f] border-b border-[#2d4a2d] rounded-md">
+    <div className="flex items-center justify-center gap-1 px-2 py-1 bg-[#0f1f0f] border-b border-[#2d4a2d] rounded-md shrink-0">
       <button
         onClick={onMatta}
         disabled={!canUndo}
-        className="flex items-center gap-1 px-2 py-1 rounded-md bg-orange-700 hover:bg-orange-600 active:scale-95 text-white text-xs font-bold transition-all shadow-md disabled:opacity-30 disabled:cursor-not-allowed"
+        className="flex items-center gap-1 px-2 py-1 rounded-md bg-orange-700 hover:bg-orange-600 active:scale-95 text-white text-xs font-bold transition-all shadow-md disabled:opacity-30 disabled:cursor-not-allowed whitespace-nowrap shrink-0"
       >
         <Undo size={12} />
         待った
@@ -22,7 +22,7 @@ export default function HistoryControls({ canUndo, canStepForward, onMatta, onSt
       <button
         onClick={onStepBack}
         disabled={!canUndo}
-        className="flex items-center gap-1 px-2 py-1 rounded-md bg-gray-700 hover:bg-gray-600 active:scale-95 text-white text-xs font-bold transition-all shadow-md disabled:opacity-30 disabled:cursor-not-allowed"
+        className="flex items-center gap-1 px-2 py-1 rounded-md bg-gray-700 hover:bg-gray-600 active:scale-95 text-white text-xs font-bold transition-all shadow-md disabled:opacity-30 disabled:cursor-not-allowed whitespace-nowrap shrink-0"
       >
         <Undo2 size={12} />
         戻る
@@ -30,7 +30,7 @@ export default function HistoryControls({ canUndo, canStepForward, onMatta, onSt
       <button
         onClick={onStepForward}
         disabled={!canStepForward}
-        className="flex items-center gap-1 px-2 py-1 rounded-md bg-gray-700 hover:bg-gray-600 active:scale-95 text-white text-xs font-bold transition-all shadow-md disabled:opacity-30 disabled:cursor-not-allowed"
+        className="flex items-center gap-1 px-2 py-1 rounded-md bg-gray-700 hover:bg-gray-600 active:scale-95 text-white text-xs font-bold transition-all shadow-md disabled:opacity-30 disabled:cursor-not-allowed whitespace-nowrap shrink-0"
       >
         <Redo2 size={12} />
         進む
