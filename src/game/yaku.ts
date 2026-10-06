@@ -53,7 +53,6 @@ export interface YakuResult {
   id: YakuId;
   name: string;
   han: number;
-  openHan?: number;
 }
 
 export interface YakuContext {
