@@ -27,8 +27,8 @@ export default function HandSection({
   onDeclareTsumo, onPassTsumo, onDeclareRiichi, onShowWall,
 }: Props) {
   return (
-    <section className="flex-1 -col items-center justify-center px-4 py-6">
-      <div className="flex items-center gap-3 mb-4 flex-wrap justify-center">
+    <section className="shrink-0 flex flex-col items-center px-4 py-4">
+      <div className="h-10 w-full flex items-center gap-3 mb-4 flex-nowrap justify-center overflow-x-auto">
         <h2 className="text-green-400 text-sm font-semibold tracking-widest uppercase">
           手牌 — {playerHand.length}枚
           {playerDrawnTile && <span className="text-amber-400"> + ツモ1枚</span>}
