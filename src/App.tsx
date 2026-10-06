@@ -57,7 +57,7 @@ export default function App() {
   const { playerHand, playerDrawnTile, cpuHand, wall, fullWall, wallDrawnCount, wanpai, playerDiscards, cpuDiscards, playerFuro, phase, turnCount, lastCpuDiscard, nakiOptions, ronAvailable, winType, doraCount, isRiichi, tsumoAvailable } = state;
 
   return (
-    <div className="min-h-screen bg-[#1a2e1a] flex flex-col" style={{ fontFamily: "'Segoe UI', system-ui', sans-serif" }}>
+    <div className="h-dvh bg-[#1a2e1a] flex flex-col overflow-hidden" style={{ fontFamily: "'Segoe UI', system-ui', sans-serif" }}>
       <Header
         turnCount={turnCount}
         maxDraws={MAX_DRAWS}
@@ -88,7 +88,7 @@ export default function App() {
       <DebugButtons onSetupTest={setupTestState} />
 
       <div className="flex flex-col flex-1 min-h-0 gap-0 overflow-hidden">
-        <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-scroll [scrollbar-gutter:stable]">
         <CpuSection
           cpuHand={cpuHand}
           cpuFuro={state.cpuFuro}
