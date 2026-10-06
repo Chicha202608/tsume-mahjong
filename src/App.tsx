@@ -87,7 +87,7 @@ export default function App() {
       />
       <DebugButtons onSetupTest={setupTestState} />
 
-      <div className="-col flex-1 gap-0 overflow-hidden">
+      <div className="flex flex-col flex-1 gap-0 overflow-hidden">
         <CpuSection
           cpuHand={cpuHand}
           cpuFuro={state.cpuFuro}
@@ -115,7 +115,8 @@ export default function App() {
           <StatusBar phase={phase} wallCount={wall.length} isViewingPast={isViewingPast} tsumoAvailable={tsumoAvailable} />
         </div>
 
-        <HandSection
+        <div className="mt-auto shrink-0">
+          <HandSection
           playerHand={playerHand}
           playerDrawnTile={playerDrawnTile}
           phase={phase}
@@ -131,7 +132,8 @@ export default function App() {
           onPassTsumo={passTsumo}
           onDeclareRiichi={declareRiichi}
           onShowWall={() => setShowWall(true)}
-        />
+          />
+        </div>
       </div>
 
       {showWall && (
