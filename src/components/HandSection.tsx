@@ -35,13 +35,13 @@ export default function HandSection({
 }: Props) {
   return (
     <section className="shrink-0 flex flex-col items-stretch justify-end px-2 pt-1 pb-3">
-      <div className="min-h-[44px] w-full mb-2 relative flex items-center overflow-x-auto [scrollbar-width:thin]">
-        <div className="flex items-center gap-2 flex-nowrap py-1 px-1">
+      <div className="min-h-[44px] w-full mb-2 flex items-center overflow-x-auto [scrollbar-width:thin]">
+        <div className="flex items-center gap-2 flex-nowrap py-1 px-1 flex-1 justify-end">
           <h2 className="text-green-400 text-sm font-semibold tracking-widest uppercase shrink-0">
             手牌
           </h2>
         </div>
-        <div className="absolute left-1/2 -translate-x-1/2 z-10">
+        <div className="flex items-center justify-center py-1 px-1 shrink-0">
           <HistoryControls
             canUndo={canUndo}
             canStepForward={canStepForward}
@@ -50,7 +50,7 @@ export default function HandSection({
             onStepForward={onStepForward}
           />
         </div>
-        <div className="flex items-center gap-2 flex-nowrap py-1 px-1 ml-auto">
+        <div className="flex items-center gap-2 flex-nowrap py-1 px-1 flex-1 justify-start">
           <button
             onClick={onShowWall}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 active:scale-95 text-white font-bold text-sm transition-all shadow-md shrink-0 whitespace-nowrap"
@@ -91,33 +91,33 @@ export default function HandSection({
               </button>
             )}
           </div>
-          <div className="shrink-0 text-left text-[10px] whitespace-nowrap">
-            {phase === 'riichiSelect' && !isViewingPast && (
-              <span className="text-blue-400 font-normal normal-case text-xs animate-pulse">
-                リーチ — 宣言牌（捨て牌）をクリック
-              </span>
-            )}
-            {phase === 'playerDiscard' && !canTsumo && !isViewingPast && (
-              <span className="text-amber-400 font-normal normal-case text-xs animate-pulse">
-                捨てる牌をクリック
-              </span>
-            )}
-            {canTsumo && !isViewingPast && (
-              <span className="text-yellow-400 font-normal normal-case text-xs animate-pulse">
-                ツモ和了可能 — ツモ or キャンセル
-              </span>
-            )}
-            {phase === 'playerNakiDiscard' && !isViewingPast && (
-              <span className="text-blue-400 font-normal normal-case text-xs animate-pulse">
-                鳴きました — 捨てる牌をクリック
-              </span>
-            )}
-            {isViewingPast && (phase === 'playerDiscard' || phase === 'playerNakiDiscard') && (
-              <span className="text-amber-400 font-normal normal-case text-xs">
-                牌譜閲覧中 — 牌をクリックで新しく打ち直せます
-              </span>
-            )}
-          </div>
+        </div>
+        <div className="shrink-0 text-left text-[10px] whitespace-nowrap ml-2">
+          {phase === 'riichiSelect' && !isViewingPast && (
+            <span className="text-blue-400 font-normal normal-case text-xs animate-pulse">
+              リーチ — 宣言牌（捨て牌）をクリック
+            </span>
+          )}
+          {phase === 'playerDiscard' && !canTsumo && !isViewingPast && (
+            <span className="text-amber-400 font-normal normal-case text-xs animate-pulse">
+              捨てる牌をクリック
+            </span>
+          )}
+          {canTsumo && !isViewingPast && (
+            <span className="text-yellow-400 font-normal normal-case text-xs animate-pulse">
+              ツモ和了可能 — ツモ or キャンセル
+            </span>
+          )}
+          {phase === 'playerNakiDiscard' && !isViewingPast && (
+            <span className="text-blue-400 font-normal normal-case text-xs animate-pulse">
+              鳴きました — 捨てる牌をクリック
+            </span>
+          )}
+          {isViewingPast && (phase === 'playerDiscard' || phase === 'playerNakiDiscard') && (
+            <span className="text-amber-400 font-normal normal-case text-xs">
+              牌譜閲覧中 — 牌をクリックで新しく打ち直せます
+            </span>
+          )}
         </div>
       </div>
 
