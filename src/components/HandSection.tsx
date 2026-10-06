@@ -1,6 +1,7 @@
 import { Tile, Phase } from '@/types';
 import TileCard from '@/components/TileCard';
 import { Trophy, X, Layers, Zap } from 'lucide-react';
+import HistoryControls from '@/components/HistoryControls';
 
 interface Props {
   playerHand: Tile[];
@@ -18,6 +19,11 @@ interface Props {
   onPassTsumo: () => void;
   onDeclareRiichi: () => void;
   onShowWall: () => void;
+  canUndo: boolean;
+  canStepForward: boolean;
+  onMatta: () => void;
+  onStepBack: () => void;
+  onStepForward: () => void;
 }
 
 export default function HandSection({
@@ -25,6 +31,7 @@ export default function HandSection({
   canTsumo, canRiichi, riichiValidTiles, isDora,
   onDiscard, onNakiDiscard, onRiichiDiscard,
   onDeclareTsumo, onPassTsumo, onDeclareRiichi, onShowWall,
+  canUndo, canStepForward, onMatta, onStepBack, onStepForward,
 }: Props) {
   return (
     <section className="shrink-0 h-[22vh] min-h-[140px] max-h-[190px] flex flex-col items-center justify-center px-4 py-4">
@@ -32,6 +39,13 @@ export default function HandSection({
         <h2 className="text-green-400 text-sm font-semibold tracking-widest uppercase">
           手牌
         </h2>
+        <HistoryControls
+          canUndo={canUndo}
+          canStepForward={canStepForward}
+          onMatta={onMatta}
+          onStepBack={onStepBack}
+          onStepForward={onStepForward}
+        />
         <button
           onClick={onShowWall}
           className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 active:scale-95 text-white font-bold text-sm transition-all shadow-md"
