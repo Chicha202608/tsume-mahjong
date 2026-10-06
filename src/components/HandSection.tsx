@@ -34,9 +34,9 @@ export default function HandSection({
   canUndo, canStepForward, onMatta, onStepBack, onStepForward,
 }: Props) {
   return (
-    <section className="shrink-0 h-[22vh] min-h-[140px] max-h-[190px] flex flex-col items-center justify-center px-2 py-3">
-      <div className="min-h-[44px] w-full mb-3 flex items-center justify-center overflow-x-auto [scrollbar-width:thin]">
-        <div className="flex items-center gap-2 flex-nowrap mx-auto py-1">
+    <section className="shrink-0 flex flex-col items-stretch justify-end px-2 pt-1 pb-3">
+      <div className="min-h-[44px] w-full mb-2 flex items-center justify-start overflow-x-auto [scrollbar-width:thin]">
+        <div className="flex items-center gap-2 flex-nowrap py-1 px-1">
           <h2 className="text-green-400 text-sm font-semibold tracking-widest uppercase shrink-0">
             手牌
           </h2>
@@ -87,7 +87,7 @@ export default function HandSection({
               </button>
             )}
           </div>
-          <div className="w-[300px] shrink-0 text-left text-[10px]">
+          <div className="shrink-0 text-left text-[10px] whitespace-nowrap">
             {phase === 'riichiSelect' && !isViewingPast && (
               <span className="text-blue-400 font-normal normal-case text-xs animate-pulse">
                 リーチ — 宣言牌（捨て牌）をクリック
@@ -121,7 +121,7 @@ export default function HandSection({
         {playerHand.map(tile => {
           const isRiichiInvalid = phase === 'riichiSelect' && !riichiValidTiles.has(tile.id);
           return (
-            <div key={tile.id} className="w-[52px] shrink-0 flex justify-center aspect-[3/4]">
+            <div key={tile.id} className="w-[44px] shrink-0 flex justify-center aspect-[3/4]">
               <TileCard
                 tile={tile}
                 size="lg"
@@ -138,7 +138,7 @@ export default function HandSection({
           );
         })}
         {playerDrawnTile && (
-          <div className="ml-2 sm:ml-4 w-[52px] shrink-0 flex justify-center aspect-[3/4]">
+          <div className="ml-2 sm:ml-3 w-[44px] shrink-0 flex justify-center aspect-[3/4]">
             <TileCard
               tile={playerDrawnTile}
               size="lg"
