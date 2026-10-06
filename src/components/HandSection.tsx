@@ -35,18 +35,20 @@ export default function HandSection({
 }: Props) {
   return (
     <section className="shrink-0 flex flex-col items-stretch justify-end px-2 pt-1 pb-3">
-      <div className="min-h-[44px] w-full mb-2 flex items-center justify-[safe_center] overflow-x-auto [scrollbar-width:thin]">
+      <div className="min-h-[44px] w-full mb-2 flex items-center justify-start overflow-x-auto [scrollbar-width:thin]">
         <div className="flex items-center gap-2 flex-nowrap py-1 px-1">
           <h2 className="text-green-400 text-sm font-semibold tracking-widest uppercase shrink-0">
             手牌
           </h2>
-          <HistoryControls
-            canUndo={canUndo}
-            canStepForward={canStepForward}
-            onMatta={onMatta}
-            onStepBack={onStepBack}
-            onStepForward={onStepForward}
-          />
+          <div className="mx-auto shrink-0">
+            <HistoryControls
+              canUndo={canUndo}
+              canStepForward={canStepForward}
+              onMatta={onMatta}
+              onStepBack={onStepBack}
+              onStepForward={onStepForward}
+            />
+          </div>
           <button
             onClick={onShowWall}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 active:scale-95 text-white font-bold text-sm transition-all shadow-md shrink-0 whitespace-nowrap"
