@@ -35,7 +35,7 @@ export default function HandSection({
 }: Props) {
   return (
     <section className="shrink-0 flex flex-col items-stretch justify-end px-2 pt-1 pb-3">
-      <div className="min-h-[44px] w-full mb-2 flex items-center overflow-x-auto [scrollbar-width:thin]">
+      <div className="min-h-[44px] w-full mb-2 relative flex items-center overflow-x-auto [scrollbar-width:thin]">
         <div className="flex items-center gap-2 flex-nowrap py-1 px-1 flex-1 justify-end">
           <h2 className="text-green-400 text-sm font-semibold tracking-widest uppercase shrink-0">
             手牌
@@ -92,7 +92,7 @@ export default function HandSection({
             )}
           </div>
         </div>
-        <div className="shrink-0 text-left text-[10px] whitespace-nowrap ml-2">
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 text-left text-[10px] whitespace-nowrap pointer-events-none">
           {phase === 'riichiSelect' && !isViewingPast && (
             <span className="text-blue-400 font-normal normal-case text-xs animate-pulse">
               リーチ — 宣言牌（捨て牌）をクリック
