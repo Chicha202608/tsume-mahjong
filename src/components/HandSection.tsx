@@ -30,15 +30,14 @@ export default function HandSection({
     <section className="shrink-0 h-[22vh] min-h-[140px] max-h-[190px] flex flex-col items-center justify-center px-4 py-4">
       <div className="h-10 w-full flex items-center gap-3 mb-4 flex-nowrap justify-center overflow-x-auto">
         <h2 className="text-green-400 text-sm font-semibold tracking-widest uppercase">
-          手牌 — {playerHand.length}枚
-          {playerDrawnTile && <span className="text-amber-400"> + ツモ1枚</span>}
+          手牌
         </h2>
         <button
           onClick={onShowWall}
           className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 active:scale-95 text-white font-bold text-sm transition-all shadow-md"
         >
           <Layers size={14} />
-          牌山を確認
+          山
         </button>
         {canTsumo && (
           <button
