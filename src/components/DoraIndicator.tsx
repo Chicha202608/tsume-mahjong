@@ -16,8 +16,8 @@ interface Props {
 
 export default function DoraIndicator({ wanpai, doraCount, ankanOptions, kakanOptions, phase, isViewingPast, onDeclareKan }: Props) {
   return (
-    <div className="flex items-center gap-3 px-4 py-2 bg-[#0a1a0a] border-b border-[#2d4a2d]">
-      <span className="text-red-400 text-xs font-bold tracking-wider">ドラ表示</span>
+    <div className="flex items-center gap-2 px-3 py-1 bg-[#0a1a0a] border-b border-[#2d4a2d]">
+      <span className="text-red-400 text-[10px] font-bold tracking-wider shrink-0">ドラ</span>
       <div className="flex gap-0.5">
         {Array.from({ length: 5 }).map((_, i) => {
           const isRevealed = i < doraCount;
@@ -25,7 +25,7 @@ export default function DoraIndicator({ wanpai, doraCount, ankanOptions, kakanOp
             <TileCard
               key={i}
               tile={wanpai[4 + i] ?? { id: `dummy-${i}`, suit: 'man', value: 1 }}
-              size="sm"
+              size="xs"
               faceDown={!isRevealed}
             />
           );

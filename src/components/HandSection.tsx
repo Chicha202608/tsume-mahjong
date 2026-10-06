@@ -34,9 +34,9 @@ export default function HandSection({
   canUndo, canStepForward, onMatta, onStepBack, onStepForward,
 }: Props) {
   return (
-    <section className="shrink-0 h-[22vh] min-h-[140px] max-h-[190px] flex flex-col items-center justify-center px-4 py-4">
-      <div className="h-10 w-full mb-4 flex items-center justify-center overflow-hidden">
-        <div className="flex items-center gap-3 flex-nowrap">
+    <section className="shrink-0 h-[22vh] min-h-[140px] max-h-[190px] flex flex-col items-center justify-center px-2 py-3">
+      <div className="h-10 w-full mb-3 flex items-center justify-center overflow-x-auto overflow-y-hidden [scrollbar-width:thin]">
+        <div className="flex items-center gap-2 flex-nowrap mx-auto">
           <h2 className="text-green-400 text-sm font-semibold tracking-widest uppercase shrink-0">
             手牌
           </h2>
@@ -87,7 +87,7 @@ export default function HandSection({
               </button>
             )}
           </div>
-          <div className="min-w-[180px] shrink-0 text-left">
+          <div className="w-[300px] shrink-0 text-left text-[10px]">
             {phase === 'riichiSelect' && !isViewingPast && (
               <span className="text-blue-400 font-normal normal-case text-xs animate-pulse">
                 リーチ — 宣言牌（捨て牌）をクリック
