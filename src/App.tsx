@@ -128,6 +128,11 @@ export default function App() {
           onPassTsumo={passTsumo}
           onDeclareRiichi={declareRiichi}
           onShowWall={() => setShowWall(true)}
+          canUndo={canUndo}
+          canStepForward={canStepForward}
+          onMatta={matta}
+          onStepBack={stepBack}
+          onStepForward={stepForward}
           />
         </div>
       </div>
