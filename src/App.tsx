@@ -57,7 +57,7 @@ export default function App() {
   const { playerHand, playerDrawnTile, cpuHand, wall, fullWall, wallDrawnCount, wanpai, playerDiscards, cpuDiscards, playerFuro, phase, turnCount, lastCpuDiscard, nakiOptions, ronAvailable, winType, doraCount, isRiichi, tsumoAvailable } = state;
 
   return (
-    <div className="min-h-screen bg-[#1a2e1a] -col" style={{ fontFamily: "'Segoe UI', system-ui', sans-serif" }}>
+    <div className="min-h-screen bg-[#1a2e1a] flex flex-col" style={{ fontFamily: "'Segoe UI', system-ui', sans-serif" }}>
       <Header
         turnCount={turnCount}
         maxDraws={MAX_DRAWS}
@@ -87,7 +87,8 @@ export default function App() {
       />
       <DebugButtons onSetupTest={setupTestState} />
 
-      <div className="flex flex-col flex-1 gap-0 overflow-hidden">
+      <div className="flex flex-col flex-1 min-h-0 gap-0 overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-y-auto">
         <CpuSection
           cpuHand={cpuHand}
           cpuFuro={state.cpuFuro}
@@ -110,12 +111,14 @@ export default function App() {
           onPassNaki={passNaki}
         />
 
+        </div>
+
         {/* Status bar */}
-        <div className="px-4 py-2 bg-[#1a2e1a]">
+        <div className="shrink-0 px-4 py-2 bg-[#1a2e1a]">
           <StatusBar phase={phase} wallCount={wall.length} isViewingPast={isViewingPast} tsumoAvailable={tsumoAvailable} />
         </div>
 
-        <div className="mt-auto shrink-0">
+        <div className="shrink-0">
           <HandSection
           playerHand={playerHand}
           playerDrawnTile={playerDrawnTile}
