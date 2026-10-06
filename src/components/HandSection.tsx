@@ -35,44 +35,87 @@ export default function HandSection({
 }: Props) {
   return (
     <section className="shrink-0 h-[22vh] min-h-[140px] max-h-[190px] flex flex-col items-center justify-center px-4 py-4">
-      <div className="relative h-10 w-full overflow-x-auto"><div className="absolute left-1/2 -translate-x-1/2 top-0 h-10 flex items-center gap-3 flex-nowrap">
-        <h2 className="text-green-400 text-sm font-semibold tracking-widest uppercase">
-          手牌
-        </h2>
-        <HistoryControls
-          canUndo={canUndo}
-          canStepForward={canStepForward}
-          onMatta={onMatta}
-          onStepBack={onStepBack}
-          onStepForward={onStepForward}
-        />
-        <button
-          onClick={onShowWall}
-          className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 active:scale-95 text-white font-bold text-sm transition-all shadow-md"
-        >
-          <Layers size={14} />
-          山
-        </button>
-        <div className="w-[76px] shrink-0">{canTsumo && (
+      <div className="h-10 w-full mb-4 flex items-center justify-center overflow-hidden">
+        <div className="flex items-center gap-3 flex-nowrap">
+          <h2 className="text-green-400 text-sm font-semibold tracking-widest uppercase shrink-0">
+            手牌
+          </h2>
+          <HistoryControls
+            canUndo={canUndo}
+            canStepForward={canStepForward}
+            onMatta={onMatta}
+            onStepBack={onStepBack}
+            onStepForward={onStepForward}
+          />
           <button
-            onClick={onDeclareTsumo}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-yellow-500 hover:bg-yellow-400 active:scale-95 text-yellow-900 font-bold text-sm transition-all shadow-md animate-pulse"
+            onClick={onShowWall}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 active:scale-95 text-white font-bold text-sm transition-all shadow-md shrink-0"
           >
-            <Trophy size={14} />
-            ツモ
+            <Layers size={14} />
+            山
           </button>
-        )}
-        </div></div>
-        <div className="w-[110px] shrink-0">{canTsumo && (
-          <button
-            onClick={onPassTsumo}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-gray-600 hover:bg-gray-500 active:scale-95 text-white font-bold text-sm transition-all shadow-md"
-          >
-            <X size={14} />
-            キャンセル
-          </button>
-        )}
-
+          <div className="w-[76px] shrink-0 flex justify-center">
+            {canTsumo && (
+              <button
+                onClick={onDeclareTsumo}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-yellow-500 hover:bg-yellow-400 active:scale-95 text-yellow-900 font-bold text-sm transition-all shadow-md animate-pulse"
+              >
+                <Trophy size={14} />
+                ツモ
+              </button>
+            )}
+          </div>
+          <div className="w-[110px] shrink-0 flex justify-center">
+            {canTsumo && (
+              <button
+                onClick={onPassTsumo}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-gray-600 hover:bg-gray-500 active:scale-95 text-white font-bold text-sm transition-all shadow-md"
+              >
+                <X size={14} />
+                キャンセル
+              </button>
+            )}
+          </div>
+          <div className="w-[82px] shrink-0 flex justify-center">
+            {canRiichi && !isViewingPast && (
+              <button
+                onClick={onDeclareRiichi}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold text-sm transition-all shadow-md"
+              >
+                <Zap size={14} />
+                リーチ
+              </button>
+            )}
+          </div>
+          <div className="min-w-[180px] shrink-0 text-left">
+            {phase === 'riichiSelect' && !isViewingPast && (
+              <span className="text-blue-400 font-normal normal-case text-xs animate-pulse">
+                リーチ — 宣言牌（捨て牌）をクリック
+              </span>
+            )}
+            {phase === 'playerDiscard' && !canTsumo && !isViewingPast && (
+              <span className="text-amber-400 font-normal normal-case text-xs animate-pulse">
+                捨てる牌をクリック
+              </span>
+            )}
+            {canTsumo && !isViewingPast && (
+              <span className="text-yellow-400 font-normal normal-case text-xs animate-pulse">
+                ツモ和了可能 — ツモ or キャンセル
+              </span>
+            )}
+            {phase === 'playerNakiDiscard' && !isViewingPast && (
+              <span className="text-blue-400 font-normal normal-case text-xs animate-pulse">
+                鳴きました — 捨てる牌をクリック
+              </span>
+            )}
+            {isViewingPast && (phase === 'playerDiscard' || phase === 'playerNakiDiscard') && (
+              <span className="text-amber-400 font-normal normal-case text-xs">
+                牌譜閲覧中 — 牌をクリックで新しく打ち直せます
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
 
       <div className="flex flex-nowrap justify-center items-end gap-0.5 sm:gap-1 w-full max-w-full overflow-hidden px-2">
         {playerHand.map(tile => {
