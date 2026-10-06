@@ -137,8 +137,8 @@ export default function HandSection({
             </div>
           );
         })}
-        {playerDrawnTile && (
-          <div className="ml-2 sm:ml-3 w-[44px] shrink-0 flex justify-center aspect-[3/4]">
+        <div className="ml-2 sm:ml-3 w-[44px] shrink-0 flex justify-center aspect-[3/4]">
+          {playerDrawnTile && (
             <TileCard
               tile={playerDrawnTile}
               size="lg"
@@ -151,8 +151,8 @@ export default function HandSection({
                 undefined
               }
             />
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </section>
   );
