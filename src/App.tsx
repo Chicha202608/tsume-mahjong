@@ -57,7 +57,8 @@ export default function App() {
   const { playerHand, playerDrawnTile, cpuHand, wall, fullWall, wallDrawnCount, wanpai, playerDiscards, cpuDiscards, playerFuro, phase, turnCount, lastCpuDiscard, nakiOptions, ronAvailable, winType, doraCount, isRiichi, tsumoAvailable } = state;
 
   return (
-    <div className="h-dvh bg-[#1a2e1a] flex flex-col overflow-hidden" style={{ fontFamily: "'Segoe UI', system-ui', sans-serif" }}>
+    <div className="h-dvh w-full bg-black flex items-center justify-center overflow-hidden">
+    <div className="aspect-video w-[min(100vw,calc(100dvh*16/9))] max-h-dvh bg-[#1a2e1a] flex flex-col overflow-hidden" style={{ fontFamily: "'Segoe UI', system-ui', sans-serif" }}>
       <Header
         turnCount={turnCount}
         maxDraws={MAX_DRAWS}
@@ -180,6 +181,7 @@ export default function App() {
           />
         );
       })()}
+    </div>
     </div>
   );
 }
