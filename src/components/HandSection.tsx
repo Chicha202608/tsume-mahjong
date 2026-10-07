@@ -34,7 +34,7 @@ export default function HandSection({
   canUndo, canStepForward, onMatta, onStepBack, onStepForward,
 }: Props) {
   return (
-    <section className="shrink-0 flex flex-col items-stretch justify-end px-2 pt-1 pb-3">
+    <section className="shrink-0 flex flex-col items-stretch justify-end px-2 pt-1 pb-6">
       <div className="min-h-[44px] w-full mb-2 relative flex items-center overflow-x-auto [scrollbar-width:thin]">
         <div className="flex items-center gap-2 flex-nowrap py-1 px-1 flex-1 justify-end">
           <h2 className="text-green-400 text-sm font-semibold tracking-widest uppercase shrink-0">
@@ -125,7 +125,7 @@ export default function HandSection({
         {playerHand.map(tile => {
           const isRiichiInvalid = phase === 'riichiSelect' && !riichiValidTiles.has(tile.id);
           return (
-            <div key={tile.id} className="w-[44px] shrink-0 flex justify-center aspect-[3/4]">
+            <div key={tile.id} className="w-[53px] shrink-0 flex justify-center aspect-[3/4]">
               <TileCard
                 tile={tile}
                 size="lg"
@@ -141,7 +141,7 @@ export default function HandSection({
             </div>
           );
         })}
-        <div className="ml-2 sm:ml-3 w-[44px] shrink-0 flex justify-center aspect-[3/4]">
+        <div className="ml-2 sm:ml-3 w-[53px] shrink-0 flex justify-center aspect-[3/4]">
           {playerDrawnTile && (
             <TileCard
               tile={playerDrawnTile}
