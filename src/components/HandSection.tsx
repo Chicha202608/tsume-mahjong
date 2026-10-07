@@ -1,11 +1,13 @@
-import { Tile, Phase } from '@/types';
+import { Tile, Phase, Furo } from '@/types';
 import TileCard from '@/components/TileCard';
+import PlayerFuro from '@/components/PlayerFuro';
 import { Trophy, X, Layers, Zap } from 'lucide-react';
 import HistoryControls from '@/components/HistoryControls';
 
 interface Props {
   playerHand: Tile[];
   playerDrawnTile: Tile | null;
+  playerFuro: Furo[];
   phase: Phase;
   isViewingPast: boolean;
   canTsumo: boolean;
@@ -27,7 +29,7 @@ interface Props {
 }
 
 export default function HandSection({
-  playerHand, playerDrawnTile, phase, isViewingPast,
+  playerHand, playerDrawnTile, playerFuro, phase, isViewingPast,
   canTsumo, canRiichi, riichiValidTiles, isDora,
   onDiscard, onNakiDiscard, onRiichiDiscard,
   onDeclareTsumo, onPassTsumo, onDeclareRiichi, onShowWall,
@@ -121,42 +123,49 @@ export default function HandSection({
         </div>
       </div>
 
-      <div className="flex flex-nowrap justify-center items-end gap-0.5 sm:gap-1 w-full max-w-full overflow-x-auto [scrollbar-width:thin] px-2">
-        {playerHand.map(tile => {
-          const isRiichiInvalid = phase === 'riichiSelect' && !riichiValidTiles.has(tile.id);
-          return (
-            <div key={tile.id} className="w-[53px] shrink-0 flex justify-center aspect-[3/4]">
+      <div className="relative w-full">
+        <div className="flex flex-nowrap justify-center items-end gap-0.5 sm:gap-1 w-full max-w-full overflow-x-auto [scrollbar-width:thin] px-2">
+          {playerHand.map(tile => {
+            const isRiichiInvalid = phase === 'riichiSelect' && !riichiValidTiles.has(tile.id);
+            return (
+              <div key={tile.id} className="w-[53px] shrink-0 flex justify-center aspect-[3/4]">
+                <TileCard
+                  tile={tile}
+                  size="lg"
+                  dora={isDora(tile)}
+                  className={`w-full h-full object-contain ${isRiichiInvalid ? 'opacity-30 grayscale pointer-events-none' : ''}`}
+                  onClick={
+                    phase === 'playerDiscard' ? () => onDiscard(tile) :
+                    phase === 'playerNakiDiscard' ? () => onNakiDiscard(tile) :
+                    phase === 'riichiSelect' && !isRiichiInvalid ? () => onRiichiDiscard(tile) :
+                    undefined
+                  }
+                />
+              </div>
+            );
+          })}
+          <div className="ml-2 sm:ml-3 w-[53px] shrink-0 flex justify-center aspect-[3/4]">
+            {playerDrawnTile && (
               <TileCard
-                tile={tile}
+                tile={playerDrawnTile}
                 size="lg"
-                dora={isDora(tile)}
-                className={`w-full h-full object-contain ${isRiichiInvalid ? 'opacity-30 grayscale pointer-events-none' : ''}`}
+                dora={isDora(playerDrawnTile)}
+                className={`w-full h-full object-contain ${phase === 'riichiSelect' && !riichiValidTiles.has(playerDrawnTile.id) ? 'opacity-30 grayscale pointer-events-none' : ''}`}
                 onClick={
-                  phase === 'playerDiscard' ? () => onDiscard(tile) :
-                  phase === 'playerNakiDiscard' ? () => onNakiDiscard(tile) :
-                  phase === 'riichiSelect' && !isRiichiInvalid ? () => onRiichiDiscard(tile) :
+                  phase === 'playerDiscard' ? () => onDiscard(playerDrawnTile) :
+                  phase === 'playerNakiDiscard' ? () => onNakiDiscard(playerDrawnTile) :
+                  phase === 'riichiSelect' && riichiValidTiles.has(playerDrawnTile.id) ? () => onRiichiDiscard(playerDrawnTile) :
                   undefined
                 }
               />
-            </div>
-          );
-        })}
-        <div className="ml-2 sm:ml-3 w-[53px] shrink-0 flex justify-center aspect-[3/4]">
-          {playerDrawnTile && (
-            <TileCard
-              tile={playerDrawnTile}
-              size="lg"
-              dora={isDora(playerDrawnTile)}
-              className={`w-full h-full object-contain ${phase === 'riichiSelect' && !riichiValidTiles.has(playerDrawnTile.id) ? 'opacity-30 grayscale pointer-events-none' : ''}`}
-              onClick={
-                phase === 'playerDiscard' ? () => onDiscard(playerDrawnTile) :
-                phase === 'playerNakiDiscard' ? () => onNakiDiscard(playerDrawnTile) :
-                phase === 'riichiSelect' && riichiValidTiles.has(playerDrawnTile.id) ? () => onRiichiDiscard(playerDrawnTile) :
-                undefined
-              }
-            />
-          )}
+            )}
+          </div>
         </div>
+        {playerFuro.length > 0 && (
+          <div className="absolute right-2 bottom-0 z-20">
+            <PlayerFuro playerFuro={playerFuro} isDora={isDora} />
+          </div>
+        )}
       </div>
     </section>
   );

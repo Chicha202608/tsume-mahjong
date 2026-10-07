@@ -11,7 +11,6 @@ import Header from '@/components/Header';
 import DoraIndicator from '@/components/DoraIndicator';
 import CpuSection from '@/components/CpuSection';
 import PlayerDiscards from '@/components/PlayerDiscards';
-import PlayerFuro from '@/components/PlayerFuro';
 import NakiRonButtons from '@/components/NakiRonButtons';
 import HandSection from '@/components/HandSection';
 import WallModal from '@/components/WallModal';
@@ -92,8 +91,6 @@ export default function App() {
 
         <PlayerDiscards playerDiscards={playerDiscards} isDora={isDora} />
 
-        <PlayerFuro playerFuro={playerFuro} isDora={isDora} />
-
         <NakiRonButtons
           phase={phase}
           lastCpuDiscard={lastCpuDiscard}
@@ -116,6 +113,7 @@ export default function App() {
           <HandSection
           playerHand={playerHand}
           playerDrawnTile={playerDrawnTile}
+          playerFuro={playerFuro}
           phase={phase}
           isViewingPast={isViewingPast}
           canTsumo={canTsumo}
