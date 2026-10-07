@@ -1,8 +1,15 @@
-import { Tile } from '@/types';
+import { Tile, Wind } from '@/types';
 import { NakiOption } from '@/gameLogic';
 import { Phase } from '@/types';
 import TileCard from '@/components/TileCard';
 import MiniTile from '@/components/MiniTile';
+
+const windLabels: Record<Wind, string> = {
+  east: '東',
+  south: '南',
+  west: '西',
+  north: '北',
+};
 
 interface Props {
   wanpai: Tile[];
@@ -12,9 +19,11 @@ interface Props {
   phase: Phase;
   isViewingPast: boolean;
   onDeclareKan: (option: NakiOption) => void;
+  roundWind: Wind;
+  playerWind: Wind;
 }
 
-export default function DoraIndicator({ wanpai, doraCount, ankanOptions, kakanOptions, phase, isViewingPast, onDeclareKan }: Props) {
+export default function DoraIndicator({ wanpai, doraCount, ankanOptions, kakanOptions, phase, isViewingPast, onDeclareKan, roundWind, playerWind }: Props) {
   return (
     <div className="flex items-center gap-2 px-3 py-1 bg-[#0a1a0a] border-b border-[#2d4a2d]">
       <span className="text-red-400 text-[10px] font-bold tracking-wider shrink-0">ドラ</span>
@@ -31,6 +40,9 @@ export default function DoraIndicator({ wanpai, doraCount, ankanOptions, kakanOp
           );
         })}
       </div>
+      <span className="text-[#8a9a8a] text-[10px] font-bold tracking-wider shrink-0 ml-1">
+        場風：{windLabels[roundWind]}　自風：{windLabels[playerWind]}
+      </span>
       {((ankanOptions.length > 0 || kakanOptions.length > 0) && phase === 'playerDiscard' && !isViewingPast) && (
         <div className="flex items-center gap-2 ml-4">
           {(ankanOptions.length > 0 || kakanOptions.length > 0) && (

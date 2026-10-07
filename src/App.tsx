@@ -53,7 +53,7 @@ export default function App() {
     stepForward,
   } = engine;
 
-  const { playerHand, playerDrawnTile, cpuHand, wall, fullWall, wallDrawnCount, wanpai, playerDiscards, cpuDiscards, playerFuro, phase, turnCount, lastCpuDiscard, nakiOptions, ronAvailable, winType, doraCount, isRiichi, tsumoAvailable } = state;
+  const { playerHand, playerDrawnTile, cpuHand, wall, fullWall, wallDrawnCount, wanpai, playerDiscards, cpuDiscards, playerFuro, phase, turnCount, lastCpuDiscard, nakiOptions, ronAvailable, winType, doraCount, isRiichi, tsumoAvailable, roundWind, playerWind } = state;
 
   return (
     <div className="h-dvh w-full bg-black flex items-center justify-center overflow-hidden">
@@ -76,6 +76,8 @@ export default function App() {
         phase={phase}
         isViewingPast={isViewingPast}
         onDeclareKan={declareKan}
+        roundWind={roundWind}
+        playerWind={playerWind}
       />
 
 <DebugButtons onSetupTest={setupTestState} />
