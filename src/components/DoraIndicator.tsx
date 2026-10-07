@@ -27,22 +27,25 @@ export default function DoraIndicator({ wanpai, doraCount, ankanOptions, kakanOp
   return (
     <div className="flex items-center gap-2 px-3 py-1 bg-[#0a1a0a] border-b border-[#2d4a2d]">
       <span className="text-red-400 text-[10px] font-bold tracking-wider shrink-0">ドラ</span>
-      <div className="flex gap-0.5">
-        {Array.from({ length: 5 }).map((_, i) => {
-          const isRevealed = i < doraCount;
-          return (
-            <TileCard
-              key={i}
-              tile={wanpai[4 + i] ?? { id: `dummy-${i}`, suit: 'man', value: 1 }}
-              size="xs"
-              faceDown={!isRevealed}
-            />
-          );
-        })}
+      <div className="flex flex-col gap-0.5">
+        <div className="flex gap-0.5">
+          {Array.from({ length: 5 }).map((_, i) => {
+            const isRevealed = i < doraCount;
+            return (
+              <TileCard
+                key={i}
+                tile={wanpai[4 + i] ?? { id: `dummy-${i}`, suit: 'man', value: 1 }}
+                size="xs"
+                faceDown={!isRevealed}
+              />
+            );
+          })}
+        </div>
+        <div className="flex gap-3 text-[#8a9a8a] text-[10px] font-bold tracking-wider shrink-0">
+          <span>場風：{windLabels[roundWind]}</span>
+          <span>自風：{windLabels[playerWind]}</span>
+        </div>
       </div>
-      <span className="text-[#8a9a8a] text-[10px] font-bold tracking-wider shrink-0 ml-1">
-        場風：{windLabels[roundWind]}　自風：{windLabels[playerWind]}
-      </span>
       {((ankanOptions.length > 0 || kakanOptions.length > 0) && phase === 'playerDiscard' && !isViewingPast) && (
         <div className="flex items-center gap-2 ml-4">
           {(ankanOptions.length > 0 || kakanOptions.length > 0) && (

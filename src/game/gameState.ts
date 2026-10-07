@@ -27,6 +27,12 @@ export interface State {
   playerWind: Wind;
 }
 
+const winds: Wind[] = ['east', 'south', 'west', 'north'];
+
+function randomWind(): Wind {
+  return winds[Math.floor(Math.random() * winds.length)];
+}
+
 export function makeInitialState(): State {
   const { playerHand, cpuHand, wall, wanpai } = initGame();
   return makeInitialStateBase(playerHand, cpuHand, wall, wanpai);
@@ -47,7 +53,7 @@ export function makeInitialStateBase(playerHand: Tile[], cpuHand: Tile[], wall: 
     isRiichi: false,
     tsumoAvailable: false,
     missedRonAfterRiichi: false,
-    roundWind: 'east',
-    playerWind: 'east',
+    roundWind: randomWind(),
+    playerWind: randomWind(),
   };
 }
