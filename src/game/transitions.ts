@@ -70,7 +70,7 @@ export function applyCpuTurn(cur: State): State | null {
 
 export function applyCallRon(cur: State): State | null {
   if (cur.phase !== 'naki' || !cur.ronAvailable || !cur.lastCpuDiscard) return null;
-  return { ...cur, phase: 'win' as Phase, winType: 'ron' as const };
+  return { ...cur, phase: 'win' as Phase, winType: 'ron' as const, winTile: cur.lastCpuDiscard };
 }
 
 export function applyCallNaki(cur: State, option: NakiOption): State | null {
@@ -114,7 +114,7 @@ export function applyPassTsumo(cur: State): State | null {
 
 export function applyDeclareTsumo(cur: State): State | null {
   if (!cur.tsumoAvailable) return null;
-  return { ...cur, phase: 'win' as Phase, winType: 'tsumo' as const, tsumoAvailable: false };
+  return { ...cur, phase: 'win' as Phase, winType: 'tsumo' as const, tsumoAvailable: false, winTile: cur.playerDrawnTile };
 }
 
 export function applyDeclareKan(cur: State, option: NakiOption): State | null {

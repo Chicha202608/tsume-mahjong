@@ -25,6 +25,7 @@ export interface State {
   missedRonAfterRiichi: boolean;
   roundWind: Wind;
   playerWind: Wind;
+  winTile: Tile | null;
 }
 
 const winds: Wind[] = ['east', 'south', 'west', 'north'];
@@ -55,5 +56,6 @@ export function makeInitialStateBase(playerHand: Tile[], cpuHand: Tile[], wall: 
     missedRonAfterRiichi: false,
     roundWind: randomWind(),
     playerWind: randomWind(),
+    winTile: null,
   };
 }
