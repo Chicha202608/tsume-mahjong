@@ -4,6 +4,7 @@ import {
   calculate,
   createGameState,
   createMeld,
+  KAMICHA,
   type HandInput,
   type MahjongTile,
   type Meld,
@@ -36,7 +37,7 @@ const FURO_TYPE_MAP: Record<Furo['type'], 'run' | 'triplet' | 'daiminkan' | 'sho
   kan: 'daiminkan',
 };
 
-function toMeld(furo: Furo, cpuDir: Direction): Meld {
+function toMeld(furo: Furo, cpuDir: Direction, kamichaDir: Direction): Meld {
   const groupType = FURO_TYPE_MAP[furo.type];
   const tiles = furo.tiles.map(toMahjongTile);
 
@@ -45,10 +46,12 @@ function toMeld(furo: Furo, cpuDir: Direction): Meld {
   }
 
   const calledIndex = furo.tiles.findIndex(t => t.id === furo.calledTile.id);
+  // Chi must come from kamicha; other called melds come from the CPU seat.
+  const from = groupType === 'run' ? kamichaDir : cpuDir;
   return createMeld({
     type: groupType,
     tiles,
-    from: cpuDir,
+    from,
     calledIndex: calledIndex === -1 ? 0 : calledIndex,
   });
 }
@@ -59,11 +62,18 @@ function toDirection(wind: Wind): Direction {
   return wind as Direction;
 }
 
-// CPU direction: next wind clockwise from playerWind
+// CPU direction: next wind clockwise from playerWind.
+// Used as `from` for ron and non-chii melds.
 function cpuDirection(playerWind: Wind): Direction {
   const order: Wind[] = ['east', 'south', 'west', 'north'];
   const idx = order.indexOf(playerWind);
   return order[(idx + 1) % 4] as Direction;
+}
+
+// Chi may only be called from kamicha (the seat to the player's left).
+// riichi-score validates this against KAMICHA[seatWind].
+function kamichaDirection(playerWind: Wind): Direction {
+  return KAMICHA[playerWind as Direction];
 }
 
 // ── Build HandInput from State ──
@@ -72,8 +82,9 @@ export function buildHandInput(state: State): HandInput | null {
   if (state.phase !== 'win' || !state.winTile || !state.winType) return null;
 
   const cpuDir = cpuDirection(state.playerWind);
+  const kamichaDir = kamichaDirection(state.playerWind);
   const closedTiles = state.playerHand.map(toMahjongTile);
-  const openMelds = state.playerFuro.map(f => toMeld(f, cpuDir));
+  const openMelds = state.playerFuro.map(f => toMeld(f, cpuDir, kamichaDir));
 
   let winningTile: WinningTile;
   if (state.winType === 'tsumo') {
@@ -107,4 +118,27 @@ export function scoreHand(state: State): HandAnalysis | null {
   const input = buildHandInput(state);
   if (!input) return null;
   return calculate(input);
+}
+
+// ── Debug: log scoring result to console ──
+
+export function debugScore(state: State): void {
+  const result = scoreHand(state);
+  if (!result) {
+    console.log('[scoreAdapter] Not a win state — no scoring performed.');
+    return;
+  }
+  console.log('[scoreAdapter] valid:', result.valid);
+  console.log('[scoreAdapter] errors:', result.errors);
+  console.log('[scoreAdapter] interpretation count:', result.handInterpretations.length);
+  for (const hi of result.handInterpretations) {
+    console.log('[scoreAdapter] ── interpretation ──');
+    console.log('  yaku:', hi.yaku.map(y => `${y.name}(${y.han}han${y.limit ? ' ' + y.limit : ''})`));
+    console.log('  han:', hi.han);
+    console.log('  fu:', hi.fu);
+    console.log('  basicPoints:', hi.basicPoints);
+    console.log('  totalWinnings:', hi.totalWinnings);
+    console.log('  dora:', hi.dora, 'uradora:', hi.uradora, 'akadora:', hi.akadora);
+    console.log('  seatPayments:', hi.seatPayments);
+  }
 }
