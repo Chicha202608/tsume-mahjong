@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Tile } from '@/types';
 import { MAX_DRAWS } from '@/game/transitions';
 import { useGameEngine } from '@/game/useGameEngine';
+import { scoreHand } from '@/game/scoreAdapter';
 import StatusBar from '@/components/StatusBar';
 import GameOverOverlay from '@/components/GameOverOverlay';
 import ConfirmPopup from '@/components/ConfirmPopup';
@@ -54,6 +55,15 @@ export default function App() {
   } = engine;
 
   const { playerHand, playerDrawnTile, cpuHand, wall, fullWall, wallDrawnCount, wanpai, playerDiscards, cpuDiscards, playerFuro, phase, turnCount, lastCpuDiscard, nakiOptions, ronAvailable, winType, doraCount, isRiichi, tsumoAvailable, roundWind, playerWind } = state;
+
+  const scoreResult = useMemo(() => {
+    if (phase !== 'win') return null;
+    try {
+      return scoreHand(state);
+    } catch {
+      return null;
+    }
+  }, [state, phase]);
 
   return (
     <div className="h-dvh w-full bg-black flex items-center justify-center overflow-hidden">
@@ -178,6 +188,7 @@ export default function App() {
             onRestart={restart}
             onOk={dismissGameOver}
             isWin
+            scoreResult={scoreResult}
           />
         );
       })()}

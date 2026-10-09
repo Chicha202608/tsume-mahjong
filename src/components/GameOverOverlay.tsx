@@ -1,12 +1,35 @@
 import { Trophy, RefreshCw } from 'lucide-react';
+import type { HandAnalysis } from 'riichi-score';
+import YakuDisplay from '@/components/YakuDisplay';
 
-export default function GameOverOverlay({ title, message, onRestart, onOk, isWin }: { title: string; message: string; onRestart: () => void; onOk: () => void; isWin?: boolean }) {
+interface Props {
+  title: string;
+  message: string;
+  onRestart: () => void;
+  onOk: () => void;
+  isWin?: boolean;
+  scoreResult?: HandAnalysis | null;
+}
+
+export default function GameOverOverlay({ title, message, onRestart, onOk, isWin, scoreResult }: Props) {
+  const hasScore = isWin && scoreResult && scoreResult.valid && scoreResult.handInterpretations.length > 0;
+  const scoreError = isWin && scoreResult && (!scoreResult.valid || scoreResult.handInterpretations.length === 0);
+
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className={`border rounded-2xl p-8 flex flex-col items-center gap-4 shadow-2xl ${isWin ? 'bg-[#2a2a1a] border-yellow-500' : 'bg-[#1a2e1a] border-green-700'}`}>
+      <div className={`border rounded-2xl p-8 flex flex-col items-center gap-4 shadow-2xl max-h-[90dvh] overflow-y-auto ${isWin ? 'bg-[#2a2a1a] border-yellow-500' : 'bg-[#1a2e1a] border-green-700'}`}>
         {isWin && <Trophy size={48} className="text-yellow-400" />}
         <h2 className={`text-3xl font-black ${isWin ? 'text-yellow-300' : 'text-white'}`}>{title}</h2>
         <p className={`text-base ${isWin ? 'text-yellow-200' : 'text-green-400'}`}>{message}</p>
+
+        {hasScore && <YakuDisplay result={scoreResult} />}
+
+        {scoreError && (
+          <div className="text-red-300 text-xs text-center bg-red-900/30 rounded-lg p-2 max-w-sm">
+            採点エラー: {scoreResult.errors.join(', ') || '役が判定できませんでした'}
+          </div>
+        )}
+
         <div className="flex gap-3 mt-2">
           <button
             onClick={onOk}
