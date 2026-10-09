@@ -309,3 +309,115 @@ describe('scoreHand — menzen tsumo with akadora (red 5pin)', () => {
     expect(best.totalWinnings).toBe(11700);
   });
 });
+
+// ── Ron (menzen) test ───────────────────────────────────────────────────────
+//
+// Hand: (1m 2m 3m)(4m 5m 6m)(3p 4p 5p)(7p 8p __) pair(4z=north) + RON 9p
+//   Closed 13 tiles, winning tile 9p is discarded by CPU (west seat) → ron
+//   Wait shape: 7p 8p + 9p = ryanmen wait → qualifies for pinfu
+//
+// roundWind=east, seatWind=south (non-dealer), riichi
+// Dora indicator=5z(白→dora=6z=發, not in hand) → dora=0
+//
+// Yaku:
+//   riichi  (1han)
+//   pinfu   (1han) — all runs, non-yakuhai pair, ryanmen wait
+//   NO menzen-tsumo — ron win, not self-draw
+//
+// Total: 2han
+//
+// fu = 30:
+//   base 20 + ron win 10 = 30 (pinfu ron: no additional fu from wait or pair)
+//
+// Non-dealer ron, 2han 30fu:
+//   basicPoints = 30 × 2^(2+2) = 30 × 16 = 480
+//   Ron: discarder pays basicPoints × 4 (non-dealer) = 480 × 4 = 1920 → rounded to 2000
+//   totalWinnings = 2000 (paid entirely by the discarder, west)
+//
+// winningTile.from: cpuDirection(south) = west (next seat clockwise)
+//   → riichi-score uses this to determine who pays
+describe('scoreHand — menzen ron (pinfu + riichi, no tsumo yaku)', () => {
+  const winTile = makeTile('sou', 9); // ron'd 9p
+
+  const state: State = {
+    playerHand: [
+      makeTile('man', 1), makeTile('man', 2), makeTile('man', 3),
+      makeTile('man', 4), makeTile('man', 5), makeTile('man', 6),
+      makeTile('pin', 3), makeTile('pin', 4), makeTile('pin', 5),
+      makeTile('sou', 7), makeTile('sou', 8), // ryanmen wait → 9p completes the run
+      makeTile('wind', 4), makeTile('wind', 4), // north pair (4z, non-yakuhai for south seat)
+    ],
+    playerDrawnTile: null,
+    cpuHand: [],
+    wall: [],
+    fullWall: [],
+    wanpai: [
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('dragon', 3), // index 4 → dora indicator = 5z (白), dora = 6z (發) — not in hand
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1), makeTile('pin', 1),
+    ],
+    wallDrawnCount: 0,
+    playerDiscards: [],
+    cpuDiscards: [],
+    playerFuro: [],
+    cpuFuro: [],
+    phase: 'win',
+    turnCount: 10,
+    lastCpuDiscard: winTile,
+    nakiOptions: [],
+    ronAvailable: true,
+    winType: 'ron',
+    doraCount: 1,
+    isRiichi: true,
+    tsumoAvailable: false,
+    missedRonAfterRiichi: false,
+    roundWind: 'east',
+    playerWind: 'south',
+    winTile,
+  };
+
+  const result = scoreHand(state)!;
+
+  it('ron: should return a valid hand', () => {
+    expect(result).not.toBeNull();
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  const best = result.handInterpretations[0];
+
+  it('ron: should contain riichi and pinfu', () => {
+    const yakuNames = best.yaku.map(y => y.name);
+    expect(yakuNames).toContain('riichi');
+    expect(yakuNames).toContain('pinfu');
+  });
+
+  it('ron: should NOT contain menzen-tsumo (ron, not self-draw)', () => {
+    const yakuNames = best.yaku.map(y => y.name);
+    expect(yakuNames).not.toContain('menzen-tsumo');
+  });
+
+  it('ron: should have no dora, akadora, or uradora', () => {
+    expect(best.dora).toBe(0);
+    expect(best.akadora).toBe(0);
+    expect(best.uradora).toBe(0);
+  });
+
+  it('ron: should total 2 han (riichi + pinfu)', () => {
+    expect(best.han).toBe(2);
+  });
+
+  it('ron: should score 30 fu (pinfu ron: base 20 + ron 10)', () => {
+    expect(best.fu).toBe(30);
+  });
+
+  it('ron: basicPoints should be 480 (30 × 2^4)', () => {
+    expect(best.basicPoints).toBe(480);
+  });
+
+  it('ron: totalWinnings should be 2000 (non-dealer ron, paid by west)', () => {
+    expect(best.totalWinnings).toBe(2000);
+  });
+});
