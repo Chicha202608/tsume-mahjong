@@ -53,6 +53,7 @@ describe('scoreHand — menzen tsumo (pinfu + riichi + tsumo)', () => {
     roundWind: 'east',
     playerWind: 'south',
     winTile,
+    isIppatsu: false,
   };
 
   const result = scoreHand(state)!;
@@ -157,6 +158,7 @@ describe('scoreHand — menzen tsumo with dora×2 (tanyao + iipeiko)', () => {
     roundWind: 'south',
     playerWind: 'west',
     winTile,
+    isIppatsu: false,
   };
 
   const result = scoreHand(state)!;
@@ -266,6 +268,7 @@ describe('scoreHand — menzen tsumo with akadora (red 5pin)', () => {
     roundWind: 'east',
     playerWind: 'east',
     winTile,
+    isIppatsu: false,
   };
 
   const result = scoreHand(state)!;
@@ -376,6 +379,7 @@ describe('scoreHand — menzen ron (pinfu + riichi, no tsumo yaku)', () => {
     roundWind: 'east',
     playerWind: 'south',
     winTile,
+    isIppatsu: false,
   };
 
   const result = scoreHand(state)!;
@@ -501,6 +505,7 @@ describe('scoreHand — open hand tsumo with pon of white dragons', () => {
     roundWind: 'east',
     playerWind: 'south',
     winTile,
+    isIppatsu: false,
   };
 
   const result = scoreHand(state)!;
@@ -553,5 +558,465 @@ describe('scoreHand — open hand tsumo with pon of white dragons', () => {
 
   it('pon: totalWinnings should be 2000 (non-dealer open tsumo)', () => {
     expect(best.totalWinnings).toBe(2000);
+  });
+});
+
+// ── Ippatsu tsumo test ──────────────────────────────────────────────────────
+//
+// Hand: (1m 2m 3m)(4m 5m 6m)(3p 4p 5p)(7p 8p __) pair(4z=north) + tsumo 9p
+// riichi=true, ippatsu=true, round=east, seat=south
+// dora indicator=5z(白) → dora=6z(發) — not in hand → dora=0
+// ura indicator=1m → ura=2m — not in hand → ura=0
+//
+// Yaku: riichi(1) + ippatsu(1) + menzen-tsumo(1) + pinfu(1) = 4han
+//   BUT: uradora=1 (from ura indicator 1m → 2m... wait, 2m IS in hand!)
+//   Actually: ura indicator=1m → ura dora=2m. 2m is in the hand (1m2m3m run).
+//   So uradora=1, total han = 4+1 = 5
+//   5han = mangan, basicPoints=2000
+//   non-dealer tsumo: dealer=4000, others=2000+2000 → total=8000
+//
+// Wait, let me recheck. The ura indicator is at wanpai[9]. In this test:
+// wanpai[9] = 1m → ura dora = 2m. 2m is in the hand → uradora=1
+// So: riichi(1)+ippatsu(1)+tsumo(1)+pinfu(1)+uradora(1) = 5han
+// 5han mangan: basicPoints=2000, totalWinnings=8000
+describe('scoreHand — ippatsu tsumo (riichi + ippatsu + tsumo + pinfu + uradora)', () => {
+  const winTile = makeTile('sou', 9);
+
+  const state: State = {
+    playerHand: [
+      makeTile('man', 1), makeTile('man', 2), makeTile('man', 3),
+      makeTile('man', 4), makeTile('man', 5), makeTile('man', 6),
+      makeTile('pin', 3), makeTile('pin', 4), makeTile('pin', 5),
+      makeTile('sou', 7), makeTile('sou', 8),
+      makeTile('wind', 4), makeTile('wind', 4), // north pair (4z)
+    ],
+    playerDrawnTile: winTile,
+    cpuHand: [],
+    wall: [],
+    fullWall: [],
+    wanpai: [
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), // rinshan
+      makeTile('dragon', 3), // index 4 → dora indicator = 5z(中) → dora = 7z(中)... wait
+      // dragon value=3 → 7z = 中. dora indicator 7z → next is 5z(白). Not in hand → dora=0
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), // indices 5-8
+      makeTile('man', 1), // index 9 → ura indicator = 1m → ura dora = 2m (in hand!)
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1),
+    ],
+    wallDrawnCount: 0,
+    playerDiscards: [],
+    cpuDiscards: [],
+    playerFuro: [],
+    cpuFuro: [],
+    phase: 'win',
+    turnCount: 5,
+    lastCpuDiscard: null,
+    nakiOptions: [],
+    ronAvailable: false,
+    winType: 'tsumo',
+    doraCount: 1,
+    isRiichi: true,
+    tsumoAvailable: true,
+    missedRonAfterRiichi: false,
+    roundWind: 'east',
+    playerWind: 'south',
+    winTile,
+    isIppatsu: true,
+  };
+
+  const result = scoreHand(state)!;
+
+  it('ippatsu-tsumo: should return a valid hand', () => {
+    expect(result).not.toBeNull();
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  const best = result.handInterpretations[0];
+
+  it('ippatsu-tsumo: should contain riichi, ippatsu, menzen-tsumo, and pinfu', () => {
+    const yakuNames = best.yaku.map(y => y.name);
+    expect(yakuNames).toContain('riichi');
+    expect(yakuNames).toContain('ippatsu');
+    expect(yakuNames).toContain('menzen-tsumo');
+    expect(yakuNames).toContain('pinfu');
+  });
+
+  it('ippatsu-tsumo: should count 1 uradora (ura indicator 1m → 2m in hand)', () => {
+    expect(best.uradora).toBe(1);
+    expect(best.dora).toBe(0);
+    expect(best.akadora).toBe(0);
+  });
+
+  it('ippatsu-tsumo: should total 5 han (4 yaku + 1 uradora) = mangan', () => {
+    expect(best.han).toBe(5);
+  });
+
+  it('ippatsu-tsumo: should score 20 fu (pinfu tsumo)', () => {
+    expect(best.fu).toBe(20);
+  });
+
+  it('ippatsu-tsumo: basicPoints should be 2000 (mangan)', () => {
+    expect(best.basicPoints).toBe(2000);
+  });
+
+  it('ippatsu-tsumo: totalWinnings should be 8000 (mangan non-dealer tsumo)', () => {
+    expect(best.totalWinnings).toBe(8000);
+  });
+});
+
+// ── Ippatsu ron test ────────────────────────────────────────────────────────
+//
+// Same hand, but won by ron from CPU (west).
+// riichi=true, ippatsu=true, round=east, seat=south
+// Yaku: riichi(1) + ippatsu(1) + pinfu(1) + uradora(1) = 4han
+//   No menzen-tsumo (ron, not tsumo)
+// ura indicator=1m → ura=2m (in hand) → uradora=1
+// Total: 3 yaku + 1 ura = 4han, 30fu (pinfu ron: base 20 + ron 10)
+// basicPoints = 30 × 2^(4+2) = 30 × 64 = 1920
+// non-dealer ron: 1920 × 4 = 7680 → rounded to 7700
+describe('scoreHand — ippatsu ron (riichi + ippatsu + pinfu + uradora)', () => {
+  const winTile = makeTile('sou', 9);
+
+  const state: State = {
+    playerHand: [
+      makeTile('man', 1), makeTile('man', 2), makeTile('man', 3),
+      makeTile('man', 4), makeTile('man', 5), makeTile('man', 6),
+      makeTile('pin', 3), makeTile('pin', 4), makeTile('pin', 5),
+      makeTile('sou', 7), makeTile('sou', 8),
+      makeTile('wind', 4), makeTile('wind', 4),
+    ],
+    playerDrawnTile: null,
+    cpuHand: [],
+    wall: [],
+    fullWall: [],
+    wanpai: [
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('dragon', 3), // index 4 → dora indicator 7z(中) → dora 5z(白) — not in hand
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('man', 1), // index 9 → ura indicator 1m → ura dora 2m (in hand)
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1),
+    ],
+    wallDrawnCount: 0,
+    playerDiscards: [],
+    cpuDiscards: [],
+    playerFuro: [],
+    cpuFuro: [],
+    phase: 'win',
+    turnCount: 5,
+    lastCpuDiscard: winTile,
+    nakiOptions: [],
+    ronAvailable: true,
+    winType: 'ron',
+    doraCount: 1,
+    isRiichi: true,
+    tsumoAvailable: false,
+    missedRonAfterRiichi: false,
+    roundWind: 'east',
+    playerWind: 'south',
+    winTile,
+    isIppatsu: true,
+  };
+
+  const result = scoreHand(state)!;
+
+  it('ippatsu-ron: should return a valid hand', () => {
+    expect(result).not.toBeNull();
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  const best = result.handInterpretations[0];
+
+  it('ippatsu-ron: should contain riichi, ippatsu, and pinfu', () => {
+    const yakuNames = best.yaku.map(y => y.name);
+    expect(yakuNames).toContain('riichi');
+    expect(yakuNames).toContain('ippatsu');
+    expect(yakuNames).toContain('pinfu');
+  });
+
+  it('ippatsu-ron: should NOT contain menzen-tsumo (ron)', () => {
+    const yakuNames = best.yaku.map(y => y.name);
+    expect(yakuNames).not.toContain('menzen-tsumo');
+  });
+
+  it('ippatsu-ron: should count 1 uradora', () => {
+    expect(best.uradora).toBe(1);
+  });
+
+  it('ippatsu-ron: should total 4 han (3 yaku + 1 uradora)', () => {
+    expect(best.han).toBe(4);
+  });
+
+  it('ippatsu-ron: should score 30 fu (pinfu ron)', () => {
+    expect(best.fu).toBe(30);
+  });
+
+  it('ippatsu-ron: basicPoints should be 1920 (30 × 2^6)', () => {
+    expect(best.basicPoints).toBe(1920);
+  });
+
+  it('ippatsu-ron: totalWinnings should be 7700 (non-dealer ron)', () => {
+    expect(best.totalWinnings).toBe(7700);
+  });
+});
+
+// ── Ippatsu invalidated by naki ──────────────────────────────────────────────
+//
+// Same hand, riichi=true, but isIppatsu=false (naki invalidated ippatsu).
+// Yaku: riichi(1) + menzen-tsumo(1) + pinfu(1) + uradora(1) = 4han
+//   NO ippatsu — invalidated by naki
+// ura indicator=1m → ura=2m (in hand) → uradora=1
+describe('scoreHand — ippatsu invalidated by naki (riichi but no ippatsu)', () => {
+  const winTile = makeTile('sou', 9);
+
+  const state: State = {
+    playerHand: [
+      makeTile('man', 1), makeTile('man', 2), makeTile('man', 3),
+      makeTile('man', 4), makeTile('man', 5), makeTile('man', 6),
+      makeTile('pin', 3), makeTile('pin', 4), makeTile('pin', 5),
+      makeTile('sou', 7), makeTile('sou', 8),
+      makeTile('wind', 4), makeTile('wind', 4),
+    ],
+    playerDrawnTile: winTile,
+    cpuHand: [],
+    wall: [],
+    fullWall: [],
+    wanpai: [
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('dragon', 3),
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('man', 1), // ura indicator 1m → ura 2m (in hand)
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1),
+    ],
+    wallDrawnCount: 0,
+    playerDiscards: [],
+    cpuDiscards: [],
+    playerFuro: [],
+    cpuFuro: [],
+    phase: 'win',
+    turnCount: 8,
+    lastCpuDiscard: null,
+    nakiOptions: [],
+    ronAvailable: false,
+    winType: 'tsumo',
+    doraCount: 1,
+    isRiichi: true,
+    tsumoAvailable: true,
+    missedRonAfterRiichi: false,
+    roundWind: 'east',
+    playerWind: 'south',
+    winTile,
+    isIppatsu: false, // invalidated by naki
+  };
+
+  const result = scoreHand(state)!;
+
+  it('ippatsu-invalid: should return a valid hand', () => {
+    expect(result).not.toBeNull();
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  const best = result.handInterpretations[0];
+
+  it('ippatsu-invalid: should NOT contain ippatsu', () => {
+    const yakuNames = best.yaku.map(y => y.name);
+    expect(yakuNames).not.toContain('ippatsu');
+  });
+
+  it('ippatsu-invalid: should contain riichi, menzen-tsumo, and pinfu', () => {
+    const yakuNames = best.yaku.map(y => y.name);
+    expect(yakuNames).toContain('riichi');
+    expect(yakuNames).toContain('menzen-tsumo');
+    expect(yakuNames).toContain('pinfu');
+  });
+
+  it('ippatsu-invalid: should still count uradora (riichi is active)', () => {
+    expect(best.uradora).toBe(1);
+  });
+
+  it('ippatsu-invalid: should total 4 han (3 yaku + 1 uradora, no ippatsu)', () => {
+    expect(best.han).toBe(4);
+  });
+});
+
+// ── Uradora without riichi (should be 0) ─────────────────────────────────────
+//
+// Same hand, no riichi, isIppatsu=false.
+// Even though ura indicator would match, uradora should be 0 without riichi.
+// Yaku: menzen-tsumo(1) + pinfu(1) = 2han
+// ura indicator=1m → ura=2m (in hand) but NOT counted because no riichi
+describe('scoreHand — uradora not counted without riichi', () => {
+  const winTile = makeTile('sou', 9);
+
+  const state: State = {
+    playerHand: [
+      makeTile('man', 1), makeTile('man', 2), makeTile('man', 3),
+      makeTile('man', 4), makeTile('man', 5), makeTile('man', 6),
+      makeTile('pin', 3), makeTile('pin', 4), makeTile('pin', 5),
+      makeTile('sou', 7), makeTile('sou', 8),
+      makeTile('wind', 4), makeTile('wind', 4),
+    ],
+    playerDrawnTile: winTile,
+    cpuHand: [],
+    wall: [],
+    fullWall: [],
+    wanpai: [
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('dragon', 3),
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('man', 1), // ura indicator 1m → ura 2m (in hand, but no riichi)
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1),
+    ],
+    wallDrawnCount: 0,
+    playerDiscards: [],
+    cpuDiscards: [],
+    playerFuro: [],
+    cpuFuro: [],
+    phase: 'win',
+    turnCount: 8,
+    lastCpuDiscard: null,
+    nakiOptions: [],
+    ronAvailable: false,
+    winType: 'tsumo',
+    doraCount: 1,
+    isRiichi: false, // no riichi
+    tsumoAvailable: true,
+    missedRonAfterRiichi: false,
+    roundWind: 'east',
+    playerWind: 'south',
+    winTile,
+    isIppatsu: false,
+  };
+
+  const result = scoreHand(state)!;
+
+  it('no-riichi-ura: should return a valid hand', () => {
+    expect(result).not.toBeNull();
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  const best = result.handInterpretations[0];
+
+  it('no-riichi-ura: should NOT contain riichi or ippatsu', () => {
+    const yakuNames = best.yaku.map(y => y.name);
+    expect(yakuNames).not.toContain('riichi');
+    expect(yakuNames).not.toContain('ippatsu');
+  });
+
+  it('no-riichi-ura: should contain menzen-tsumo and pinfu', () => {
+    const yakuNames = best.yaku.map(y => y.name);
+    expect(yakuNames).toContain('menzen-tsumo');
+    expect(yakuNames).toContain('pinfu');
+  });
+
+  it('no-riichi-ura: uradora should be 0 (no riichi)', () => {
+    expect(best.uradora).toBe(0);
+    expect(best.dora).toBe(0);
+    expect(best.akadora).toBe(0);
+  });
+
+  it('no-riichi-ura: should total 2 han (tsumo + pinfu)', () => {
+    expect(best.han).toBe(2);
+  });
+});
+
+// ── Multiple uradora test ────────────────────────────────────────────────────
+//
+// Hand: (2m 3m 4m)(4m 5m 6m)(3p 4p 5p)(7p 8p __) pair(4z) + tsumo 9p
+// riichi=true, ippatsu=false, round=east, seat=south
+// dora indicator=5z(中) → dora=7z... no. dragon value=3 → 7z=中, next is 5z=白. Not in hand.
+// ura indicators=[1m, 8p] → ura dora: 2m (in hand) + 9p (win tile, in hand) = 2 uradora
+//
+// Yaku: riichi(1) + menzen-tsumo(1) + pinfu(1) = 3han
+//   + uradora×2 = 5han total = mangan
+//   basicPoints=2000, non-dealer tsumo total=8000
+describe('scoreHand — multiple uradora (2 ura indicators matching)', () => {
+  const winTile = makeTile('sou', 9);
+
+  const state: State = {
+    playerHand: [
+      makeTile('man', 2), makeTile('man', 3), makeTile('man', 4), // 2m is ura-dora
+      makeTile('man', 4), makeTile('man', 5), makeTile('man', 6),
+      makeTile('pin', 3), makeTile('pin', 4), makeTile('pin', 5),
+      makeTile('sou', 7), makeTile('sou', 8),
+      makeTile('wind', 4), makeTile('wind', 4),
+    ],
+    playerDrawnTile: winTile,
+    cpuHand: [],
+    wall: [],
+    fullWall: [],
+    wanpai: [
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('dragon', 3), // index 4 → dora indicator 7z(中) → dora 5z(白) — not in hand
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('man', 1), // index 9 → ura indicator 1m → ura dora 2m (in hand)
+      makeTile('sou', 8), // index 10 → ura indicator 8p → ura dora 9p (win tile!)
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1),
+    ],
+    wallDrawnCount: 0,
+    playerDiscards: [],
+    cpuDiscards: [],
+    playerFuro: [],
+    cpuFuro: [],
+    phase: 'win',
+    turnCount: 8,
+    lastCpuDiscard: null,
+    nakiOptions: [],
+    ronAvailable: false,
+    winType: 'tsumo',
+    doraCount: 2, // 2 dora indicators revealed (for 2 ura indicators)
+    isRiichi: true,
+    tsumoAvailable: true,
+    missedRonAfterRiichi: false,
+    roundWind: 'east',
+    playerWind: 'south',
+    winTile,
+    isIppatsu: false,
+  };
+
+  const result = scoreHand(state)!;
+
+  it('multi-ura: should return a valid hand', () => {
+    expect(result).not.toBeNull();
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  const best = result.handInterpretations[0];
+
+  it('multi-ura: should contain riichi, menzen-tsumo, and pinfu', () => {
+    const yakuNames = best.yaku.map(y => y.name);
+    expect(yakuNames).toContain('riichi');
+    expect(yakuNames).toContain('menzen-tsumo');
+    expect(yakuNames).toContain('pinfu');
+  });
+
+  it('multi-ura: should count 2 uradora (2m + 9p from indicators 1m + 8p)', () => {
+    expect(best.uradora).toBe(2);
+    expect(best.dora).toBe(0);
+    expect(best.akadora).toBe(0);
+  });
+
+  it('multi-ura: should total 5 han (3 yaku + 2 uradora) = mangan', () => {
+    expect(best.han).toBe(5);
+  });
+
+  it('multi-ura: should score 20 fu (pinfu tsumo)', () => {
+    expect(best.fu).toBe(20);
+  });
+
+  it('multi-ura: basicPoints should be 2000 (mangan)', () => {
+    expect(best.basicPoints).toBe(2000);
+  });
+
+  it('multi-ura: totalWinnings should be 8000 (mangan non-dealer tsumo)', () => {
+    expect(best.totalWinnings).toBe(8000);
   });
 });

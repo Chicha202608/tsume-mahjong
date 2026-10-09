@@ -39,9 +39,9 @@ export function applyPlayerDiscard(cur: State, tile: Tile): State | null {
   const newDiscards = [...cur.playerDiscards, tile];
   const newTurnCount = cur.turnCount + 1;
   if (cur.wall.length === 0 || newTurnCount >= MAX_DRAWS) {
-    return { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'exhausted', turnCount: newTurnCount };
+    return { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'exhausted', turnCount: newTurnCount, isIppatsu: false };
   }
-  return { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'cpuTurn', turnCount: newTurnCount };
+  return { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'cpuTurn', turnCount: newTurnCount, isIppatsu: false };
 }
 
 export function applyCpuTurn(cur: State): State | null {
@@ -70,7 +70,7 @@ export function applyCpuTurn(cur: State): State | null {
 
 export function applyCallRon(cur: State): State | null {
   if (cur.phase !== 'naki' || !cur.ronAvailable || !cur.lastCpuDiscard) return null;
-  return { ...cur, phase: 'win' as Phase, winType: 'ron' as const, winTile: cur.lastCpuDiscard };
+  return { ...cur, phase: 'win' as Phase, winType: 'ron' as const, winTile: cur.lastCpuDiscard, isIppatsu: cur.isIppatsu };
 }
 
 export function applyCallNaki(cur: State, option: NakiOption): State | null {
@@ -84,7 +84,7 @@ export function applyCallNaki(cur: State, option: NakiOption): State | null {
   };
   return {
     ...cur, playerHand: newHand, playerFuro: [...cur.playerFuro, newFuro],
-    phase: 'playerNakiDiscard' as Phase, nakiOptions: [], ronAvailable: false,
+    phase: 'playerNakiDiscard' as Phase, nakiOptions: [], ronAvailable: false, isIppatsu: false,
   };
 }
 
@@ -114,7 +114,7 @@ export function applyPassTsumo(cur: State): State | null {
 
 export function applyDeclareTsumo(cur: State): State | null {
   if (!cur.tsumoAvailable) return null;
-  return { ...cur, phase: 'win' as Phase, winType: 'tsumo' as const, tsumoAvailable: false, winTile: cur.playerDrawnTile };
+  return { ...cur, phase: 'win' as Phase, winType: 'tsumo' as const, tsumoAvailable: false, winTile: cur.playerDrawnTile, isIppatsu: cur.isIppatsu };
 }
 
 export function applyDeclareKan(cur: State, option: NakiOption): State | null {
@@ -198,6 +198,7 @@ export function applyDeclareKan(cur: State, option: NakiOption): State | null {
     nakiOptions: [],
     ronAvailable: false,
     lastCpuDiscard: null,
+    isIppatsu: false,
   };
 }
 
@@ -217,7 +218,7 @@ export function applyRiichiDiscard(cur: State, tile: Tile): State | null {
   const newDiscards = [...cur.playerDiscards, tile];
   const newTurnCount = cur.turnCount + 1;
   if (cur.wall.length === 0 || newTurnCount >= MAX_DRAWS) {
-    return { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'exhausted', turnCount: newTurnCount, isRiichi: true };
+    return { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'exhausted', turnCount: newTurnCount, isRiichi: true, isIppatsu: true };
   }
-  return { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'cpuTurn', turnCount: newTurnCount, isRiichi: true };
+  return { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'cpuTurn', turnCount: newTurnCount, isRiichi: true, isIppatsu: true };
 }

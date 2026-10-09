@@ -97,11 +97,17 @@ export function buildHandInput(state: State): HandInput | null {
     .slice(4, 4 + state.doraCount)
     .map(toMahjongTile);
 
+  const uradoraIndicators = state.isRiichi
+    ? state.wanpai.slice(9, 9 + state.doraCount).map(toMahjongTile)
+    : [];
+
   const gameState = createGameState({
     roundWind: toDirection(state.roundWind),
     seatWind: toDirection(state.playerWind),
     doraIndicators,
+    uradoraIndicators,
     isRiichi: state.isRiichi,
+    isIppatsu: state.isIppatsu,
   });
 
   return {

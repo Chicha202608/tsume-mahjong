@@ -26,6 +26,7 @@ export interface State {
   roundWind: Wind;
   playerWind: Wind;
   winTile: Tile | null;
+  isIppatsu: boolean;
 }
 
 const winds: Wind[] = ['east', 'south', 'west', 'north'];
@@ -57,5 +58,6 @@ export function makeInitialStateBase(playerHand: Tile[], cpuHand: Tile[], wall: 
     roundWind: randomWind(),
     playerWind: randomWind(),
     winTile: null,
+    isIppatsu: false,
   };
 }
