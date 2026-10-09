@@ -421,3 +421,137 @@ describe('scoreHand — menzen ron (pinfu + riichi, no tsumo yaku)', () => {
     expect(best.totalWinnings).toBe(2000);
   });
 });
+
+// ── Furo (pon) test ─────────────────────────────────────────────────────────
+//
+// Hand: closed (2m 3m 4m)(5p 6p 7p)(6s 7s 8s) pair(2z=south) + PON of 5z(白)×3
+// Win: tsumo 2z (tanki wait on south pair)
+//
+// Furo: pung of white dragons (5z 5z 5z), called from west (CPU seat)
+//   → open hand (non-menzen)
+//
+// roundWind=east, seatWind=south (non-dealer), NO riichi (open hand)
+// Dora indicator=1m → dora tile=2m (appears once in closed hand)
+//
+// Yaku:
+//   haku (白=white dragon triplet) (1han) — yakuhai from the pon
+//   dora (1han) — one 2m from indicator 1m
+//   NO menzen-tsumo — open hand (pon)
+//   NO riichi — cannot declare riichi with an open hand
+//   NO tanyao — 5z (honor tile) disqualifies tanyao
+//   NO pinfu — has a triplet (pon), not all runs
+//
+// Total: 1 + 1 = 2 han
+//
+// fu = 30:
+//   base 20 (open hand tsumo) + tsumo 2 + white dragon triplet 4 (min: 2 → 4 for open)
+//   + tanki pair wait 0 (tanki wait adds 2 only for closed, open is just base)
+//   → actually let's verify via the library; confirmed 30fu
+//
+// Non-dealer tsumo, 2han 30fu:
+//   basicPoints = 30 × 2^(2+2) = 30 × 16 = 480
+//   Open hand: dealer pays 1000, each non-dealer pays 500 → total = 2000
+describe('scoreHand — open hand tsumo with pon of white dragons', () => {
+  const winTile = makeTile('wind', 2); // 2z = south (pair head, tanki wait)
+
+  // Pon tiles: three white dragons (5z)
+  const ponTile = (suffix: string) => makeTile('dragon', 1); // dragon value=1 → 5z (白)
+  const calledTile = ponTile('called');
+  const ponTiles = [
+    calledTile,
+    makeTile('dragon', 1),
+    makeTile('dragon', 1),
+  ];
+
+  const state: State = {
+    playerHand: [
+      makeTile('man', 2), makeTile('man', 3), makeTile('man', 4), // run (2m is dora)
+      makeTile('pin', 5), makeTile('pin', 6), makeTile('pin', 7),
+      makeTile('sou', 6), makeTile('sou', 7), makeTile('sou', 8),
+      makeTile('wind', 2), // pair head — south (2z), tanki wait
+    ],
+    playerDrawnTile: winTile,
+    cpuHand: [],
+    wall: [],
+    fullWall: [],
+    wanpai: [
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('man', 1), // index 4 → dora indicator = 1m → dora tile = 2m
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1), makeTile('pin', 1),
+    ],
+    wallDrawnCount: 0,
+    playerDiscards: [],
+    cpuDiscards: [],
+    playerFuro: [
+      { type: 'pung', tiles: ponTiles, calledTile },
+    ],
+    cpuFuro: [],
+    phase: 'win',
+    turnCount: 8,
+    lastCpuDiscard: null,
+    nakiOptions: [],
+    ronAvailable: false,
+    winType: 'tsumo',
+    doraCount: 1,
+    isRiichi: false, // cannot riichi with open hand
+    tsumoAvailable: true,
+    missedRonAfterRiichi: false,
+    roundWind: 'east',
+    playerWind: 'south',
+    winTile,
+  };
+
+  const result = scoreHand(state)!;
+
+  it('pon: should return a valid hand', () => {
+    expect(result).not.toBeNull();
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  const best = result.handInterpretations[0];
+
+  it('pon: should contain haku (white dragon yakuhai)', () => {
+    const yakuNames = best.yaku.map(y => y.name);
+    expect(yakuNames).toContain('haku');
+  });
+
+  it('pon: should NOT contain menzen-tsumo (open hand from pon)', () => {
+    const yakuNames = best.yaku.map(y => y.name);
+    expect(yakuNames).not.toContain('menzen-tsumo');
+  });
+
+  it('pon: should NOT contain riichi (open hand)', () => {
+    const yakuNames = best.yaku.map(y => y.name);
+    expect(yakuNames).not.toContain('riichi');
+  });
+
+  it('pon: should NOT contain tanyao (honor tile 5z present)', () => {
+    const yakuNames = best.yaku.map(y => y.name);
+    expect(yakuNames).not.toContain('tanyao');
+  });
+
+  it('pon: should count 1 dora (one 2m from indicator 1m)', () => {
+    expect(best.dora).toBe(1);
+    expect(best.akadora).toBe(0);
+    expect(best.uradora).toBe(0);
+  });
+
+  it('pon: should total 2 han (haku + dora)', () => {
+    expect(best.han).toBe(2);
+  });
+
+  it('pon: should score 30 fu', () => {
+    expect(best.fu).toBe(30);
+  });
+
+  it('pon: basicPoints should be 480 (30 × 2^4)', () => {
+    expect(best.basicPoints).toBe(480);
+  });
+
+  it('pon: totalWinnings should be 2000 (non-dealer open tsumo)', () => {
+    expect(best.totalWinnings).toBe(2000);
+  });
+});
