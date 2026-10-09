@@ -198,3 +198,114 @@ describe('scoreHand — menzen tsumo with dora×2 (tanyao + iipeiko)', () => {
     expect(best.totalWinnings).toBe(8000);
   });
 });
+
+// ── Akadora (red five) test ─────────────────────────────────────────────────
+//
+// Hand: (2m 3m 4m)(3p 4p 0p)(5s 6s 7s)(7s 8s 9s) pair(2z=south) + tsumo 2z (tanki wait)
+//   0p = red 5pin → akadora (always counted, independent of dora indicator)
+// roundWind=east, seatWind=east (dealer), riichi
+// Dora indicator=1m → dora tile=2m (appears once in hand) → dora=1
+//
+// Yaku:
+//   riichi        (1han)
+//   menzen-tsumo  (1han)
+//   No tanyao (9s is a terminal)
+//   No yakuhai (2z=south is not round-wind east nor seat-wind east)
+//
+// Dora breakdown:
+//   dora    = 1  (one 2m, from indicator 1m)
+//   akadora = 1  (one red 5pin, 0p)
+//   uradora = 0  (no ura-dora indicator, not checked without riichi-ura)
+//
+// Total han: 1 + 1 + 1(dora) + 1(akadora) = 4
+//
+// fu = 30:
+//   base 20 + tanki wait 2 + tsumo 2 = 24 → rounded up to 30
+//
+// Dealer tsumo, 4han 30fu:
+//   basicPoints = 30 × 2^(4+2) = 30 × 64 = 1920
+//   Each non-dealer pays ceil(1920) = 3900 (round-up to 100-unit)
+//   totalWinnings = 3900 × 3 = 11700
+describe('scoreHand — menzen tsumo with akadora (red 5pin)', () => {
+  const winTile = makeTile('wind', 2); // 2z = south
+
+  const state: State = {
+    playerHand: [
+      makeTile('man', 2), makeTile('man', 3), makeTile('man', 4),  // run (2m is dora)
+      makeTile('pin', 3), makeTile('pin', 4), makeTile('pin', 5, true), // run with RED 5pin (0p = akadora)
+      makeTile('sou', 5), makeTile('sou', 6), makeTile('sou', 7),
+      makeTile('sou', 7), makeTile('sou', 8), makeTile('sou', 9),
+      makeTile('wind', 2), // pair head — south (2z), tanki wait
+    ],
+    playerDrawnTile: winTile,
+    cpuHand: [],
+    wall: [],
+    fullWall: [],
+    wanpai: [
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('man', 1), // index 4 → dora indicator = 1m → dora tile = 2m
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1), makeTile('pin', 1),
+    ],
+    wallDrawnCount: 0,
+    playerDiscards: [],
+    cpuDiscards: [],
+    playerFuro: [],
+    cpuFuro: [],
+    phase: 'win',
+    turnCount: 10,
+    lastCpuDiscard: null,
+    nakiOptions: [],
+    ronAvailable: false,
+    winType: 'tsumo',
+    doraCount: 1,
+    isRiichi: true,
+    tsumoAvailable: true,
+    missedRonAfterRiichi: false,
+    roundWind: 'east',
+    playerWind: 'east',
+    winTile,
+  };
+
+  const result = scoreHand(state)!;
+
+  it('akadora: should return a valid hand', () => {
+    expect(result).not.toBeNull();
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  const best = result.handInterpretations[0];
+
+  it('akadora: should contain riichi and menzen-tsumo', () => {
+    const yakuNames = best.yaku.map(y => y.name);
+    expect(yakuNames).toContain('riichi');
+    expect(yakuNames).toContain('menzen-tsumo');
+  });
+
+  it('akadora: should count 1 dora (one 2m from indicator 1m)', () => {
+    expect(best.dora).toBe(1);
+  });
+
+  it('akadora: should count 1 akadora (red 5pin) — separate from dora', () => {
+    expect(best.akadora).toBe(1);
+    expect(best.uradora).toBe(0);
+  });
+
+  it('akadora: should total 4 han (riichi + tsumo + dora + akadora)', () => {
+    expect(best.han).toBe(4);
+  });
+
+  it('akadora: should score 30 fu', () => {
+    expect(best.fu).toBe(30);
+  });
+
+  it('akadora: basicPoints should be 1920 (30 × 2^6)', () => {
+    expect(best.basicPoints).toBe(1920);
+  });
+
+  it('akadora: dealer tsumo totalWinnings should be 11700 (3900 × 3)', () => {
+    expect(best.totalWinnings).toBe(11700);
+  });
+});
