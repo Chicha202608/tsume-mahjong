@@ -1,5 +1,4 @@
-import { useState, useMemo } from 'react';
-import { Trophy } from 'lucide-react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Tile } from '@/types';
 import { MAX_DRAWS } from '@/game/transitions';
 import { useGameEngine } from '@/game/useGameEngine';
@@ -19,8 +18,7 @@ import WallModal from '@/components/WallModal';
 
 export default function App() {
   const [showWall, setShowWall] = useState(false);
-  // Set of history indices whose win overlay has been dismissed
-  const [dismissedWins, setDismissedWins] = useState<Set<number>>(new Set());
+  const [showScoreModal, setShowScoreModal] = useState(false);
   const engine = useGameEngine();
   const {
     state,
@@ -32,6 +30,7 @@ export default function App() {
     pendingAction,
     confirmPendingAction,
     cancelPendingAction,
+    dismissedIndex,
     dismissGameOver,
     canTsumo,
     ankanOptions,
@@ -69,25 +68,22 @@ export default function App() {
 
   const isValidWin = phase === 'win' && !!scoreResult && scoreResult.valid && scoreResult.handInterpretations.length > 0;
 
-  const showWinOverlay = isValidWin && !dismissedWins.has(historyIndex);
-  const showReopenButton = isValidWin && dismissedWins.has(historyIndex);
+  // Auto-show the score modal whenever historyIndex changes to a win state.
+  const prevHistoryIndexRef = useRef<number>(historyIndex);
+  useEffect(() => {
+    if (prevHistoryIndexRef.current !== historyIndex && isValidWin) {
+      setShowScoreModal(true);
+    }
+    prevHistoryIndexRef.current = historyIndex;
+  }, [historyIndex, isValidWin]);
 
   function handleDismissWin() {
-    setDismissedWins(prev => new Set(prev).add(historyIndex));
-    // Also inform the engine (needed for history auto-advance logic)
-    if (!isViewingPast) dismissGameOver();
-  }
-
-  function handleReopenScore() {
-    setDismissedWins(prev => {
-      const next = new Set(prev);
-      next.delete(historyIndex);
-      return next;
-    });
+    setShowScoreModal(false);
+    dismissGameOver();
   }
 
   function handleRestart() {
-    setDismissedWins(new Set());
+    setShowScoreModal(false);
     restart();
   }
 
@@ -197,7 +193,7 @@ export default function App() {
       )}
 
       {/* Exhausted overlay */}
-      {phase === 'exhausted' && !isViewingPast && !dismissedWins.has(historyIndex) && (
+      {phase === 'exhausted' && !isViewingPast && dismissedIndex !== historyIndex && (
         <GameOverOverlay
           title="流局"
           message={`ツモ${MAX_DRAWS}回に達しました`}
@@ -206,8 +202,8 @@ export default function App() {
         />
       )}
 
-      {/* Win overlay — shown for both live and history viewing */}
-      {showWinOverlay && (
+      {/* Win overlay — auto-shown for both live and history viewing */}
+      {showScoreModal && isValidWin && (
         <GameOverOverlay
           title={winType === 'ron' ? 'ロン！' : 'ツモ！'}
           message="おめでとうございます — あがり！"
@@ -216,17 +212,6 @@ export default function App() {
           isWin
           scoreResult={scoreResult}
         />
-      )}
-
-      {/* Re-open score button after overlay is dismissed */}
-      {showReopenButton && (
-        <button
-          onClick={handleReopenScore}
-          className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-yellow-600 hover:bg-yellow-500 active:scale-95 text-white font-bold text-sm transition-all shadow-lg"
-        >
-          <Trophy size={16} />
-          点数を見る
-        </button>
       )}
     </div>
     </div>
