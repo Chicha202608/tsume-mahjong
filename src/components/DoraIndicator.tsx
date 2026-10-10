@@ -21,13 +21,14 @@ interface Props {
   onDeclareKan: (option: NakiOption) => void;
   roundWind: Wind;
   playerWind: Wind;
+  cpuHand: Tile[];
 }
 
-export default function DoraIndicator({ wanpai, doraCount, ankanOptions, kakanOptions, phase, isViewingPast, onDeclareKan, roundWind, playerWind }: Props) {
+export default function DoraIndicator({ wanpai, doraCount, ankanOptions, kakanOptions, phase, isViewingPast, onDeclareKan, roundWind, playerWind, cpuHand }: Props) {
   return (
     <div className="flex items-center gap-2 px-3 py-1 bg-[#0a1a0a] border-b border-[#2d4a2d]">
       <span className="text-red-400 text-[10px] font-bold tracking-wider shrink-0">ドラ</span>
-      <div className="flex flex-col gap-0.5">
+      <div className="flex flex-col gap-0.5 shrink-0">
         <div className="flex gap-0.5">
           {Array.from({ length: 5 }).map((_, i) => {
             const isRevealed = i < doraCount;
@@ -45,6 +46,23 @@ export default function DoraIndicator({ wanpai, doraCount, ankanOptions, kakanOp
           <span>場風：{windLabels[roundWind]}</span>
           <span>自風：{windLabels[playerWind]}</span>
         </div>
+      </div>
+      <div className="flex items-center gap-1.5 ml-3 shrink-0">
+        <span className="text-green-400 text-[10px] font-semibold tracking-wider uppercase shrink-0">
+          対面
+        </span>
+      </div>
+      <div className="flex flex-nowrap justify-start items-center gap-0.5 overflow-hidden">
+        {cpuHand.map((tile, idx) => (
+          <div key={tile.id ?? idx} className="flex-1 min-w-0 max-w-[32px] flex justify-center aspect-[3/4]">
+            <TileCard
+              tile={tile}
+              size="xs"
+              faceDown
+              className="w-full h-full object-contain"
+            />
+          </div>
+        ))}
       </div>
       {((ankanOptions.length > 0 || kakanOptions.length > 0) && phase === 'playerDiscard' && !isViewingPast) && (
         <div className="flex items-center gap-2 ml-4">

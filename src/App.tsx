@@ -7,7 +7,6 @@ import StatusBar from '@/components/StatusBar';
 import GameOverOverlay from '@/components/GameOverOverlay';
 import ConfirmPopup from '@/components/ConfirmPopup';
 import HistoryControls from '@/components/HistoryControls';
-import DebugButtons from '@/components/DebugButtons';
 import Header from '@/components/Header';
 import DoraIndicator from '@/components/DoraIndicator';
 import CpuSection from '@/components/CpuSection';
@@ -98,6 +97,7 @@ export default function App() {
         historyIndex={historyIndex}
         historyLength={historyLength}
         onRestart={handleRestart}
+        onSetupTest={setupTestState}
       />
 
       <DoraIndicator
@@ -110,9 +110,8 @@ export default function App() {
         onDeclareKan={declareKan}
         roundWind={roundWind}
         playerWind={playerWind}
+        cpuHand={cpuHand}
       />
-
-<DebugButtons onSetupTest={setupTestState} />
 
       <div className="flex flex-col flex-1 min-h-0 gap-0 overflow-hidden">
         <div className="flex-1 min-h-0 overflow-y-scroll [scrollbar-gutter:stable]">

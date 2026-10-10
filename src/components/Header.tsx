@@ -1,4 +1,4 @@
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Bug } from 'lucide-react';
 
 interface Props {
   turnCount: number;
@@ -8,9 +8,10 @@ interface Props {
   historyIndex: number;
   historyLength: number;
   onRestart: () => void;
+  onSetupTest: (mode: 'ankan' | 'kakan' | 'daiminkan') => void;
 }
 
-export default function Header({ turnCount, maxDraws, wallCount, isViewingPast, historyIndex, historyLength, onRestart }: Props) {
+export default function Header({ turnCount, maxDraws, wallCount, isViewingPast, historyIndex, historyLength, onRestart, onSetupTest }: Props) {
   return (
     <header className="flex items-center justify-between px-6 py-3 bg-[#0f1f0f] border-b border-[#2d4a2d]">
       <div className="flex items-center gap-3">
@@ -18,6 +19,30 @@ export default function Header({ turnCount, maxDraws, wallCount, isViewingPast, 
           <span className="text-white font-black text-sm">麻</span>
         </div>
         <h1 className="text-white font-bold text-xl tracking-wide">詰め麻雀</h1>
+        <div className="flex items-center gap-1.5 ml-2">
+          <span className="text-gray-500 text-xs font-semibold flex items-center gap-1">
+            <Bug size={12} />
+            テスト:
+          </span>
+          <button
+            onClick={() => onSetupTest('ankan')}
+            className="px-2 py-0.5 rounded-md bg-gray-800 hover:bg-gray-700 active:scale-95 text-gray-300 text-xs font-medium transition-all"
+          >
+            暗カン準備
+          </button>
+          <button
+            onClick={() => onSetupTest('kakan')}
+            className="px-2 py-0.5 rounded-md bg-gray-800 hover:bg-gray-700 active:scale-95 text-gray-300 text-xs font-medium transition-all"
+          >
+            加槓準備
+          </button>
+          <button
+            onClick={() => onSetupTest('daiminkan')}
+            className="px-2 py-0.5 rounded-md bg-gray-800 hover:bg-gray-700 active:scale-95 text-gray-300 text-xs font-medium transition-all"
+          >
+            大明槓準備
+          </button>
+        </div>
       </div>
       <div className="flex items-center gap-3 text-sm text-green-300">
         {isViewingPast && (
