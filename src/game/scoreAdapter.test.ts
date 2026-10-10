@@ -1132,3 +1132,169 @@ describe('canRonWithYaku — valid ron with riichi + pinfu', () => {
     expect(canRonWithYaku(state, discardTile)).toBe(true);
   });
 });
+
+// ── canTsumoWithYaku: yaku-less tsumo prevention ────────────────────────────
+//
+// Open hand (pon of west, not yakuhai for south seat / east round):
+//   (1m2m3m)(4m5m6m)(7p8p9p) + pon(3z=west) + draw 4s → (4s5s6s)
+// No tanyao (terminals 1m, 9p, 9p), no yakuhai, no riichi → no yaku
+// canTsumoWithYaku should return false
+describe('canTsumoWithYaku — yaku-less open hand', () => {
+  const drawTile = makeTile('sou', 4); // 4s completes (4s5s6s)
+
+  const state: State = {
+    playerHand: [
+      makeTile('man', 1), makeTile('man', 2), makeTile('man', 3),
+      makeTile('man', 4), makeTile('man', 5), makeTile('man', 6),
+      makeTile('pin', 7), makeTile('pin', 8), makeTile('pin', 9),
+      makeTile('sou', 5), makeTile('sou', 6),
+      makeTile('wind', 3), makeTile('wind', 3), // west pair (not yakuhai for south/east)
+    ],
+    playerDrawnTile: drawTile,
+    cpuHand: [],
+    wall: [],
+    fullWall: [],
+    wanpai: [
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('dragon', 3),
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1), makeTile('pin', 1),
+    ],
+    wallDrawnCount: 0,
+    playerDiscards: [],
+    cpuDiscards: [],
+    playerFuro: [
+      { type: 'pung', tiles: [makeTile('wind', 3), makeTile('wind', 3), makeTile('wind', 3)], calledTile: makeTile('wind', 3) },
+    ],
+    cpuFuro: [],
+    phase: 'playerDiscard',
+    turnCount: 5,
+    lastCpuDiscard: null,
+    nakiOptions: [],
+    ronAvailable: false,
+    winType: null,
+    doraCount: 1,
+    isRiichi: false,
+    tsumoAvailable: false,
+    missedRonAfterRiichi: false,
+    roundWind: 'east',
+    playerWind: 'south',
+    winTile: null,
+    isIppatsu: false,
+  };
+
+  it('yaku-less-tsumo: canTsumoWithYaku should return false (open hand, no yaku)', async () => {
+    const { canTsumoWithYaku } = await import('@/game/scoreAdapter');
+    expect(canTsumoWithYaku(state, drawTile)).toBe(false);
+  });
+});
+
+// ── canTsumoWithYaku: valid tsumo with menzen-tsumo + tanyao ────────────────
+//
+// Closed hand: (2m3m4m)(3m4m5m)(3p4p5p)(5s6s7s) pair(2p) + tsumo 2p (tanki wait)
+// No riichi, but menzen-tsumo (1han) + tanyao (1han) → valid
+// canTsumoWithYaku should return true
+describe('canTsumoWithYaku — valid tsumo with menzen-tsumo + tanyao', () => {
+  const drawTile = makeTile('pin', 2);
+
+  const state: State = {
+    playerHand: [
+      makeTile('man', 2), makeTile('man', 3), makeTile('man', 4),
+      makeTile('man', 3), makeTile('man', 4), makeTile('man', 5),
+      makeTile('pin', 3), makeTile('pin', 4), makeTile('pin', 5),
+      makeTile('sou', 5), makeTile('sou', 6), makeTile('sou', 7),
+      makeTile('pin', 2), // pair head — tanki wait on 2p
+    ],
+    playerDrawnTile: drawTile,
+    cpuHand: [],
+    wall: [],
+    fullWall: [],
+    wanpai: [
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('dragon', 3),
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1), makeTile('pin', 1),
+    ],
+    wallDrawnCount: 0,
+    playerDiscards: [],
+    cpuDiscards: [],
+    playerFuro: [],
+    cpuFuro: [],
+    phase: 'playerDiscard',
+    turnCount: 5,
+    lastCpuDiscard: null,
+    nakiOptions: [],
+    ronAvailable: false,
+    winType: null,
+    doraCount: 1,
+    isRiichi: false,
+    tsumoAvailable: false,
+    missedRonAfterRiichi: false,
+    roundWind: 'east',
+    playerWind: 'south',
+    winTile: null,
+    isIppatsu: false,
+  };
+
+  it('valid-tsumo: canTsumoWithYaku should return true (menzen-tsumo + tanyao)', async () => {
+    const { canTsumoWithYaku } = await import('@/game/scoreAdapter');
+    expect(canTsumoWithYaku(state, drawTile)).toBe(true);
+  });
+});
+
+// ── canTsumoWithYaku: valid tsumo with riichi + pinfu + tsumo ───────────────
+//
+// Closed hand: (1m2m3m)(4m5m6m)(3p4p5p)(7p8p__) pair(4z=north) + tsumo 9p
+// riichi=true → riichi + menzen-tsumo + pinfu → valid
+// canTsumoWithYaku should return true
+describe('canTsumoWithYaku — valid tsumo with riichi + pinfu', () => {
+  const drawTile = makeTile('sou', 9);
+
+  const state: State = {
+    playerHand: [
+      makeTile('man', 1), makeTile('man', 2), makeTile('man', 3),
+      makeTile('man', 4), makeTile('man', 5), makeTile('man', 6),
+      makeTile('pin', 3), makeTile('pin', 4), makeTile('pin', 5),
+      makeTile('sou', 7), makeTile('sou', 8),
+      makeTile('wind', 4), makeTile('wind', 4), // north pair (4z)
+    ],
+    playerDrawnTile: drawTile,
+    cpuHand: [],
+    wall: [],
+    fullWall: [],
+    wanpai: [
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('dragon', 3),
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('man', 1),
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1),
+    ],
+    wallDrawnCount: 0,
+    playerDiscards: [],
+    cpuDiscards: [],
+    playerFuro: [],
+    cpuFuro: [],
+    phase: 'playerDiscard',
+    turnCount: 5,
+    lastCpuDiscard: null,
+    nakiOptions: [],
+    ronAvailable: false,
+    winType: null,
+    doraCount: 1,
+    isRiichi: true,
+    tsumoAvailable: false,
+    missedRonAfterRiichi: false,
+    roundWind: 'east',
+    playerWind: 'south',
+    winTile: null,
+    isIppatsu: false,
+  };
+
+  it('valid-tsumo-riichi: canTsumoWithYaku should return true (riichi + pinfu + tsumo)', async () => {
+    const { canTsumoWithYaku } = await import('@/game/scoreAdapter');
+    expect(canTsumoWithYaku(state, drawTile)).toBe(true);
+  });
+});

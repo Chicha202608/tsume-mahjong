@@ -145,6 +145,24 @@ export function canRonWithYaku(state: State, discardTile: Tile): boolean {
   }
 }
 
+// ── Yaku check for tsumo eligibility ──
+
+export function canTsumoWithYaku(state: State, drawTile: Tile): boolean {
+  const winState: State = {
+    ...state,
+    phase: 'win' as const,
+    winType: 'tsumo' as const,
+    winTile: drawTile,
+    playerDrawnTile: drawTile,
+  };
+  try {
+    const result = scoreHand(winState);
+    return !!result && result.valid && result.handInterpretations.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 // ── Debug: log scoring result to console ──
 
 export function debugScore(state: State): void {

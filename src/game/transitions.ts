@@ -10,7 +10,7 @@ import {
   NakiOption,
 } from '@/gameLogic';
 import { State } from '@/game/gameState';
-import { canRonWithYaku } from '@/game/scoreAdapter';
+import { canRonWithYaku, canTsumoWithYaku } from '@/game/scoreAdapter';
 
 export const MAX_DRAWS = 18;
 
@@ -19,13 +19,14 @@ export function applyPlayerDraw(cur: State): State | null {
   const [drawn, ...rest] = cur.wall;
   if (!drawn) return null;
   const won = checkWinConcealed([...cur.playerHand, drawn], cur.playerFuro.length);
+  const tsumoAvailable = won && canTsumoWithYaku(cur, drawn);
   return {
     ...cur,
     playerDrawnTile: drawn,
     wall: rest,
     wallDrawnCount: cur.wallDrawnCount + 1,
     phase: 'playerDiscard',
-    tsumoAvailable: won,
+    tsumoAvailable,
   };
 }
 
@@ -186,6 +187,10 @@ export function applyDeclareKan(cur: State, option: NakiOption): State | null {
 
   const newDoraCount = cur.doraCount + 1;
   const won = checkWinConcealed([...newHand, rinshan], newFuroList.length);
+  const tsumoAvailable = won && canTsumoWithYaku(
+    { ...cur, playerHand: newHand, playerFuro: newFuroList, playerDrawnTile: rinshan, wanpai: newWanpai, doraCount: newDoraCount, wall: newWall },
+    rinshan,
+  );
 
   return {
     ...cur,
@@ -196,7 +201,7 @@ export function applyDeclareKan(cur: State, option: NakiOption): State | null {
     wanpai: newWanpai,
     doraCount: newDoraCount,
     phase: 'playerDiscard',
-    tsumoAvailable: won,
+    tsumoAvailable,
     nakiOptions: [],
     ronAvailable: false,
     lastCpuDiscard: null,

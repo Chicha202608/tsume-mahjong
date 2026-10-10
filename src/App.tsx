@@ -210,8 +210,8 @@ export default function App() {
         );
       })()}
 
-      {/* Reopen score button in history viewing mode */}
-      {isViewingPast && isWinState && !showScoreModal && (
+      {/* Reopen score button after dismissing the game over overlay or when viewing a win in history */}
+      {phase === 'win' && isWinState && !showScoreModal && (isViewingPast || dismissedIndex === historyIndex) && (
         <button
           onClick={() => setShowScoreModal(true)}
           className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-yellow-600 hover:bg-yellow-500 active:scale-95 text-white font-bold text-sm transition-all shadow-lg"
