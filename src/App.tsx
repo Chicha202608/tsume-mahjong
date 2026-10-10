@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Tile } from '@/types';
 import { MAX_DRAWS } from '@/game/transitions';
 import { useGameEngine } from '@/game/useGameEngine';
@@ -86,9 +86,22 @@ export default function App() {
     restart();
   }
 
+  const DESIGN_WIDTH = 1280;
+  const DESIGN_HEIGHT = 720;
+  const [scale, setScale] = useState(1);
+  const updateScale = useCallback(() => {
+    setScale(Math.min(window.innerWidth / DESIGN_WIDTH, window.innerHeight / DESIGN_HEIGHT));
+  }, []);
+  useEffect(() => {
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, [updateScale]);
+
   return (
     <div className="h-dvh w-full bg-black flex items-center justify-center overflow-hidden">
-    <div className="aspect-video w-[min(100vw,calc(100dvh*16/9))] max-h-dvh bg-[#1a2e1a] flex flex-col overflow-hidden" style={{ fontFamily: "'Segoe UI', system-ui', sans-serif" }}>
+    <div style={{ width: DESIGN_WIDTH * scale, height: DESIGN_HEIGHT * scale }}>
+    <div className="bg-[#1a2e1a] flex flex-col overflow-hidden" style={{ width: DESIGN_WIDTH, height: DESIGN_HEIGHT, transform: `scale(${scale})`, transformOrigin: 'top left', fontFamily: "'Segoe UI', system-ui', sans-serif" }}>
       <Header
         turnCount={turnCount}
         maxDraws={MAX_DRAWS}
@@ -212,6 +225,7 @@ export default function App() {
           scoreResult={scoreResult}
         />
       )}
+    </div>
     </div>
     </div>
   );
