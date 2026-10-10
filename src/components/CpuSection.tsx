@@ -6,9 +6,12 @@ interface Props {
   cpuFuro: Furo[];
   cpuDiscards: Tile[];
   lastCpuDiscard: Tile | null;
+  playerFuro: Furo[];
 }
 
-export default function CpuSection({ cpuHand, cpuFuro, cpuDiscards, lastCpuDiscard }: Props) {
+export default function CpuSection({ cpuHand, cpuFuro, cpuDiscards, lastCpuDiscard, playerFuro }: Props) {
+  // Tiles the player called from CPU discards — dim them in the CPU's discard river.
+  const calledTileIds = new Set(playerFuro.map(f => f.calledTile.id));
   return (
     <section className="px-3 py-1.5 bg-[#152615] border-b border-[#2d4a2d]">
       <div className="flex items-center gap-2 mb-1">
@@ -44,14 +47,20 @@ export default function CpuSection({ cpuHand, cpuFuro, cpuDiscards, lastCpuDisca
         <div className="mt-1">
           <span className="text-green-600 text-[10px]">捨て牌: </span>
           <div className="flex flex-wrap gap-0.5 mt-0.5">
-            {cpuDiscards.map(tile => (
-              <TileCard
-                key={tile.id}
-                tile={tile}
-                size="xs"
-                className={tile.id === lastCpuDiscard?.id ? 'ring-2 ring-red-400' : ''}
-              />
-            ))}
+            {cpuDiscards.map(tile => {
+              const isCalled = calledTileIds.has(tile.id);
+              return (
+                <TileCard
+                  key={tile.id}
+                  tile={tile}
+                  size="xs"
+                  className={[
+                    tile.id === lastCpuDiscard?.id ? 'ring-2 ring-red-400' : '',
+                    isCalled ? 'opacity-40 grayscale' : '',
+                  ].join(' ')}
+                />
+              );
+            })}
           </div>
         </div>
       )}

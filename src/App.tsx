@@ -19,7 +19,8 @@ import WallModal from '@/components/WallModal';
 
 export default function App() {
   const [showWall, setShowWall] = useState(false);
-  const [showScoreModal, setShowScoreModal] = useState(false);
+  // Set of history indices whose win overlay has been dismissed
+  const [dismissedWins, setDismissedWins] = useState<Set<number>>(new Set());
   const engine = useGameEngine();
   const {
     state,
@@ -31,7 +32,6 @@ export default function App() {
     pendingAction,
     confirmPendingAction,
     cancelPendingAction,
-    dismissedIndex,
     dismissGameOver,
     canTsumo,
     ankanOptions,
@@ -67,7 +67,29 @@ export default function App() {
     }
   }, [state, phase]);
 
-  const isWinState = phase === 'win' && scoreResult && scoreResult.valid && scoreResult.handInterpretations.length > 0;
+  const isValidWin = phase === 'win' && !!scoreResult && scoreResult.valid && scoreResult.handInterpretations.length > 0;
+
+  const showWinOverlay = isValidWin && !dismissedWins.has(historyIndex);
+  const showReopenButton = isValidWin && dismissedWins.has(historyIndex);
+
+  function handleDismissWin() {
+    setDismissedWins(prev => new Set(prev).add(historyIndex));
+    // Also inform the engine (needed for history auto-advance logic)
+    if (!isViewingPast) dismissGameOver();
+  }
+
+  function handleReopenScore() {
+    setDismissedWins(prev => {
+      const next = new Set(prev);
+      next.delete(historyIndex);
+      return next;
+    });
+  }
+
+  function handleRestart() {
+    setDismissedWins(new Set());
+    restart();
+  }
 
   return (
     <div className="h-dvh w-full bg-black flex items-center justify-center overflow-hidden">
@@ -79,7 +101,7 @@ export default function App() {
         isViewingPast={isViewingPast}
         historyIndex={historyIndex}
         historyLength={historyLength}
-        onRestart={restart}
+        onRestart={handleRestart}
       />
 
       <DoraIndicator
@@ -103,6 +125,7 @@ export default function App() {
           cpuFuro={state.cpuFuro}
           cpuDiscards={cpuDiscards}
           lastCpuDiscard={lastCpuDiscard}
+          playerFuro={playerFuro}
         />
 
         <PlayerDiscards playerDiscards={playerDiscards} isDora={isDora} />
@@ -173,47 +196,32 @@ export default function App() {
         />
       )}
 
-      {/* Game over overlays */}
-      {(() => {
-        const isGameOver = (phase === 'win' || phase === 'exhausted') && !isViewingPast;
-        const showGameOver = isGameOver && dismissedIndex !== historyIndex;
-        const showScore = !showGameOver && showScoreModal && isWinState;
-        if (!showGameOver && !showScore) return null;
-        if (showScore) {
-          return (
-            <GameOverOverlay
-              title={winType === 'ron' ? 'ロン！' : 'ツモ！'}
-              message="おめでとうございます — あがり！"
-              onRestart={restart}
-              onOk={() => setShowScoreModal(false)}
-              isWin
-              scoreResult={scoreResult}
-            />
-          );
-        }
-        return phase === 'exhausted' ? (
-          <GameOverOverlay
-            title="流局"
-            message={`ツモ${MAX_DRAWS}回に達しました`}
-            onRestart={restart}
-            onOk={dismissGameOver}
-          />
-        ) : (
-          <GameOverOverlay
-            title={winType === 'ron' ? 'ロン！' : 'ツモ！'}
-            message="おめでとうございます — あがり！"
-            onRestart={restart}
-            onOk={dismissGameOver}
-            isWin
-            scoreResult={scoreResult}
-          />
-        );
-      })()}
+      {/* Exhausted overlay */}
+      {phase === 'exhausted' && !isViewingPast && !dismissedWins.has(historyIndex) && (
+        <GameOverOverlay
+          title="流局"
+          message={`ツモ${MAX_DRAWS}回に達しました`}
+          onRestart={handleRestart}
+          onOk={handleDismissWin}
+        />
+      )}
 
-      {/* Reopen score button after dismissing the game over overlay or when viewing a win in history */}
-      {phase === 'win' && isWinState && !showScoreModal && (isViewingPast || dismissedIndex === historyIndex) && (
+      {/* Win overlay — shown for both live and history viewing */}
+      {showWinOverlay && (
+        <GameOverOverlay
+          title={winType === 'ron' ? 'ロン！' : 'ツモ！'}
+          message="おめでとうございます — あがり！"
+          onRestart={handleRestart}
+          onOk={handleDismissWin}
+          isWin
+          scoreResult={scoreResult}
+        />
+      )}
+
+      {/* Re-open score button after overlay is dismissed */}
+      {showReopenButton && (
         <button
-          onClick={() => setShowScoreModal(true)}
+          onClick={handleReopenScore}
           className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-yellow-600 hover:bg-yellow-500 active:scale-95 text-white font-bold text-sm transition-all shadow-lg"
         >
           <Trophy size={16} />

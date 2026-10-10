@@ -69,7 +69,7 @@ export default function YakuDisplay({ result }: Props) {
 
   if (!best) {
     return (
-      <div className="text-yellow-200 text-sm text-center py-2">
+      <div className="text-white text-sm text-center py-2">
         役の判定ができませんでした
       </div>
     );
@@ -81,26 +81,26 @@ export default function YakuDisplay({ result }: Props) {
       <div className="flex flex-col gap-1.5 bg-black/30 rounded-xl p-4">
         {best.yaku.map((yaku, i) => (
           <div key={i} className="flex items-center justify-between text-sm">
-            <span className="text-yellow-100 font-semibold">{yakuLabel(yaku)}</span>
-            <span className="text-yellow-300 font-bold">{yakuHanLabel(yaku)}</span>
+            <span className="text-white font-semibold">{yakuLabel(yaku)}</span>
+            <span className="text-white font-bold">{yakuHanLabel(yaku)}</span>
           </div>
         ))}
         {best.dora > 0 && (
           <div className="flex items-center justify-between text-sm">
-            <span className="text-red-300 font-semibold">ドラ</span>
-            <span className="text-red-400 font-bold">{best.dora}飜</span>
+            <span className="text-white font-semibold">ドラ</span>
+            <span className="text-white font-bold">{best.dora}飜</span>
           </div>
         )}
         {best.akadora > 0 && (
           <div className="flex items-center justify-between text-sm">
-            <span className="text-red-300 font-semibold">赤ドラ</span>
-            <span className="text-red-400 font-bold">{best.akadora}飜</span>
+            <span className="text-white font-semibold">赤ドラ</span>
+            <span className="text-white font-bold">{best.akadora}飜</span>
           </div>
         )}
         {best.uradora > 0 && (
           <div className="flex items-center justify-between text-sm">
-            <span className="text-red-300 font-semibold">裏ドラ</span>
-            <span className="text-red-400 font-bold">{best.uradora}飜</span>
+            <span className="text-white font-semibold">裏ドラ</span>
+            <span className="text-white font-bold">{best.uradora}飜</span>
           </div>
         )}
       </div>
@@ -108,16 +108,16 @@ export default function YakuDisplay({ result }: Props) {
       {/* Summary: han, fu, points */}
       <div className="flex items-center justify-around gap-2 bg-black/30 rounded-xl p-3">
         <div className="flex flex-col items-center">
-          <span className="text-yellow-200 text-[10px] font-bold tracking-wider">飜数</span>
-          <span className="text-yellow-300 text-xl font-black">{best.han}</span>
+          <span className="text-white text-[10px] font-bold tracking-wider">飜数</span>
+          <span className="text-white text-xl font-black">{best.han}</span>
         </div>
         <div className="flex flex-col items-center">
-          <span className="text-yellow-200 text-[10px] font-bold tracking-wider">符</span>
-          <span className="text-yellow-300 text-xl font-black">{best.fu}</span>
+          <span className="text-white text-[10px] font-bold tracking-wider">符</span>
+          <span className="text-white text-xl font-black">{best.fu}</span>
         </div>
         <div className="flex flex-col items-center">
-          <span className="text-yellow-200 text-[10px] font-bold tracking-wider">獲得点数</span>
-          <span className="text-yellow-300 text-xl font-black">{best.totalWinnings.toLocaleString()}</span>
+          <span className="text-white text-[10px] font-bold tracking-wider">獲得点数</span>
+          <span className="text-white text-xl font-black">{best.totalWinnings.toLocaleString()}</span>
         </div>
       </div>
     </div>
