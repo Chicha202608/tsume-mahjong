@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Trophy } from 'lucide-react';
 import { Tile } from '@/types';
 import { MAX_DRAWS } from '@/game/transitions';
 import { useGameEngine } from '@/game/useGameEngine';
@@ -18,6 +19,7 @@ import WallModal from '@/components/WallModal';
 
 export default function App() {
   const [showWall, setShowWall] = useState(false);
+  const [showScoreModal, setShowScoreModal] = useState(false);
   const engine = useGameEngine();
   const {
     state,
@@ -64,6 +66,8 @@ export default function App() {
       return null;
     }
   }, [state, phase]);
+
+  const isWinState = phase === 'win' && scoreResult && scoreResult.valid && scoreResult.handInterpretations.length > 0;
 
   return (
     <div className="h-dvh w-full bg-black flex items-center justify-center overflow-hidden">
@@ -173,7 +177,20 @@ export default function App() {
       {(() => {
         const isGameOver = (phase === 'win' || phase === 'exhausted') && !isViewingPast;
         const showGameOver = isGameOver && dismissedIndex !== historyIndex;
-        if (!showGameOver) return null;
+        const showScore = !showGameOver && showScoreModal && isWinState;
+        if (!showGameOver && !showScore) return null;
+        if (showScore) {
+          return (
+            <GameOverOverlay
+              title={winType === 'ron' ? 'ロン！' : 'ツモ！'}
+              message="おめでとうございます — あがり！"
+              onRestart={restart}
+              onOk={() => setShowScoreModal(false)}
+              isWin
+              scoreResult={scoreResult}
+            />
+          );
+        }
         return phase === 'exhausted' ? (
           <GameOverOverlay
             title="流局"
@@ -192,6 +209,17 @@ export default function App() {
           />
         );
       })()}
+
+      {/* Reopen score button in history viewing mode */}
+      {isViewingPast && isWinState && !showScoreModal && (
+        <button
+          onClick={() => setShowScoreModal(true)}
+          className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-yellow-600 hover:bg-yellow-500 active:scale-95 text-white font-bold text-sm transition-all shadow-lg"
+        >
+          <Trophy size={16} />
+          点数を見る
+        </button>
+      )}
     </div>
     </div>
   );

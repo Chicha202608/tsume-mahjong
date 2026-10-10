@@ -1020,3 +1020,115 @@ describe('scoreHand — multiple uradora (2 ura indicators matching)', () => {
     expect(best.totalWinnings).toBe(8000);
   });
 });
+
+// ── canRonWithYaku: yaku-less ron prevention ─────────────────────────────────
+//
+// An open hand with no yaku: (1m2m3m)(4m5m6m)(7p8p9p)(4s5s6s) + pon of west wind
+// round=east, seat=south → west (3z) is not round-wind nor seat-wind → no yakuhai
+// No tanyao (1m, 9m, 9p are terminals) → no yaku at all
+// canRonWithYaku should return false
+describe('canRonWithYaku — yaku-less open hand', () => {
+  const discardTile = makeTile('sou', 4); // 4s completes (4s5s6s) run via ron
+
+  const state: State = {
+    playerHand: [
+      makeTile('man', 1), makeTile('man', 2), makeTile('man', 3),
+      makeTile('man', 4), makeTile('man', 5), makeTile('man', 6),
+      makeTile('pin', 7), makeTile('pin', 8), makeTile('pin', 9),
+      makeTile('sou', 5), makeTile('sou', 6), // waiting for 4s
+      makeTile('wind', 3), makeTile('wind', 3), // west pair (3z) — not yakuhai for south seat/east round
+    ],
+    playerDrawnTile: null,
+    cpuHand: [],
+    wall: [],
+    fullWall: [],
+    wanpai: [
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('dragon', 3), // dora indicator — irrelevant for this test
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1), makeTile('pin', 1),
+    ],
+    wallDrawnCount: 0,
+    playerDiscards: [],
+    cpuDiscards: [],
+    playerFuro: [
+      { type: 'pung', tiles: [makeTile('wind', 3), makeTile('wind', 3), makeTile('wind', 3)], calledTile: makeTile('wind', 3) },
+    ],
+    cpuFuro: [],
+    phase: 'naki', // pre-win state
+    turnCount: 5,
+    lastCpuDiscard: discardTile,
+    nakiOptions: [],
+    ronAvailable: false,
+    winType: null,
+    doraCount: 1,
+    isRiichi: false,
+    tsumoAvailable: false,
+    missedRonAfterRiichi: false,
+    roundWind: 'east',
+    playerWind: 'south',
+    winTile: null,
+    isIppatsu: false,
+  };
+
+  it('yaku-less: canRonWithYaku should return false (no yaku with open hand)', async () => {
+    const { canRonWithYaku } = await import('@/game/scoreAdapter');
+    expect(canRonWithYaku(state, discardTile)).toBe(false);
+  });
+});
+
+// ── canRonWithYaku: valid ron with yaku ──────────────────────────────────────
+//
+// Closed hand: (1m2m3m)(4m5m6m)(3p4p5p)(7p8p__) pair(4z=north) + ron 9p
+// riichi=true → riichi yaku + pinfu → valid
+// canRonWithYaku should return true
+describe('canRonWithYaku — valid ron with riichi + pinfu', () => {
+  const discardTile = makeTile('sou', 9);
+
+  const state: State = {
+    playerHand: [
+      makeTile('man', 1), makeTile('man', 2), makeTile('man', 3),
+      makeTile('man', 4), makeTile('man', 5), makeTile('man', 6),
+      makeTile('pin', 3), makeTile('pin', 4), makeTile('pin', 5),
+      makeTile('sou', 7), makeTile('sou', 8),
+      makeTile('wind', 4), makeTile('wind', 4), // north pair (4z)
+    ],
+    playerDrawnTile: null,
+    cpuHand: [],
+    wall: [],
+    fullWall: [],
+    wanpai: [
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('dragon', 3),
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('man', 1),
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1),
+    ],
+    wallDrawnCount: 0,
+    playerDiscards: [],
+    cpuDiscards: [],
+    playerFuro: [],
+    cpuFuro: [],
+    phase: 'naki',
+    turnCount: 5,
+    lastCpuDiscard: discardTile,
+    nakiOptions: [],
+    ronAvailable: false,
+    winType: null,
+    doraCount: 1,
+    isRiichi: true,
+    tsumoAvailable: false,
+    missedRonAfterRiichi: false,
+    roundWind: 'east',
+    playerWind: 'south',
+    winTile: null,
+    isIppatsu: false,
+  };
+
+  it('valid-ron: canRonWithYaku should return true (riichi + pinfu)', async () => {
+    const { canRonWithYaku } = await import('@/game/scoreAdapter');
+    expect(canRonWithYaku(state, discardTile)).toBe(true);
+  });
+});

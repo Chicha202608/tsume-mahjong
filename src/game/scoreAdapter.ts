@@ -126,6 +126,25 @@ export function scoreHand(state: State): HandAnalysis | null {
   return calculate(input);
 }
 
+// ── Yaku check for ron eligibility ──
+
+export function canRonWithYaku(state: State, discardTile: Tile): boolean {
+  const winState: State = {
+    ...state,
+    phase: 'win' as const,
+    winType: 'ron' as const,
+    winTile: discardTile,
+    playerDrawnTile: null,
+    lastCpuDiscard: discardTile,
+  };
+  try {
+    const result = scoreHand(winState);
+    return !!result && result.valid && result.handInterpretations.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 // ── Debug: log scoring result to console ──
 
 export function debugScore(state: State): void {

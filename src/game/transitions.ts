@@ -10,6 +10,7 @@ import {
   NakiOption,
 } from '@/gameLogic';
 import { State } from '@/game/gameState';
+import { canRonWithYaku } from '@/game/scoreAdapter';
 
 export const MAX_DRAWS = 18;
 
@@ -53,7 +54,8 @@ export function applyCpuTurn(cur: State): State | null {
 
   const rawRon = canRonConcealed(cur.playerHand, cpuDiscard, cur.playerFuro.length);
   const furiten = isFuriten(getWaits(cur.playerHand, cur.playerFuro), cur.playerDiscards);
-  const ron = rawRon && !furiten && !cur.missedRonAfterRiichi;
+  const hasYaku = rawRon && canRonWithYaku(cur, cpuDiscard);
+  const ron = hasYaku && !furiten && !cur.missedRonAfterRiichi;
   const naki = cur.isRiichi ? [] : findNakiOptions(cur.playerHand, cpuDiscard);
 
   if (ron || naki.length > 0) {
