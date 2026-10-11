@@ -97,11 +97,11 @@ export default function YakuDisplay({ result }: Props) {
   const tierLabel = scoreTierLabel(best);
 
   return (
-    <div className="flex flex-col gap-3 w-full max-w-sm">
+    <div className="flex flex-col gap-4 w-full max-w-md">
       {/* Yaku list */}
-      <div className="flex flex-col gap-1.5 bg-black/30 rounded-xl p-4">
+      <div className="flex flex-col gap-2 bg-black/30 rounded-xl p-5">
         {best.yaku.map((yaku, i) => (
-          <div key={i} className="flex items-center justify-between text-sm">
+          <div key={i} className="flex items-center justify-between text-base">
             <span className="text-white font-semibold">{yakuLabel(yaku)}</span>
             <span className="text-white font-bold">{yakuHanLabel(yaku)}</span>
           </div>
@@ -127,10 +127,10 @@ export default function YakuDisplay({ result }: Props) {
       </div>
 
       {/* Summary: han, fu, points */}
-      <div className="flex items-center justify-around gap-2 bg-black/30 rounded-xl p-3">
+      <div className="flex items-center justify-around gap-3 bg-black/30 rounded-xl p-4">
         <div className="flex flex-col items-center">
           <span className="text-white text-[10px] font-bold tracking-wider">飜数</span>
-          <span className="text-white text-xl font-black">{best.han}</span>
+          <span className="text-white text-2xl font-black">{best.han}</span>
         </div>
         <div className="flex flex-col items-center">
           <span className="text-white text-[10px] font-bold tracking-wider">符</span>
@@ -140,7 +140,7 @@ export default function YakuDisplay({ result }: Props) {
           <span className="text-white text-[10px] font-bold tracking-wider">獲得点数</span>
           <div className="flex items-baseline gap-1.5">
             {tierLabel && (
-              <span className="text-yellow-300 text-sm font-bold whitespace-nowrap">{tierLabel}</span>
+              <span className="text-yellow-300 text-base font-bold whitespace-nowrap">{tierLabel}</span>
             )}
             <span className="text-white text-xl font-black">{best.totalWinnings.toLocaleString()}</span>
           </div>
