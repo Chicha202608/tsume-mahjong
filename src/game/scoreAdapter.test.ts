@@ -1298,3 +1298,39 @@ describe('canTsumoWithYaku — valid tsumo with riichi + pinfu', () => {
     expect(canTsumoWithYaku(state, drawTile)).toBe(true);
   });
 });
+
+
+// ── Red five used as a dora indicator ──────────────────────────────────────
+describe('scoreHand — red five dora indicator is treated as an ordinary five', () => {
+  const winTile = makeTile('wind', 2);
+  const state: State = {
+    playerHand: [
+      makeTile('man', 2), makeTile('man', 3), makeTile('man', 4),
+      makeTile('pin', 3), makeTile('pin', 4), makeTile('pin', 5),
+      makeTile('sou', 5), makeTile('sou', 6), makeTile('sou', 7),
+      makeTile('sou', 7), makeTile('sou', 8), makeTile('sou', 9),
+      makeTile('wind', 2),
+    ],
+    playerDrawnTile: winTile,
+    cpuHand: [], wall: [], fullWall: [],
+    wanpai: [
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('man', 5, true), // red 5m indicator means 6m is dora
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1), makeTile('pin', 1),
+      makeTile('pin', 1), makeTile('pin', 1),
+    ],
+    wallDrawnCount: 0, playerDiscards: [], cpuDiscards: [],
+    playerFuro: [], cpuFuro: [], phase: 'win', turnCount: 10,
+    lastCpuDiscard: null, nakiOptions: [], ronAvailable: false,
+    winType: 'tsumo', doraCount: 1, isRiichi: false, tsumoAvailable: true,
+    missedRonAfterRiichi: false, roundWind: 'east', playerWind: 'east',
+    winTile, isIppatsu: false,
+  };
+
+  it('does not count dora when the hand has no 6m', () => {
+    const result = scoreHand(state)!;
+    expect(result.valid).toBe(true);
+    expect(result.handInterpretations[0].dora).toBe(0);
+  });
+});
