@@ -126,24 +126,23 @@ export default function YakuDisplay({ result }: Props) {
         )}
       </div>
 
-      {/* Summary: han, fu, points */}
-      <div className="flex items-center justify-around gap-2 bg-black/30 rounded-xl p-5 w-full">
-        <div className="flex flex-col items-center">
+      {/* Summary: tier, fu, han, points */}
+      <div className="grid grid-cols-4 items-center gap-2 bg-black/30 rounded-xl p-4 w-full">
+        <div className="flex min-w-0 flex-col items-center">
+          <span className="text-white text-[10px] font-bold tracking-wider">区分</span>
+          <span className="text-yellow-300 text-xl sm:text-2xl font-black whitespace-nowrap">{tierLabel ?? ''}</span>
+        </div>
+        <div className="flex min-w-0 flex-col items-center">
+          <span className="text-white text-[10px] font-bold tracking-wider">符数</span>
+          <span className="text-white text-2xl font-black tabular-nums">{best.fu}</span>
+        </div>
+        <div className="flex min-w-0 flex-col items-center">
           <span className="text-white text-[10px] font-bold tracking-wider">飜数</span>
-          <span className="text-white text-lg font-black">{best.han}</span>
+          <span className="text-white text-2xl font-black tabular-nums">{best.han}</span>
         </div>
-        <div className="flex flex-col items-center">
-          <span className="text-white text-[10px] font-bold tracking-wider">符</span>
-          <span className="text-white text-base font-black">{best.fu}</span>
-        </div>
-        <div className="flex flex-col items-center">
-          <span className="text-white text-[10px] font-bold tracking-wider">獲得点数</span>
-          <div className="flex items-baseline gap-1.5">
-            {tierLabel && (
-              <span className="text-yellow-300 text-5xl sm:text-3xl font-black whitespace-nowrap">{tierLabel}</span>
-            )}
-            <span className="text-white text-4xl sm:text-3xl font-black tabular-nums">{best.totalWinnings.toLocaleString()}</span>
-          </div>
+        <div className="flex min-w-0 flex-col items-center">
+          <span className="text-white text-[10px] font-bold tracking-wider">点数</span>
+          <span className="text-white text-2xl sm:text-3xl font-black tabular-nums whitespace-nowrap">{best.totalWinnings.toLocaleString()}</span>
         </div>
       </div>
     </div>
