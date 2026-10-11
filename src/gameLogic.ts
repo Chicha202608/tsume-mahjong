@@ -255,43 +255,66 @@ export interface NakiOption {
 export function findNakiOptions(hand: Tile[], discard: Tile): NakiOption[] {
   const options: NakiOption[] = [];
 
+  // Keep physically distinct red/black-five choices, while avoiding duplicate
+  // options for copies that look identical.
+  const combinations = (tiles: Tile[], count: number): Tile[][] => {
+    const result: Tile[][] = [];
+    const walk = (from: number, chosen: Tile[]) => {
+      if (chosen.length === count) {
+        result.push([...chosen]);
+        return;
+      }
+      for (let i = from; i <= tiles.length - (count - chosen.length); i++) {
+        walk(i + 1, [...chosen, tiles[i]]);
+      }
+    };
+    walk(0, []);
+    const unique = new Map<string, Tile[]>();
+    for (const combo of result) {
+      const key = combo.map(t => `${t.suit}-${t.value}-${!!t.isRed}`).sort().join('|');
+      if (!unique.has(key)) unique.set(key, combo);
+    }
+    return [...unique.values()];
+  };
+
   const matching = hand.filter(t => sameTile(t, discard));
   if (matching.length >= 3) {
-    options.push({
-      type: 'daiminkan',
-      tiles: matching.slice(0, 3),
-      calledTile: discard,
-    });
+    for (const tiles of combinations(matching, 3)) {
+      options.push({ type: 'daiminkan', tiles, calledTile: discard });
+    }
   }
   if (matching.length >= 2) {
-    options.push({
-      type: 'pung',
-      tiles: matching.slice(0, 2),
-      calledTile: discard,
-    });
+    for (const tiles of combinations(matching, 2)) {
+      options.push({ type: 'pung', tiles, calledTile: discard });
+    }
   }
 
   if (discard.suit !== 'wind' && discard.suit !== 'dragon') {
     const v = discard.value;
     const suit = discard.suit;
-    if (v - 2 >= 1) {
-      const t1 = hand.find(t => t.suit === suit && t.value === v - 2);
-      const t2 = hand.find(t => t.suit === suit && t.value === v - 1 && t.id !== t1?.id);
-      if (t1 && t2) options.push({ type: 'chii', tiles: [t1, t2], calledTile: discard });
-    }
-    if (v - 1 >= 1 && v + 1 <= 9) {
-      const t1 = hand.find(t => t.suit === suit && t.value === v - 1);
-      const t2 = hand.find(t => t.suit === suit && t.value === v + 1 && t.id !== t1?.id);
-      if (t1 && t2) options.push({ type: 'chii', tiles: [t1, t2], calledTile: discard });
-    }
-    if (v + 2 <= 9) {
-      const t1 = hand.find(t => t.suit === suit && t.value === v + 1);
-      const t2 = hand.find(t => t.suit === suit && t.value === v + 2 && t.id !== t1?.id);
-      if (t1 && t2) options.push({ type: 'chii', tiles: [t1, t2], calledTile: discard });
-    }
+    const addChii = (values: number[]) => {
+      const groups = values.map(value => hand.filter(t => t.suit === suit && t.value === value));
+      if (groups.some(group => group.length === 0)) return;
+      for (const t1 of groups[0]) {
+        for (const t2 of groups[1]) {
+          if (t1.id === t2.id) continue;
+          options.push({ type: 'chii', tiles: [t1, t2], calledTile: discard });
+        }
+      }
+    };
+    if (v - 2 >= 1) addChii([v - 2, v - 1]);
+    if (v - 1 >= 1 && v + 1 <= 9) addChii([v - 1, v + 1]);
+    if (v + 2 <= 9) addChii([v + 1, v + 2]);
   }
 
-  return options;
+  // For chi choices, collapse only combinations that are identical in visible
+  // tile faces; retain red-five vs black-five alternatives.
+  const uniqueOptions = new Map<string, NakiOption>();
+  for (const option of options) {
+    const key = `${option.type}:${option.tiles.map(t => `${t.suit}-${t.value}-${!!t.isRed}`).sort().join('|')}`;
+    if (!uniqueOptions.has(key)) uniqueOptions.set(key, option);
+  }
+  return [...uniqueOptions.values()];
 }
 
 export function findAnkanOptions(hand: Tile[], drawnTile: Tile | null): NakiOption[] {
