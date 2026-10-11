@@ -218,7 +218,7 @@ export default function App() {
       {showScoreModal && isValidWin && (
         <GameOverOverlay
           title={winType === 'ron' ? 'ロン！' : 'ツモ！'}
-          message="おめでとうございます — あがり！"
+          message=""
           onRestart={handleRestart}
           onOk={handleDismissWin}
           isWin

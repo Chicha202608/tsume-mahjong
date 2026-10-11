@@ -60,6 +60,25 @@ function yakuHanLabel(yaku: RSYaku): string {
   return `${yaku.han}飜`;
 }
 
+const YAKUMAN_LABELS: Record<string, string> = {
+  'yakuman': '役満',
+  'double-yakuman': 'ダブル役満',
+  'triple-yakuman': 'トリプル役満',
+  'quadruple-yakuman': '四倍役満',
+};
+
+function scoreTierLabel(best: NonNullable<HandAnalysis['handInterpretations'][number]>): string | null {
+  if (best.limit) {
+    return YAKUMAN_LABELS[best.limit] ?? '役満';
+  }
+  const bp = best.basicPoints;
+  if (bp >= 6000) return '三倍満';
+  if (bp >= 4000) return '倍満';
+  if (bp >= 3000) return '跳満';
+  if (bp >= 2000) return '満貫';
+  return null;
+}
+
 interface Props {
   result: HandAnalysis;
 }
@@ -74,6 +93,8 @@ export default function YakuDisplay({ result }: Props) {
       </div>
     );
   }
+
+  const tierLabel = scoreTierLabel(best);
 
   return (
     <div className="flex flex-col gap-3 w-full max-w-sm">
@@ -117,7 +138,12 @@ export default function YakuDisplay({ result }: Props) {
         </div>
         <div className="flex flex-col items-center">
           <span className="text-white text-[10px] font-bold tracking-wider">獲得点数</span>
-          <span className="text-white text-xl font-black">{best.totalWinnings.toLocaleString()}</span>
+          <div className="flex items-baseline gap-1.5">
+            {tierLabel && (
+              <span className="text-yellow-300 text-sm font-bold whitespace-nowrap">{tierLabel}</span>
+            )}
+            <span className="text-white text-xl font-black">{best.totalWinnings.toLocaleString()}</span>
+          </div>
         </div>
       </div>
     </div>
