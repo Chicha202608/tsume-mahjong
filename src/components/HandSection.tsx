@@ -53,7 +53,14 @@ export default function HandSection({
           />
         </div>
         <div className="flex items-center gap-2 flex-nowrap py-1 px-1 flex-1 justify-start">
-          {canRiichi && !isViewingPast && (
+          <button
+            onClick={onShowWall}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 active:scale-95 text-white font-bold text-sm transition-all shadow-md shrink-0 whitespace-nowrap"
+          >
+            <Layers size={14} />
+            山
+          </button>
+          {canRiichi && (
             <button
               onClick={onDeclareRiichi}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold text-sm transition-all shadow-md whitespace-nowrap shrink-0"
@@ -62,13 +69,6 @@ export default function HandSection({
               リーチ
             </button>
           )}
-          <button
-            onClick={onShowWall}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 active:scale-95 text-white font-bold text-sm transition-all shadow-md shrink-0 whitespace-nowrap"
-          >
-            <Layers size={14} />
-            山
-          </button>
           <div className="w-[76px] shrink-0 flex justify-center">
             {canTsumo && (
               <button
