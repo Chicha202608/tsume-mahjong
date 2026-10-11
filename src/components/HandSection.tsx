@@ -53,6 +53,15 @@ export default function HandSection({
           />
         </div>
         <div className="flex items-center gap-2 flex-nowrap py-1 px-1 flex-1 justify-start">
+          {canRiichi && !isViewingPast && (
+            <button
+              onClick={onDeclareRiichi}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold text-sm transition-all shadow-md whitespace-nowrap shrink-0"
+            >
+              <Zap size={14} />
+              リーチ
+            </button>
+          )}
           <button
             onClick={onShowWall}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 active:scale-95 text-white font-bold text-sm transition-all shadow-md shrink-0 whitespace-nowrap"
@@ -79,17 +88,6 @@ export default function HandSection({
               >
                 <X size={14} />
                 キャンセル
-              </button>
-            )}
-          </div>
-          <div className="w-[82px] shrink-0 flex justify-center">
-            {canRiichi && !isViewingPast && (
-              <button
-                onClick={onDeclareRiichi}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold text-sm transition-all shadow-md whitespace-nowrap"
-              >
-                <Zap size={14} />
-                リーチ
               </button>
             )}
           </div>
