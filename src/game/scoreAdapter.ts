@@ -26,6 +26,19 @@ export function toMahjongTile(tile: Tile): MahjongTile {
   return `${honorRank}z` as MahjongTile;
 }
 
+/**
+ * Dora indicators show a tile's rank, not its aka-dora identity.
+ * A red five used as an indicator must therefore be passed as an ordinary five
+ * (e.g. 5m), so the next dora is 6m rather than interpreting 0m as a tile rank.
+ */
+function toDoraIndicatorTile(tile: Tile): MahjongTile {
+  if (tile.isRed && (tile.suit === 'man' || tile.suit === 'pin' || tile.suit === 'sou')) {
+    const suitChar = tile.suit === 'man' ? 'm' : tile.suit === 'pin' ? 'p' : 's';
+    return `${tile.value}${suitChar}` as MahjongTile;
+  }
+  return toMahjongTile(tile);
+}
+
 // ── Furo → Meld conversion ──
 
 const FURO_TYPE_MAP: Record<Furo['type'], 'run' | 'triplet' | 'daiminkan' | 'shouminkan' | 'ankan'> = {
@@ -95,10 +108,10 @@ export function buildHandInput(state: State): HandInput | null {
 
   const doraIndicators = state.wanpai
     .slice(4, 4 + state.doraCount)
-    .map(toMahjongTile);
+    .map(toDoraIndicatorTile);
 
   const uradoraIndicators = state.isRiichi
-    ? state.wanpai.slice(9, 9 + state.doraCount).map(toMahjongTile)
+    ? state.wanpai.slice(9, 9 + state.doraCount).map(toDoraIndicatorTile)
     : [];
 
   const gameState = createGameState({
