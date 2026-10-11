@@ -92,33 +92,6 @@ export default function HandSection({
             )}
           </div>
         </div>
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 text-left text-[10px] whitespace-nowrap pointer-events-none">
-          {phase === 'riichiSelect' && !isViewingPast && (
-            <span className="text-blue-400 font-normal normal-case text-xs animate-pulse">
-              リーチ — 宣言牌（捨て牌）をクリック
-            </span>
-          )}
-          {phase === 'playerDiscard' && !canTsumo && !isViewingPast && (
-            <span className="text-amber-400 font-normal normal-case text-xs animate-pulse">
-              捨てる牌をクリック
-            </span>
-          )}
-          {canTsumo && !isViewingPast && (
-            <span className="text-yellow-400 font-normal normal-case text-xs animate-pulse">
-              ツモ和了可能 — ツモ or キャンセル
-            </span>
-          )}
-          {phase === 'playerNakiDiscard' && !isViewingPast && (
-            <span className="text-blue-400 font-normal normal-case text-xs animate-pulse">
-              鳴きました — 捨てる牌をクリック
-            </span>
-          )}
-          {isViewingPast && (phase === 'playerDiscard' || phase === 'playerNakiDiscard') && (
-            <span className="text-amber-400 font-normal normal-case text-xs">
-              牌譜閲覧中 — 牌をクリックで新しく打ち直せます
-            </span>
-          )}
-        </div>
       </div>
 
       <div className="relative w-full">
