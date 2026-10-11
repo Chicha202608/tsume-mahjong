@@ -133,7 +133,7 @@ export default function HandSection({
           </div>
         </div>
         {playerFuro.length > 0 && (
-          <div className="absolute right-2 bottom-0 z-20">
+          <div className="absolute right-2 bottom-0 z-40">
             <PlayerFuro playerFuro={playerFuro} isDora={isDora} />
           </div>
         )}
