@@ -140,9 +140,9 @@ export default function YakuDisplay({ result }: Props) {
           <span className="text-white text-[10px] font-bold tracking-wider">獲得点数</span>
           <div className="flex items-baseline gap-1.5">
             {tierLabel && (
-              <span className="text-yellow-300 text-2xl sm:text-3xl font-black whitespace-nowrap">{tierLabel}</span>
+              <span className="text-yellow-300 text-5xl sm:text-3xl font-black whitespace-nowrap">{tierLabel}</span>
             )}
-            <span className="text-white text-4xl sm:text-5xl font-black tabular-nums">{best.totalWinnings.toLocaleString()}</span>
+            <span className="text-white text-4xl sm:text-3xl font-black tabular-nums">{best.totalWinnings.toLocaleString()}</span>
           </div>
         </div>
       </div>
