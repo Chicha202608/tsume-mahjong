@@ -127,22 +127,22 @@ export default function YakuDisplay({ result }: Props) {
       </div>
 
       {/* Summary: tier, fu, han, points */}
-      <div className="grid grid-cols-4 items-center gap-2 bg-black/30 rounded-xl p-4 w-full">
+      <div className="grid grid-cols-[1.4fr_0.65fr_0.65fr_1.4fr] items-center gap-1 bg-black/30 rounded-xl p-3 w-full">
         <div className="flex min-w-0 flex-col items-center">
           <span className="text-white text-[10px] font-bold tracking-wider">区分</span>
-          <span className="text-yellow-300 text-xl sm:text-2xl font-black whitespace-nowrap">{tierLabel ?? ''}</span>
+          <span className="text-red-500 text-3xl sm:text-4xl font-black whitespace-nowrap">{tierLabel ?? ''}</span>
         </div>
         <div className="flex min-w-0 flex-col items-center">
           <span className="text-white text-[10px] font-bold tracking-wider">符数</span>
-          <span className="text-white text-2xl font-black tabular-nums">{best.fu}</span>
+          <span className="text-white text-lg font-black tabular-nums">{best.fu}</span>
         </div>
         <div className="flex min-w-0 flex-col items-center">
           <span className="text-white text-[10px] font-bold tracking-wider">飜数</span>
-          <span className="text-white text-2xl font-black tabular-nums">{best.han}</span>
+          <span className="text-white text-lg font-black tabular-nums">{best.han}</span>
         </div>
         <div className="flex min-w-0 flex-col items-center">
           <span className="text-white text-[10px] font-bold tracking-wider">点数</span>
-          <span className="text-white text-2xl sm:text-3xl font-black tabular-nums whitespace-nowrap">{best.totalWinnings.toLocaleString()}</span>
+          <span className="text-white text-3xl sm:text-4xl font-black tabular-nums whitespace-nowrap">{best.totalWinnings.toLocaleString()}</span>
         </div>
       </div>
     </div>
