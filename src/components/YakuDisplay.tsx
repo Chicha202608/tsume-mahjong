@@ -129,7 +129,7 @@ export default function YakuDisplay({ result }: Props) {
       {/* Summary: tier, fu, han, points */}
       <div className="grid grid-cols-[1.4fr_0.65fr_0.65fr_1.4fr] items-center gap-1 bg-black/30 rounded-xl p-3 w-full">
         <div className="flex min-w-0 flex-col items-center">
-          <span className="text-red-500 text-3xl sm:text-4xl font-black whitespace-nowrap">{tierLabel ?? ''}</span>
+          <span className="text-red-500 text-3xl sm:text-4xl font-[1200] whitespace-nowrap">{tierLabel ?? ''}</span>
         </div>
         <div className="flex min-w-0 flex-col items-center">
           <span className="text-white text-[10px] font-bold tracking-wider">符数</span>
