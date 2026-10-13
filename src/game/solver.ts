@@ -91,7 +91,7 @@ function stateKey(state: State): string {
   });
 }
 
-function scoreWinningState(state: State): { score: number; riichi: boolean } | null {
+function scoreWinningState(state: State, allowLastMomentRiichi = true): { score: number; riichi: boolean } | null {
   const scoreVariants: Array<{ state: State; riichi: boolean }> = [
     { state, riichi: state.isRiichi },
   ];
@@ -101,6 +101,7 @@ function scoreWinningState(state: State): { score: number; riichi: boolean } | n
   // Riichi is only available for a closed hand that was already tenpai before
   // the winning tile was added.
   if (
+    allowLastMomentRiichi &&
     !state.isRiichi &&
     isMenzen(state.playerFuro) &&
     checkTenpai(state.playerHand, state.playerFuro.length)
@@ -162,10 +163,10 @@ export function searchBestWin(
   const interrupted = () =>
     statesVisited >= maxStates || Date.now() - startedAt >= maxDurationMs;
 
-  const search = (state: State): SearchNode => {
+  const search = (state: State, lastDrawWasKan = false): SearchNode => {
     if (!complete) return { score: null };
 
-    const key = stateKey(state);
+    const key = `${stateKey(state)}|lastDrawWasKan:${lastDrawWasKan ? 1 : 0}`;
     const cached = memo.get(key);
     if (cached) {
       cacheHits++;
@@ -179,7 +180,7 @@ export function searchBestWin(
     statesVisited++;
 
     if (state.phase === 'win') {
-      const scored = scoreWinningState(state);
+      const scored = scoreWinningState(state, !lastDrawWasKan);
       const terminal: SearchNode = scored
         ? { score: scored.score, terminal: true }
         : { score: null, terminal: true };
@@ -197,9 +198,9 @@ export function searchBestWin(
     let bestNext: SearchNode | undefined;
     let bestTerminal = false;
 
-    const consider = (action: SolverAction, nextState: State | null) => {
+    const consider = (action: SolverAction, nextState: State | null, nextDrawWasKan = false) => {
       if (!complete || !nextState) return;
-      const child = search(nextState);
+      const child = search(nextState, nextDrawWasKan);
       if (child.score !== null && (bestScore === null || child.score > bestScore)) {
         bestScore = child.score;
         bestAction = action;
@@ -210,7 +211,7 @@ export function searchBestWin(
 
     const considerWin = (winState: State | null, type: 'tsumo' | 'ron') => {
       if (!complete || !winState) return;
-      const scored = scoreWinningState(winState);
+      const scored = scoreWinningState(winState, !lastDrawWasKan);
       if (scored && (bestScore === null || scored.score > bestScore)) {
         bestScore = scored.score;
         bestAction = { type, riichi: scored.riichi, score: scored.score };
@@ -251,7 +252,7 @@ export function searchBestWin(
             ...findKakanOptions(state.playerHand, state.playerDrawnTile, state.playerFuro),
           ];
           for (const option of kanOptions) {
-            consider({ type: 'kan', option }, applyDeclareKan(state, option));
+            consider({ type: 'kan', option }, applyDeclareKan(state, option), true);
             if (!complete) break;
           }
         }
@@ -277,7 +278,7 @@ export function searchBestWin(
         if (complete) {
           for (const option of state.nakiOptions) {
             if (option.type === 'daiminkan') {
-              consider({ type: 'kan', option }, applyDeclareKan(state, option));
+              consider({ type: 'kan', option }, applyDeclareKan(state, option), true);
             } else {
               consider({ type: 'call-naki', option }, applyCallNaki(state, option));
             }
