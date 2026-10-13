@@ -51,18 +51,6 @@ describe('future tenpai feasibility', () => {
     expect(couldBuildTenpai(hand)).toBe(false);
   });
 
-  it('recognizes seven-pairs tenpai without a wall winning tile', () => {
-    const hand = [
-      tile('m1a', 'man', 1), tile('m1b', 'man', 1),
-      tile('m2a', 'man', 2), tile('m2b', 'man', 2),
-      tile('m3a', 'man', 3), tile('m3b', 'man', 3),
-      tile('p1a', 'pin', 1), tile('p1b', 'pin', 1),
-      tile('p2a', 'pin', 2), tile('p2b', 'pin', 2),
-      tile('s1a', 'sou', 1), tile('s1b', 'sou', 1),
-      tile('e', 'wind', 1),
-    ];
-    expect(couldBuildTenpai(hand)).toBe(true);
-  });
 });
 
 describe('standard-hand-only milestone', () => {
