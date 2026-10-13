@@ -7,9 +7,8 @@ interface Props {
 }
 
 export default function PlayerDiscards({ playerDiscards, isDora }: Props) {
-  if (playerDiscards.length === 0) return null;
   return (
-    <section className="px-4 py-2 bg-[#172917] border-b border-[#2d4a2d]">
+    <section className="h-[90px] shrink-0 overflow-hidden px-4 py-2 bg-[#172917] border-b border-[#2d4a2d]">
       <span className="text-green-600 text-xs">自分の捨て牌: </span>
       <div className="flex flex-wrap gap-0.5 mt-1">
         {playerDiscards.map(tile => (
