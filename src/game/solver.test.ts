@@ -141,10 +141,12 @@ describe('searchBestWin', () => {
       playerWind: 'south' as const,
     };
 
-    const result = searchBestWin(state, { maxStates: 10_000, maxDurationMs: 30_000 });
-    console.info('[solver full-wall bounded benchmark]', result.stats, { complete: result.complete });
+    // Use production defaults to measure how far a full 36-tile search gets
+    // within the solver's current three-second browser safety budget.
+    const result = searchBestWin(state);
+    console.info('[solver full-wall default-budget benchmark]', result.stats, { complete: result.complete });
 
-    expect(result.stats.statesVisited).toBe(10_000);
+    expect(result.stats.statesVisited).toBeGreaterThan(10_000);
     expect(result.complete).toBe(false);
     expect(result.bestScore).toBeNull();
   });
