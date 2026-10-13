@@ -26,6 +26,24 @@ describe('searchBestWin', () => {
     expect(result.stats.statesVisited).toBeGreaterThan(0);
   });
 
+  it('finds a known one-draw tsumo line and reports the winning score', () => {
+    const hand = [
+      tile('m1', 'man', 1), tile('m2', 'man', 2), tile('m3', 'man', 3),
+      tile('p1', 'pin', 1), tile('p2', 'pin', 2), tile('p3', 'pin', 3),
+      tile('s1', 'sou', 1), tile('s2', 'sou', 2), tile('s3', 'sou', 3),
+      tile('s7', 'sou', 7), tile('s8', 'sou', 8),
+      tile('w1', 'wind', 1), tile('w2', 'wind', 1),
+    ];
+    const winningTile = tile('s6', 'sou', 6);
+    const state = makeInitialStateBase(hand, [], [winningTile], []);
+
+    const result = searchBestWin(state);
+
+    expect(result.complete).toBe(true);
+    expect(result.bestScore).toBeGreaterThan(0);
+    expect(result.line.map((action) => action.type)).toEqual(['draw', 'tsumo']);
+  });
+
   it('does not claim an optimum when the safety state limit prevents search', () => {
     const state = makeInitialStateBase([], [], [tile('draw', 'man', 1)], []);
 
