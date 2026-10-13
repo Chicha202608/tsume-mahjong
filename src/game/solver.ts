@@ -27,7 +27,7 @@ import { scoreHand } from '@/game/scoreAdapter';
 export type SolverAction =
   | { type: 'draw' }
   | { type: 'cpu-turn' }
-  | { type: 'discard'; tile: Tile }
+  | { type: 'discard'; tile: Tile; riichi?: boolean }
   | { type: 'call-naki'; option: NakiOption }
   | { type: 'kan'; option: NakiOption }
   | { type: 'pass-tsumo' }
