@@ -138,17 +138,20 @@ export default function App() {
 
         <PlayerDiscards playerDiscards={playerDiscards} isDora={isDora} />
 
-        <NakiRonButtons
-          phase={phase}
-          lastCpuDiscard={lastCpuDiscard}
-          ronAvailable={ronAvailable}
-          nakiOptions={nakiOptions}
-          onRon={callRon}
-          onNaki={callNaki}
-          onDeclareKan={declareKan}
-          onPassNaki={passNaki}
-        />
+        </div>
 
+        {/* Keep call and ron controls visible below the scrolling river. */}
+        <div className="shrink-0">
+          <NakiRonButtons
+            phase={phase}
+            lastCpuDiscard={lastCpuDiscard}
+            ronAvailable={ronAvailable}
+            nakiOptions={nakiOptions}
+            onRon={callRon}
+            onNaki={callNaki}
+            onDeclareKan={declareKan}
+            onPassNaki={passNaki}
+          />
         </div>
 
         {/* Status bar */}
