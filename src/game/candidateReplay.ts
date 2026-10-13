@@ -44,6 +44,8 @@ export function replayCandidateOpportunity(
       initial.playerDrawnTile || initial.playerHand.length !== 13) return null;
   const target = opportunity.candidate.counts;
   const hand = [...initial.playerHand];
+  // Prefer red fives whenever more copies of a face exist than the target needs.
+  // The chronological retention rule below preserves already-held red copies.
   const discards: Tile[] = [];
   for (let i = 0; i < opportunity.wallIndex; i++) {
     if (i % 2) continue; // CPU draws and immediately discards.
@@ -55,7 +57,8 @@ export function replayCandidateOpportunity(
     // one that does not share a face with any eventual winning wait.
     const extra = available.filter(tile => counts[face(tile)] > target[face(tile)]);
     if (!extra.length) return null;
-    const discard = extra.find(tile => !opportunity.candidate.waits.includes(face(tile))) ?? extra[0];
+    const discard = extra.find(tile => !tile.isRed && !opportunity.candidate.waits.includes(face(tile))) ??
+      extra.find(tile => !tile.isRed) ?? extra[0];
     discards.push(discard);
     available.splice(available.findIndex(tile => tile.id === discard.id), 1);
     hand.splice(0, hand.length, ...available);
@@ -91,10 +94,29 @@ export function replayCandidateOpportunity(
   const without = evaluate(initial.isRiichi);
   // Last-moment riichi requires a previous discard with a future own draw,
   // and is not legal on the initial draw or after all own draws have passed.
+  // The preceding discard must actually leave this exact 13-tile tenpai.
+  // For ron this is the immediately preceding own discard; for tsumo the
+  // preceding player draw/discard is two wall positions earlier.
   const lastDiscardWallIndex = opportunity.type === 'ron'
     ? opportunity.wallIndex - 1 : opportunity.wallIndex - 2;
-  const canLateRiichi = !initial.isRiichi && discards.length > 0 &&
-    lastDiscardWallIndex >= 0 && opportunity.wallIndex + (opportunity.type === 'ron' ? 1 : 0) < initial.wall.length;
+  const havePreviousDiscard = lastDiscardWallIndex >= 0 && discards.length > 0;
+  const previousHand = havePreviousDiscard ? (() => {
+    const tiles = [...initial.playerHand];
+    for (let i = 0; i <= lastDiscardWallIndex; i += 2) {
+      tiles.push(initial.wall[i]);
+      const discardIndex = discards.findIndex((d, j) => j === i / 2 && tiles.some(t => t.id === d.id));
+      if (discardIndex < 0) return null;
+      const idx = tiles.findIndex(t => t.id === discards[discardIndex].id);
+      tiles.splice(idx, 1);
+    }
+    return tiles;
+  })() : null;
+  const priorCounts = Array<number>(34).fill(0);
+  if (previousHand) for (const tile of previousHand) priorCounts[face(tile)]++;
+  const priorIsTenpai = previousHand !== null && priorCounts.every((n, i) => n === target[i]);
+  const canLateRiichi = !initial.isRiichi && priorIsTenpai &&
+    // Riichi must be declared with a subsequent own draw still available.
+    lastDiscardWallIndex + 2 < initial.wall.length;
   const withRiichi = canLateRiichi ? evaluate(true) : null;
   const useRiichi = withRiichi !== null && (without === null || withRiichi > without);
   return { opportunity, discards, furiten,
