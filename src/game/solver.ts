@@ -1,7 +1,5 @@
 import { Tile } from '@/types';
 import {
-  findAnkanOptions,
-  findKakanOptions,
   isMenzen,
   checkTenpai,
   canRonConcealed,
@@ -13,7 +11,6 @@ import type { State } from '@/game/gameState';
 import {
   applyCallNaki,
   applyCallRon,
-  applyDeclareKan,
   applyDeclareTsumo,
   applyPassNaki,
   applyPassTsumo,
@@ -29,7 +26,6 @@ export type SolverAction =
   | { type: 'cpu-turn' }
   | { type: 'discard'; tile: Tile; riichi?: boolean }
   | { type: 'call-naki'; option: NakiOption }
-  | { type: 'kan'; option: NakiOption }
   | { type: 'pass-tsumo' }
   | { type: 'pass-naki' }
   | { type: 'tsumo'; riichi: boolean; lastMomentRiichi: boolean; score: number }
@@ -62,7 +58,7 @@ export interface SolverOptions {
 
 type StepAction = Extract<
   SolverAction,
-  { type: 'draw' | 'cpu-turn' | 'discard' | 'call-naki' | 'kan' | 'pass-tsumo' | 'pass-naki' }
+  { type: 'draw' | 'cpu-turn' | 'discard' | 'call-naki' | 'pass-tsumo' | 'pass-naki' }
 >;
 type WinAction = Extract<SolverAction, { type: 'tsumo' | 'ron' }>;
 
@@ -77,7 +73,6 @@ type StepDescriptor =
   | { type: 'cpu-turn' }
   | { type: 'discard'; tileKey: string }
   | { type: 'call-naki'; option: OptionDescriptor }
-  | { type: 'kan'; option: OptionDescriptor }
   | { type: 'pass-tsumo' }
   | { type: 'pass-naki' };
 
@@ -184,8 +179,6 @@ function describeStep(action: StepAction): StepDescriptor {
       return { type: 'discard', tileKey: tileKey(action.tile) };
     case 'call-naki':
       return { type: 'call-naki', option: optionDescriptor(action.option) };
-    case 'kan':
-      return { type: 'kan', option: optionDescriptor(action.option) };
     case 'pass-tsumo':
       return { type: 'pass-tsumo' };
     case 'pass-naki':
@@ -233,18 +226,6 @@ function materializeStep(state: State, descriptor: StepDescriptor): StepAction |
       );
       return option ? { type: 'call-naki', option } : null;
     }
-    case 'kan': {
-      const options = state.phase === 'naki'
-        ? state.nakiOptions
-        : [
-            ...findAnkanOptions(state.playerHand, state.playerDrawnTile),
-            ...findKakanOptions(state.playerHand, state.playerDrawnTile, state.playerFuro),
-          ];
-      const option = options.find(
-        (candidate) => optionKey(candidate) === optionDescriptorKey(descriptor.option),
-      );
-      return option ? { type: 'kan', option } : null;
-    }
     case 'pass-tsumo':
       return { type: 'pass-tsumo' };
     case 'pass-naki':
@@ -287,8 +268,6 @@ function applyStep(state: State, action: StepAction): State | null {
         : applyPlayerDiscard(state, action.tile);
     case 'call-naki':
       return applyCallNaki(state, action.option);
-    case 'kan':
-      return applyDeclareKan(state, action.option);
     case 'pass-tsumo':
       return applyPassTsumo(state);
     case 'pass-naki':
@@ -387,8 +366,8 @@ export function searchBestWin(
   initialState: State,
   options: SolverOptions = {},
 ): SolverResult {
-  // This prototype deliberately solves only menzen hands. Ankan is allowed;
-  // chi, pon, daiminkan and kakan are not. Reject an already-open input rather
+  // First milestone searches closed-hand play without any kan or calls.
+  // Chi, pon, daiminkan, ankan and kakan are not explored. Reject an already-open input rather
   // than silently returning an answer for a narrower/different problem.
   if (!isMenzen(initialState.playerFuro)) {
     return {
@@ -550,7 +529,7 @@ export function searchBestWin(
         if (state.tsumoAvailable) {
           considerWin(applyDeclareTsumo(state), 'tsumo');
           // A player must pass the available tsumo before taking another
-          // action. Search the discard/kan choices from that explicit state.
+          // action. Search discard choices from that explicit state.
           consider({ type: 'pass-tsumo' }, applyPassTsumo(state));
           break;
         }
@@ -564,15 +543,6 @@ export function searchBestWin(
           if (!complete) break;
         }
 
-        if (complete && state.playerDrawnTile) {
-          // Closed-hand search permits concealed kan only. Kakan requires a
-          // previously open pon and is outside this solver's scope.
-          const kanOptions = findAnkanOptions(state.playerHand, state.playerDrawnTile);
-          for (const option of kanOptions) {
-            consider({ type: 'kan', option }, applyDeclareKan(state, option), true);
-            if (!complete) break;
-          }
-        }
         break;
       }
 
@@ -614,7 +584,7 @@ export function searchBestWin(
     let current = initialState;
     let lastDrawWasKan = false;
 
-    // Every reconstructed step consumes a draw, discard, call, pass, or kan;
+    // Every reconstructed step consumes a draw, discard, or pass;
     // the guard is defensive against a malformed transition graph.
     for (let step = 0; step < 100; step++) {
       const record = memo.get(memoKey(current, lastDrawWasKan));
@@ -648,7 +618,7 @@ export function searchBestWin(
       const nextState = applyStep(current, action);
       if (!nextState) break;
 
-      lastDrawWasKan = action.type === 'kan';
+      lastDrawWasKan = false;
       current = nextState;
     }
 
