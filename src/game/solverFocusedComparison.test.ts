@@ -14,7 +14,7 @@ const hand:Tile[]=[
 ];
 const cases:Array<{name:string; hand:Tile[];wall:Tile[];river?:Tile[];minCandidates?:number}>= [
  {name:'river furiten on a multiwait',hand,wall:[t('p9','pin',9),t('s8','sou',8),t('m9','man',9)],river:[t('s8past','sou',8)]},
- {name:'red five in original hand',hand:hand.map(x=>x.id==='m2'?t('m2r','man',2,true):x),wall:[t('p9','pin',9),t('s8','sou',8),t('m9','man',9)]},
+ {name:'red five in original hand',hand:hand.map(x=>x.id==='s1'?t('s4','sou',4):x.id==='s2'?t('s5red','sou',5,true):x.id==='s3'?t('s6','sou',6):x),wall:[t('p9','pin',9),t('s8','sou',8),t('m9','man',9)]},
  {name:'red five as own draw needed for a hand',hand:[...hand.slice(0,9),t('s7x','sou',7),t('d1','dragon',1),...hand.slice(11)],wall:[t('s5red','sou',5,true),t('d2','dragon',2),t('s8','sou',8),t('m9','man',9)]},
  {name:'multiple tenpai targets',hand,wall:[t('s6','sou',6),t('p7','pin',7),t('s8','sou',8),t('m5','man',5),t('p9','pin',9)],minCandidates:2},
  {name:'own-discard furiten possibility',hand,wall:[t('s8a','sou',8),t('p9','pin',9),t('s8b','sou',8),t('s8c','sou',8),t('m9','man',9)]},
