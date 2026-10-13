@@ -451,11 +451,13 @@ export function searchBestWin(
   const futureCompletionPossible = (state: State): boolean => {
     const key = state.playerHand.map(furitenTileKey).sort().join(',') + '|' +
       (state.playerDrawnTile ? furitenTileKey(state.playerDrawnTile) : '') + '|' +
-      state.wallDrawnCount + ':' + state.wall.length;
+      state.wallDrawnCount + ':' + state.wall.length + '|' +
+      (state.phase === 'naki' && state.lastCpuDiscard ? furitenTileKey(state.lastCpuDiscard) : '');
     const cached = completionCache.get(key);
     if (cached !== undefined) return cached;
     const value = couldBuildWinningHand([...state.playerHand,
-      ...(state.playerDrawnTile ? [state.playerDrawnTile] : []), ...state.wall]);
+      ...(state.playerDrawnTile ? [state.playerDrawnTile] : []), ...state.wall,
+      ...(state.phase === 'naki' && state.lastCpuDiscard ? [state.lastCpuDiscard] : [])]);
     completionCache.set(key, value);
     return value;
   };
