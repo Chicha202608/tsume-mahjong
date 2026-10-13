@@ -220,8 +220,8 @@ export function searchBestWin(
       if (scored && (bestScore === null || scored.score > bestScore)) {
         bestScore = scored.score;
         bestAction = type === 'ron'
-          ? { type, tile: winState.winTile!, riichi: scored.riichi, score: scored.score }
-          : { type, riichi: scored.riichi, score: scored.score };
+          ? { type, tile: winState.winTile!, riichi: scored.riichi, lastMomentRiichi: scored.lastMomentRiichi, score: scored.score }
+          : { type, riichi: scored.riichi, lastMomentRiichi: scored.lastMomentRiichi, score: scored.score };
         bestNext = undefined;
         bestTerminal = true;
       }
