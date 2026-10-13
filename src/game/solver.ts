@@ -32,8 +32,8 @@ export type SolverAction =
   | { type: 'kan'; option: NakiOption }
   | { type: 'pass-tsumo' }
   | { type: 'pass-naki' }
-  | { type: 'tsumo'; riichi: boolean; score: number }
-  | { type: 'ron'; tile: Tile; riichi: boolean; score: number };
+  | { type: 'tsumo'; riichi: boolean; lastMomentRiichi: boolean; score: number }
+  | { type: 'ron'; tile: Tile; riichi: boolean; lastMomentRiichi: boolean; score: number };
 
 export interface SolverResult {
   /** Best score for the player. Null means no winning line was found. */
@@ -94,9 +94,12 @@ function stateKey(state: State): string {
   });
 }
 
-function scoreWinningState(state: State, allowLastMomentRiichi = true): { score: number; riichi: boolean } | null {
-  const scoreVariants: Array<{ state: State; riichi: boolean }> = [
-    { state, riichi: state.isRiichi },
+function scoreWinningState(
+  state: State,
+  allowLastMomentRiichi = true,
+): { score: number; riichi: boolean; lastMomentRiichi: boolean } | null {
+  const scoreVariants: Array<{ state: State; riichi: boolean; lastMomentRiichi: boolean }> = [
+    { state, riichi: state.isRiichi, lastMomentRiichi: false },
   ];
 
   // Per this app's agreed puzzle rule, evaluate an immediate riichi + ippatsu
@@ -116,17 +119,22 @@ function scoreWinningState(state: State, allowLastMomentRiichi = true): { score:
     scoreVariants.push({
       state: { ...state, isRiichi: true, isIppatsu: true },
       riichi: true,
+      lastMomentRiichi: true,
     });
   }
 
-  let best: { score: number; riichi: boolean } | null = null;
+  let best: { score: number; riichi: boolean; lastMomentRiichi: boolean } | null = null;
   for (const variant of scoreVariants) {
     try {
       const analysis = scoreHand(variant.state);
       if (!analysis?.valid || analysis.handInterpretations.length === 0) continue;
       const score = Math.max(...analysis.handInterpretations.map((hand) => hand.totalWinnings));
       if (Number.isFinite(score) && (!best || score > best.score)) {
-        best = { score, riichi: variant.riichi };
+        best = {
+          score,
+          riichi: variant.riichi,
+          lastMomentRiichi: variant.lastMomentRiichi,
+        };
       }
     } catch {
       // Invalid interpretations are not winning candidates.
@@ -258,6 +266,7 @@ export function searchBestWin(
                 type: 'ron',
                 tile: cpuDiscard,
                 riichi: scored.riichi,
+                lastMomentRiichi: scored.lastMomentRiichi,
                 score: scored.score,
               },
               terminal: true,
@@ -362,7 +371,7 @@ export function searchBestWin(
   if (
     winningAction &&
     (winningAction.type === 'tsumo' || winningAction.type === 'ron') &&
-    winningAction.riichi
+    winningAction.lastMomentRiichi
   ) {
     for (let i = line.length - 2; i >= 0; i--) {
       const action = line[i];
