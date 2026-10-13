@@ -114,8 +114,8 @@ function uniqueTiles(tiles: Tile[]): Tile[] {
 
 /**
  * Optimistic reverse feasibility test: could ANY winning 14-tile hand be
- * assembled from the hand plus the entire remaining wall?
- * Treating CPU draws as available deliberately over-approximates supply.
+ * assembled from the supplied optimistic tile pool?
+ * The caller allows only the player's future draws plus at most one CPU discard.
  * False therefore proves that no winning continuation exists.
  * Also admits chiitoitsu and kokushi, not just four melds plus a pair.
  */
@@ -449,17 +449,47 @@ export function searchBestWin(
   const tenpaiCache = new Map<string, boolean>();
   const completionCache = new Map<string, boolean>();
   const futureCompletionPossible = (state: State): boolean => {
-    const key = state.playerHand.map(furitenTileKey).sort().join(',') + '|' +
+    // No kan in this milestone: future wall draws alternate CPU/player.
+    // CPU discards are only eligible as the ONE winning ron tile.
+    // We deliberately ignore chronology and furiten here, so this is an
+    // optimistic upper bound; a false result safely rules out any win.
+    const key = state.phase + '|' + state.playerHand.map(furitenTileKey).sort().join(',') + '|' +
       (state.playerDrawnTile ? furitenTileKey(state.playerDrawnTile) : '') + '|' +
       state.wallDrawnCount + ':' + state.wall.length + '|' +
       (state.phase === 'naki' && state.lastCpuDiscard ? furitenTileKey(state.lastCpuDiscard) : '');
     const cached = completionCache.get(key);
     if (cached !== undefined) return cached;
-    const value = couldBuildWinningHand([...state.playerHand,
-      ...(state.playerDrawnTile ? [state.playerDrawnTile] : []), ...state.wall,
-      ...(state.phase === 'naki' && state.lastCpuDiscard ? [state.lastCpuDiscard] : [])]);
-    completionCache.set(key, value);
-    return value;
+
+    const playerPool = [
+      ...state.playerHand,
+      ...(state.playerDrawnTile ? [state.playerDrawnTile] : []),
+    ];
+    const cpuTiles: Tile[] = [];
+    if (state.phase === 'naki' && state.lastCpuDiscard) cpuTiles.push(state.lastCpuDiscard);
+    const cpuFirst = state.phase === 'playerDiscard' || state.phase === 'cpuTurn' ||
+      state.phase === 'playerNakiDiscard';
+    for (let i = 0; i < state.wall.length; i++) {
+      const cpuDraw = (i % 2 === 0) === cpuFirst;
+      if (cpuDraw) cpuTiles.push(state.wall[i]);
+      else playerPool.push(state.wall[i]);
+    }
+
+    // Tsumo consumes no CPU tile; ron consumes precisely one.
+    let possible = couldBuildWinningHand(playerPool);
+    if (!possible) {
+      const seen = new Set<string>();
+      for (const tile of cpuTiles) {
+        const face = furitenTileKey(tile);
+        if (seen.has(face)) continue;
+        seen.add(face);
+        if (couldBuildWinningHand([...playerPool, tile])) {
+          possible = true;
+          break;
+        }
+      }
+    }
+    completionCache.set(key, possible);
+    return possible;
   };
   const isTenpai = (state: State): boolean => {
     const key = state.playerFuro.length + '|' + state.playerHand.map(furitenTileKey).sort().join(',');
