@@ -354,6 +354,24 @@ export function searchBestWin(
     node = node.next;
   }
 
+  // A last-moment riichi is declared on the discard immediately before the
+  // opponent's discard / the next winning draw. Mark that discard in the
+  // returned line when it is included in this search path. The winning action's
+  // riichi flag still records which scoring variant was selected.
+  const winningAction = line[line.length - 1];
+  if (
+    winningAction &&
+    (winningAction.type === 'tsumo' || winningAction.type === 'ron') &&
+    winningAction.riichi
+  ) {
+    for (let i = line.length - 2; i >= 0; i--) {
+      if (line[i].type === 'discard') {
+        line[i] = { ...line[i], riichi: true };
+        break;
+      }
+    }
+  }
+
   const elapsedMs = Date.now() - startedAt;
   return {
     bestScore: complete ? root.score : null,
