@@ -67,3 +67,52 @@ describe('open ittsu ron regression', () => {
     expect(afterCpu?.ronAvailable).toBe(true);
   });
 });
+
+describe('open ittsu across chi placement and call count', () => {
+  const sequences = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+
+  for (let exposedCount = 1; exposedCount <= 3; exposedCount++) {
+    for (let exposedStart = 0; exposedStart <= 3 - exposedCount; exposedStart++) {
+      for (let calledPosition = 0; calledPosition < 3; calledPosition++) {
+        it(`supports ${exposedCount} chi meld(s), starting at run ${exposedStart}, called position ${calledPosition}`, () => {
+          const exposed = new Set(sequences.slice(exposedStart, exposedStart + exposedCount).map(s => s[0]));
+          const furos: Furo[] = sequences
+            .filter(s => exposed.has(s[0]))
+            .map(seq => {
+              const tiles = seq.map(value => tile('man', value));
+              // Mirror gameplay: hand tiles are stored first, called discard last.
+              const calledTile = tiles[calledPosition];
+              return {
+                type: 'chii' as const,
+                tiles: [...tiles.filter(t => t.id !== calledTile.id), calledTile],
+                calledTile,
+              };
+            });
+          const man = sequences
+            .filter(s => !exposed.has(s[0]))
+            .flatMap(seq => seq.map(value => tile('man', value)));
+          const hand = [...man, tile('pin', 2), tile('pin', 3), tile('sou', 5), tile('sou', 5)];
+          const winning = tile('pin', 4);
+          const wanpai = [
+            ...Array.from({ length: 4 }, () => tile('wind', 4)),
+            tile('dragon', 3),
+            ...Array.from({ length: 9 }, () => tile('wind', 4)),
+          ];
+          const state = {
+            ...makeInitialStateBase(hand, [], [winning, tile('wind', 1)], wanpai),
+            playerFuro: furos,
+            roundWind: 'east' as const,
+            playerWind: 'south' as const,
+            phase: 'cpuTurn' as const,
+            turnCount: 6,
+          };
+          expect(canRonConcealed(hand, winning, furos.length)).toBe(true);
+          expect(canRonWithYaku(state, winning)).toBe(true);
+          const afterCpu = applyCpuTurn(state);
+          expect(afterCpu?.phase).toBe('naki');
+          expect(afterCpu?.ronAvailable).toBe(true);
+        });
+      }
+    }
+  }
+});
