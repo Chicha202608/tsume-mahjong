@@ -86,11 +86,22 @@ function uniqueTiles(tiles: Tile[]): Tile[] {
  * can be added after correctness and performance are measured.
  */
 function stateKey(state: State): string {
+  // These fields do not affect any future legal action or score in this app:
+  // the CPU's held hand/furo are unused because it always discards the next
+  // wall tile; fullWall is immutable history; cpuDiscards are display-only;
+  // wallDrawnCount is informational. Excluding them keeps each DP key small.
+  const {
+    cpuHand: _cpuHand,
+    cpuFuro: _cpuFuro,
+    fullWall: _fullWall,
+    cpuDiscards: _cpuDiscards,
+    wallDrawnCount: _wallDrawnCount,
+    ...relevant
+  } = state;
   return JSON.stringify({
-    ...state,
+    ...relevant,
     playerHand: [...state.playerHand].sort((a, b) => a.id.localeCompare(b.id)),
     playerDiscards: [...state.playerDiscards].sort((a, b) => a.id.localeCompare(b.id)),
-    cpuDiscards: [...state.cpuDiscards].sort((a, b) => a.id.localeCompare(b.id)),
   });
 }
 
