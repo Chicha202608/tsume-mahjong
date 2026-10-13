@@ -13,6 +13,7 @@ import {
   NakiOption,
 } from '@/gameLogic';
 import { State, makeInitialState, makeInitialStateBase } from '@/game/gameState';
+import { makeRiichiAnkanTestState } from '@/game/testScenarios';
 import {
   MAX_DRAWS,
   applyPlayerDraw,
@@ -59,7 +60,7 @@ export interface GameEngine {
   riichiValidTiles: Set<string>;
   isDora: (t: Tile) => boolean;
   restart: () => void;
-  setupTestState: (mode: 'ankan' | 'kakan' | 'daiminkan') => void;
+  setupTestState: (mode: 'ankan' | 'kakan' | 'daiminkan' | 'riichi-ankan') => void;
   playerDiscard: (tile: Tile) => void;
   playerNakiDiscard: (tile: Tile) => void;
   riichiDiscard: (tile: Tile) => void;
@@ -101,8 +102,14 @@ export function useGameEngine(): GameEngine {
     setDismissedIndex(-1);
   }, [clearTimer]);
 
-  const setupTestState = useCallback((mode: 'ankan' | 'kakan' | 'daiminkan') => {
+  const setupTestState = useCallback((mode: 'ankan' | 'kakan' | 'daiminkan' | 'riichi-ankan') => {
     clearTimer();
+    if (mode === 'riichi-ankan') {
+      setHistory([makeRiichiAnkanTestState()]);
+      setHistoryIndex(0);
+      setDismissedIndex(-1);
+      return;
+    }
 
     const deck = shuffle(createDeck());
 
