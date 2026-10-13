@@ -135,7 +135,11 @@ function stateKey(state: State): string {
     phase: state.phase,
     playerHand: state.playerHand.map(tileKey).sort(),
     playerDrawnTile: state.playerDrawnTile ? tileKey(state.playerDrawnTile) : null,
-    wall: state.wall.map(tileKey),
+    // Within one search, fullWall is immutable and wall remains a contiguous
+    // slice of it: top draws advance wallDrawnCount; each kan trims the end.
+    // Encode that slice by its indices instead of serializing up to 96 tiles.
+    wallStart: state.wallDrawnCount,
+    wallEnd: state.wallDrawnCount + state.wall.length,
     wanpai: state.wanpai.map(tileKey),
     playerDiscards: [...new Set(state.playerDiscards.map(furitenTileKey))].sort(),
     playerFuro: state.playerFuro.map((furo) => ({
