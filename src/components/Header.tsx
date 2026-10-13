@@ -8,7 +8,7 @@ interface Props {
   historyIndex: number;
   historyLength: number;
   onRestart: () => void;
-  onSetupTest: (mode: 'ankan' | 'kakan' | 'daiminkan') => void;
+  onSetupTest: (mode: 'ankan' | 'kakan' | 'daiminkan' | 'riichi-ankan') => void;
 }
 
 export default function Header({ turnCount, maxDraws, wallCount, isViewingPast, historyIndex, historyLength, onRestart, onSetupTest }: Props) {
@@ -29,6 +29,12 @@ export default function Header({ turnCount, maxDraws, wallCount, isViewingPast, 
             className="px-2 py-0.5 rounded-md bg-gray-800 hover:bg-gray-700 active:scale-95 text-gray-300 text-xs font-medium transition-all"
           >
             暗カン準備
+          </button>
+          <button
+            onClick={() => onSetupTest('riichi-ankan')}
+            className="px-2 py-0.5 rounded-md bg-gray-800 hover:bg-gray-700 active:scale-95 text-gray-300 text-xs font-medium transition-all"
+          >
+            立直暗カン準備
           </button>
           <button
             onClick={() => onSetupTest('kakan')}
