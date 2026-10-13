@@ -9,6 +9,17 @@ function face(tile: Tile): number {
   return base + tile.value - 1;
 }
 
+/** Same face-count difference for every discard ordering reaching this exact target. */
+export function isTargetFuriten(
+  initial: State, target: readonly number[], waits: readonly number[], wallIndex: number,
+): boolean {
+  const available = Array<number>(34).fill(0);
+  for (const tile of initial.playerHand) available[face(tile)]++;
+  for (let i = 0; i < wallIndex; i += 2) available[face(initial.wall[i])]++;
+  return initial.playerDiscards.some(tile => waits.includes(face(tile))) ||
+    waits.some(i => available[i] > target[i]);
+}
+
 export interface CandidateReplay {
   opportunity: CandidateWinOpportunity;
   /** Actual discard tiles in chronological player-draw order. */
@@ -52,8 +63,7 @@ export function replayCandidateOpportunity(
   const actual = Array<number>(34).fill(0);
   for (const tile of hand) actual[face(tile)]++;
   if (!actual.every((n, i) => n === target[i])) return null;
-  const furiten = discards.some(tile => opportunity.candidate.waits.includes(face(tile))) ||
-    initial.playerDiscards.some(tile => opportunity.candidate.waits.includes(face(tile)));
+  const furiten = isTargetFuriten(initial, target, opportunity.candidate.waits, opportunity.wallIndex);
 
   if (opportunity.type === 'ron' && furiten) {
     return { opportunity, discards, furiten, score: null, riichi: false };
