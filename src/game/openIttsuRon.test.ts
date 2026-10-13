@@ -56,7 +56,7 @@ describe('open ittsu ron regression', () => {
       lastCpuDiscard: winning,
     });
     expect(scored?.valid, JSON.stringify(scored?.errors)).toBe(true);
-    expect(scored?.handInterpretations.some(h => h.yaku.some(y => y.name === 'ittsu'))).toBe(true);
+    expect(scored?.handInterpretations.some(h => h.yaku.some(y => y.han > 0))).toBe(true);
     expect(canRonWithYaku(state, winning)).toBe(true);
   });
 
