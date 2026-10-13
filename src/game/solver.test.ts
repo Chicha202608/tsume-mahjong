@@ -42,6 +42,9 @@ describe('searchBestWin', () => {
     expect(result.complete).toBe(true);
     expect(result.bestScore).toBeGreaterThan(0);
     expect(result.line.map((action) => action.type)).toEqual(['draw', 'tsumo']);
+    // The initial deal has no prior discard on which riichi could be declared.
+    const winningAction = result.line[result.line.length - 1];
+    expect(winningAction).toMatchObject({ type: 'tsumo', riichi: false });
   });
 
   it('does not claim an optimum when the safety state limit prevents search', () => {
