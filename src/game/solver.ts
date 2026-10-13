@@ -45,6 +45,7 @@ export interface SolverResult {
   stats: {
     statesVisited: number;
     cacheHits: number;
+    prunedBranches: number;
     elapsedMs: number;
   };
 }
@@ -437,7 +438,7 @@ export function searchBestWin(
       bestScore: null,
       line: [],
       complete: false,
-      stats: { statesVisited: 0, cacheHits: 0, elapsedMs: 0 },
+      stats: { statesVisited: 0, cacheHits: 0, prunedBranches: 0, elapsedMs: 0 },
     };
   }
 
@@ -501,6 +502,7 @@ export function searchBestWin(
   };
   let statesVisited = 0;
   let cacheHits = 0;
+  let prunedBranches = 0;
   let complete = true;
 
   const interrupted = () =>
@@ -546,7 +548,10 @@ export function searchBestWin(
       // Once a winning line exists, a branch proven unable to make ANY
       // complete hand cannot improve it. Do not prune tenpai fallback.
       if (bestRank === 2 && nextState.wall.length <= 12 &&
-          !futureCompletionPossible(nextState)) return;
+          !futureCompletionPossible(nextState)) {
+        prunedBranches++;
+        return;
+      }
       const child = search(nextState, nextDrawWasKan);
       const isBetter = !bestChoice || child.rank > bestRank ||
         (child.rank === 2 && bestRank === 2 && child.score !== null &&
@@ -755,6 +760,6 @@ export function searchBestWin(
     bestScore: complete && root.rank === 2 ? root.score : null,
     line: complete ? line : [],
     complete,
-    stats: { statesVisited, cacheHits, elapsedMs },
+    stats: { statesVisited, cacheHits, prunedBranches, elapsedMs },
   };
 }
