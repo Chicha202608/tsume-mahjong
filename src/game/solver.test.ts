@@ -43,9 +43,43 @@ describe('searchBestWin', () => {
     const result = searchBestWin(state);
 
     expect(result.complete).toBe(true);
+    expect(result.outcome).toBe('noten');
     expect(result.bestScore).toBeNull();
     expect(result.line).toEqual([]);
     expect(result.stats.statesVisited).toBeGreaterThan(0);
+  });
+
+  it('classifies an exhausted tenpai hand above a noten hand', () => {
+    const tenpaiHand = [
+      tile('m1', 'man', 1), tile('m2', 'man', 2), tile('m3', 'man', 3),
+      tile('p1', 'pin', 1), tile('p2', 'pin', 2), tile('p3', 'pin', 3),
+      tile('s1', 'sou', 1), tile('s2', 'sou', 2), tile('s3', 'sou', 3),
+      tile('s7', 'sou', 7), tile('s8', 'sou', 8),
+      tile('w1', 'wind', 1), tile('w1b', 'wind', 1),
+    ];
+    const tenpaiState = {
+      ...makeInitialStateBase(tenpaiHand, [], [], []),
+      phase: 'exhausted' as const,
+    };
+
+    const tenpaiResult = searchBestWin(tenpaiState);
+
+    expect(tenpaiResult.complete).toBe(true);
+    expect(tenpaiResult.outcome).toBe('tenpai');
+    expect(tenpaiResult.bestScore).toBeNull();
+
+    const notenState = {
+      ...tenpaiState,
+      playerHand: [
+        ...tenpaiHand.slice(0, 10),
+        tile('s9', 'sou', 9),
+        tile('w2', 'wind', 2),
+        tile('w3', 'wind', 3),
+      ],
+    };
+    const notenResult = searchBestWin(notenState);
+    expect(notenResult.complete).toBe(true);
+    expect(notenResult.outcome).toBe('noten');
   });
 
   it('finds a known one-draw tsumo line and reports the winning score', () => {
@@ -62,6 +96,7 @@ describe('searchBestWin', () => {
     const result = searchBestWin(state);
 
     expect(result.complete).toBe(true);
+    expect(result.outcome).toBe('win');
     expect(result.bestScore).toBeGreaterThan(0);
     expect(result.line.map((action) => action.type)).toEqual(['draw', 'tsumo']);
     // The initial deal has no prior discard on which riichi could be declared.
