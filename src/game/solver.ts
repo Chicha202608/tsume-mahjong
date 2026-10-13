@@ -36,6 +36,9 @@ export type SolverAction =
   | { type: 'ron'; tile: Tile; riichi: boolean; lastMomentRiichi: boolean; score: number };
 
 export interface SolverResult {
+  /** False when the input state is outside this closed-hand solver's scope. */
+  supported: boolean;
+  unsupportedReason?: 'open-hand';
   /** Best score for the player. Null means no winning line was found. */
   bestScore: number | null;
   /** One maximum-score line. Other equally scoring lines are not enumerated yet. */
@@ -343,6 +346,20 @@ export function searchBestWin(
   initialState: State,
   options: SolverOptions = {},
 ): SolverResult {
+  // This prototype deliberately solves only menzen hands. Ankan is allowed;
+  // chi, pon, daiminkan and kakan are not. Reject an already-open input rather
+  // than silently returning an answer for a narrower/different problem.
+  if (!isMenzen(initialState.playerFuro)) {
+    return {
+      supported: false,
+      unsupportedReason: 'open-hand',
+      bestScore: null,
+      line: [],
+      complete: false,
+      stats: { statesVisited: 0, cacheHits: 0, elapsedMs: 0 },
+    };
+  }
+
   const maxStates = options.maxStates ?? 200_000;
   const maxDurationMs = options.maxDurationMs ?? 3_000;
   const startedAt = Date.now();
@@ -484,10 +501,9 @@ export function searchBestWin(
         }
 
         if (complete && state.playerDrawnTile) {
-          const kanOptions = [
-            ...findAnkanOptions(state.playerHand, state.playerDrawnTile),
-            ...findKakanOptions(state.playerHand, state.playerDrawnTile, state.playerFuro),
-          ];
+          // Closed-hand search permits concealed kan only. Kakan requires a
+          // previously open pon and is outside this solver's scope.
+          const kanOptions = findAnkanOptions(state.playerHand, state.playerDrawnTile);
           for (const option of kanOptions) {
             consider({ type: 'kan', option }, applyDeclareKan(state, option), true);
             if (!complete) break;
@@ -512,16 +528,8 @@ export function searchBestWin(
           consider({ type: 'pass-naki' }, applyPassNaki(state));
         }
 
-        if (complete) {
-          for (const option of state.nakiOptions) {
-            if (option.type === 'daiminkan') {
-              consider({ type: 'kan', option }, applyDeclareKan(state, option), true);
-            } else {
-              consider({ type: 'call-naki', option }, applyCallNaki(state, option));
-            }
-            if (!complete) break;
-          }
-        }
+        // In a closed-hand solver, the player may ron or decline the
+        // discard, but may not chi, pon or daiminkan.
         break;
       }
 
@@ -600,6 +608,7 @@ export function searchBestWin(
 
   const elapsedMs = Date.now() - startedAt;
   return {
+    supported: true,
     bestScore: complete ? root.score : null,
     line: complete ? line : [],
     complete,
