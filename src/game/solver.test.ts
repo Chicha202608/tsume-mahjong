@@ -65,6 +65,31 @@ describe('future tenpai feasibility', () => {
   });
 });
 
+describe('standard-hand-only milestone', () => {
+  it('does not accept a seven-pairs-only tenpai pattern', () => {
+    const pool = [
+      tile('m1a','man',1),tile('m1b','man',1),
+      tile('m4a','man',4),tile('m4b','man',4),
+      tile('m7a','man',7),tile('m7b','man',7),
+      tile('p1a','pin',1),tile('p1b','pin',1),
+      tile('p4a','pin',4),tile('p4b','pin',4),
+      tile('s1a','sou',1),tile('s1b','sou',1),
+      tile('east','wind',1),
+    ];
+    expect(couldBuildTenpai(pool)).toBe(false);
+  });
+  it('does not accept thirteen orphans as standard tenpai', () => {
+    const pool = [
+      tile('m1','man',1),tile('m9','man',9),tile('p1','pin',1),
+      tile('p9','pin',9),tile('s1','sou',1),tile('s9','sou',9),
+      tile('east','wind',1),tile('south','wind',2),
+      tile('west','wind',3),tile('north','wind',4),
+      tile('white','dragon',1),tile('green','dragon',2),tile('red','dragon',3),
+    ];
+    expect(couldBuildTenpai(pool)).toBe(false);
+  });
+});
+
 describe('searchBestWin', () => {
   it('explicitly rejects an already-open hand in the closed-hand solver', () => {
     const called = tile('called', 'man', 3);
