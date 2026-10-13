@@ -100,7 +100,9 @@ export function enumerateTenpaiCandidates(state: State): TenpaiCandidate[] {
     found.set(key, { counts: [...counts], earliestPlayerDraw: earliest, waits });
   };
   const select = (tiles: number[], next: () => void) => {
-    if (tiles.some(i => counts[i] >= available[i])) return;
+    const needed = new Map<number, number>();
+    for (const i of tiles) needed.set(i, (needed.get(i) ?? 0) + 1);
+    if ([...needed].some(([i, n]) => counts[i] + n > available[i])) return;
     tiles.forEach(i => counts[i]++);
     next();
     tiles.forEach(i => counts[i]--);
