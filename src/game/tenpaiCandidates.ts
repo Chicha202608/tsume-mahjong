@@ -140,3 +140,45 @@ export function enumerateTenpaiCandidates(state: State): TenpaiCandidate[] {
     a.earliestPlayerDraw - b.earliestPlayerDraw ||
     a.counts.join(',').localeCompare(b.counts.join(',')));
 }
+
+/** A chronological win opportunity for an already enumerated tenpai shape. */
+export interface CandidateWinOpportunity {
+  candidate: TenpaiCandidate;
+  type: 'tsumo' | 'ron';
+  /** Index of the winning tile in the remaining wall. */
+  wallIndex: number;
+  /** Tile face of the winning tile (0..33). */
+  winningFace: number;
+}
+
+/**
+ * Match a candidate against concrete future winning tiles. A tsumo requires
+ * the 13-tile target to be obtainable BEFORE that player draw. A ron requires
+ * it before the CPU discard. The result is a necessary condition, not yet a
+ * replay/legal-furiten/riichi or score verdict.
+ */
+export function findCandidateWinOpportunities(
+  state: State,
+  candidates: TenpaiCandidate[],
+): CandidateWinOpportunity[] {
+  if (state.playerFuro.length || state.phase !== 'playerDraw') return [];
+  const held = Array<number>(34).fill(0);
+  for (const tile of state.playerHand) held[indexOf(tile)]++;
+  const opportunities: CandidateWinOpportunity[] = [];
+  for (let wallIndex = 0; wallIndex < state.wall.length; wallIndex++) {
+    const ownDraw = wallIndex % 2 === 0;
+    // At this point, held contains the starting hand and all PRECEDING
+    // own draws, not the current winning tile.
+    const winFace = indexOf(state.wall[wallIndex]);
+    for (const candidate of candidates) {
+      if (!candidate.waits.includes(winFace)) continue;
+      if (!candidate.counts.every((n, i) => held[i] >= n)) continue;
+      opportunities.push({
+        candidate, type: ownDraw ? 'tsumo' : 'ron', wallIndex,
+        winningFace: winFace,
+      });
+    }
+    if (ownDraw) held[winFace]++;
+  }
+  return opportunities;
+}
