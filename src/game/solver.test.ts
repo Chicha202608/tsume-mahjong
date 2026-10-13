@@ -183,7 +183,7 @@ describe('searchBestWin', () => {
     const drawnTile = tile('p2-draw', 'pin', 2);
     const winningTile = tile('s8', 'sou', 8);
     const state = {
-      ...makeInitialStateBase(hand, [], [drawnTile, winningTile], []),
+      ...makeInitialStateBase(hand, [], [drawnTile, winningTile, tile('futureDraw', 'sou', 1)], []),
       roundWind: 'east' as const,
       playerWind: 'south' as const,
     };
