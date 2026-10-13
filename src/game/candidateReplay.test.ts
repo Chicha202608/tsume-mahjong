@@ -27,4 +27,33 @@ describe('candidate replay', () => {
     expect(results.filter(r => r.opportunity.wallIndex === 1 &&
       r.opportunity.type === 'ron').every(r => r.score === null)).toBe(true);
   });
+  it('permits ron without any discarded waiting tile', () => {
+    const state = { ...makeInitialStateBase(hand,[],[
+      tile('pin',9,'own'),tile('sou',8,'ron'),tile('man',9,'own2'),
+    ],[]), roundWind: 'east' as const, playerWind: 'south' as const };
+    const results = evaluateCandidateWins(state);
+    expect(results.some(r => r.opportunity.wallIndex === 1 &&
+      r.opportunity.type === 'ron' && !r.furiten && r.score !== null)).toBe(true);
+  });
+
+  it('allows tsumo even when an earlier river tile causes furiten', () => {
+    const state = { ...makeInitialStateBase(hand,[],[
+      tile('pin',9,'own'),tile('dragon',1,'cpu'),tile('sou',8,'tsumo'),
+    ],[]), playerDiscards: [tile('sou',8,'past-wait')],
+      roundWind: 'east' as const, playerWind: 'south' as const };
+    const results = evaluateCandidateWins(state);
+    expect(results.some(r => r.opportunity.wallIndex === 2 &&
+      r.opportunity.type === 'tsumo' && r.furiten && r.score !== null)).toBe(true);
+  });
+
+  it('does not treat discarding unrelated tiles as furiten', () => {
+    const state = { ...makeInitialStateBase(hand,[],[
+      tile('pin',9,'own'),tile('sou',8,'ron'),tile('man',9,'own2'),
+    ],[]), playerDiscards: [tile('dragon',1,'unrelated')],
+      roundWind: 'east' as const, playerWind: 'south' as const };
+    const results = evaluateCandidateWins(state);
+    expect(results.some(r => r.opportunity.wallIndex === 1 &&
+      r.opportunity.type === 'ron' && !r.furiten && r.score !== null)).toBe(true);
+  });
+
 });
