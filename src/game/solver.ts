@@ -128,16 +128,6 @@ export function couldBuildTenpai(pool: Tile[]): boolean {
     counts[group + tile.value - 1]++;
   }
 
-  // Chiitoitsu: six distinct pairs plus a seventh singleton.
-  const pairs = counts.filter(n => n >= 2).length;
-  if (pairs >= 6 && counts.filter(n => n > 0).length >= 7) return true;
-
-  // Kokushi: twelve distinct terminals/honors plus one duplicate, or all 13.
-  const orphans = [0, 8, 9, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33];
-  const present = orphans.filter(i => counts[i] > 0);
-  if (present.length === 13 ||
-      (present.length === 12 && present.some(i => counts[i] >= 2))) return true;
-
   // Normal tenpai: three complete melds, one pair, one incomplete meld;
   // alternatively four complete melds and a singleton pair wait.
   // Since the pool may contain extra future draws, consume only the tiles
@@ -205,6 +195,43 @@ export function couldBuildTenpai(pool: Tile[]): boolean {
     return false;
   };
   return search(3, 1, 1) || search(4, 0, 1);
+}
+
+/** True only for a standard four-meld-and-pair winning hand. */
+function isStandardWin(tiles: Tile[]): boolean {
+  if (tiles.length !== 14) return false;
+  const counts = Array<number>(34).fill(0);
+  for (const tile of tiles) {
+    const base = tile.suit === 'man' ? 0 : tile.suit === 'pin' ? 9 :
+      tile.suit === 'sou' ? 18 : tile.suit === 'wind' ? 27 : 31;
+    counts[base + tile.value - 1]++;
+  }
+  const melds = (needed: number): boolean => {
+    if (!needed) return counts.every(n => n === 0);
+    const i = counts.findIndex(n => n > 0);
+    if (i < 0) return false;
+    if (counts[i] >= 3) {
+      counts[i] -= 3;
+      const ok = melds(needed - 1);
+      counts[i] += 3;
+      if (ok) return true;
+    }
+    if (i < 27 && i % 9 <= 6 && counts[i+1] && counts[i+2]) {
+      counts[i]--; counts[i+1]--; counts[i+2]--;
+      const ok = melds(needed - 1);
+      counts[i]++; counts[i+1]++; counts[i+2]++;
+      if (ok) return true;
+    }
+    return false;
+  };
+  for (let i = 0; i < 34; i++) {
+    if (counts[i] < 2) continue;
+    counts[i] -= 2;
+    const ok = melds(4);
+    counts[i] += 2;
+    if (ok) return true;
+  }
+  return false;
 }
 
 function optionDescriptor(option: NakiOption): OptionDescriptor {
@@ -376,6 +403,11 @@ function scoreWinningState(
   allowLastMomentRiichi = true,
   scoreCache?: Map<string, number | null>,
 ): { score: number; riichi: boolean; lastMomentRiichi: boolean } | null {
+  // Special hands are deferred for this milestone, including hands that are
+  // both chiitoitsu and a standard hand (the standard interpretation remains).
+  if (!state.winTile || !isStandardWin([...state.playerHand,
+    ...(state.winType === 'tsumo' && state.playerDrawnTile
+      ? [state.playerDrawnTile] : state.winType === 'ron' ? [state.winTile] : [])])) return null;
   const scoreVariants: Array<{ state: State; riichi: boolean; lastMomentRiichi: boolean }> = [
     { state, riichi: state.isRiichi, lastMomentRiichi: false },
   ];
@@ -510,7 +542,7 @@ export function searchBestWin(
     const key = state.playerFuro.length + '|' + state.playerHand.map(furitenTileKey).sort().join(',');
     const cached = tenpaiCache.get(key);
     if (cached !== undefined) return cached;
-    const value = checkTenpai(state.playerHand, state.playerFuro.length);
+    const value = couldBuildTenpai(state.playerHand);
     tenpaiCache.set(key, value);
     return value;
   };
