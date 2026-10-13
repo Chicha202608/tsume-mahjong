@@ -33,3 +33,39 @@ export function makeRiichiAnkanTestState(): State {
     playerWind: 'south',
   };
 }
+
+
+/**
+ * Deterministic, non-furiten open ittsu ron:
+ * called 123m; concealed 456m 789m 23p 55s; CPU next discards 4p.
+ * The test starts immediately before CPU's discard for a visible ron button.
+ */
+export function makeOpenIttsuRonTestState(): State {
+  const deck = createDeck();
+  const take = (suit: Tile['suit'], value: number): Tile => {
+    const index = deck.findIndex(tile => tile.suit === suit && tile.value === value);
+    if (index < 0) throw new Error(`Missing test tile: ${suit} ${value}`);
+    return deck.splice(index, 1)[0];
+  };
+  const run123 = [take('man', 1), take('man', 2), take('man', 3)];
+  const hand = sortHand([
+    take('man', 4), take('man', 5), take('man', 6),
+    take('man', 7), take('man', 8), take('man', 9),
+    take('pin', 2), take('pin', 3),
+    take('sou', 5), take('sou', 5),
+  ]);
+  const winningTile = take('pin', 4);
+  const cpuHand = sortHand(deck.splice(0, 13));
+  const wanpai = deck.splice(0, 14);
+  const wall = [winningTile, ...deck.splice(0, 35)];
+  return {
+    ...makeInitialStateBase(hand, cpuHand, wall, wanpai),
+    playerFuro: [{ type: 'chii', tiles: run123, calledTile: run123[2] }],
+    phase: 'cpuTurn',
+    turnCount: 5,
+    roundWind: 'east',
+    playerWind: 'south',
+    playerDiscards: [],
+    isRiichi: false,
+  };
+}
