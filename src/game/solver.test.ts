@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { searchBestWin } from '@/game/solver';
+import { createDeck } from '@/gameLogic';
 import { makeInitialStateBase } from '@/game/gameState';
 import type { Tile } from '@/types';
 
@@ -115,6 +116,37 @@ describe('searchBestWin', () => {
     expect(result.complete).toBe(true);
     expect(result.line[result.line.length - 1]).toMatchObject({ type: 'ron', riichi: true });
     expect(result.line.some((action) => action.type === 'discard' && action.riichi === true)).toBe(true);
+  });
+
+  it('records bounded-search metrics for a full 36-tile wall', () => {
+    const deck = createDeck();
+    const take = (suit: Tile['suit'], value: number): Tile => {
+      const index = deck.findIndex((candidate) => candidate.suit === suit && candidate.value === value);
+      if (index < 0) throw new Error(`Missing tile: ${suit} ${value}`);
+      return deck.splice(index, 1)[0];
+    };
+    const hand = [
+      take('man', 1), take('man', 2), take('man', 3),
+      take('man', 4), take('man', 5), take('man', 6),
+      take('pin', 1), take('pin', 2), take('pin', 3),
+      take('sou', 7), take('sou', 9),
+      take('wind', 3), take('wind', 3),
+    ];
+    const cpuHand = deck.splice(0, 13);
+    const wanpai = deck.splice(0, 14);
+    const wall = deck.splice(0, 36);
+    const state = {
+      ...makeInitialStateBase(hand, cpuHand, wall, wanpai),
+      roundWind: 'east' as const,
+      playerWind: 'south' as const,
+    };
+
+    const result = searchBestWin(state, { maxStates: 10_000, maxDurationMs: 30_000 });
+    console.info('[solver full-wall bounded benchmark]', result.stats, { complete: result.complete });
+
+    expect(result.stats.statesVisited).toBe(10_000);
+    expect(result.complete).toBe(false);
+    expect(result.bestScore).toBeNull();
   });
 
   it('does not claim an optimum when the safety state limit prevents search', () => {
