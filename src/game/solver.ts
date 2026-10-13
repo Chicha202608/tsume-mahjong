@@ -128,16 +128,6 @@ function scoreWinningState(state: State, allowLastMomentRiichi = true): { score:
   return best;
 }
 
-function winningNode(state: State, type: 'tsumo' | 'ron'): SearchNode | null {
-  const scored = scoreWinningState(state);
-  if (!scored) return null;
-  return {
-    score: scored.score,
-    action: { type, riichi: scored.riichi, score: scored.score },
-    terminal: true,
-  };
-}
-
 /**
  * Searches the existing deterministic-wall game rules for one highest-scoring
  * winning line. This is an independent engine: it does not mutate React state
