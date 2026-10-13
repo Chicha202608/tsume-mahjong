@@ -20,6 +20,32 @@ describe('future tenpai feasibility', () => {
     expect(couldBuildTenpai(hand)).toBe(true);
   });
 
+  it('recognizes tanki, shanpon, kanchan and kokushi patterns', () => {
+    const melds = [
+      tile('m1', 'man', 1), tile('m2', 'man', 2), tile('m3', 'man', 3),
+      tile('p1', 'pin', 1), tile('p2', 'pin', 2), tile('p3', 'pin', 3),
+      tile('s1', 'sou', 1), tile('s2', 'sou', 2), tile('s3', 'sou', 3),
+    ];
+    expect(couldBuildTenpai([...melds,
+      tile('east1', 'wind', 1), tile('east2', 'wind', 1),
+      tile('s7', 'sou', 7), tile('s9', 'sou', 9)])).toBe(true);
+    expect(couldBuildTenpai([...melds,
+      tile('east1', 'wind', 1), tile('east2', 'wind', 1),
+      tile('south1', 'wind', 2), tile('south2', 'wind', 2)])).toBe(true);
+    const fourMelds = [...melds,
+      tile('m4', 'man', 4), tile('m5', 'man', 5), tile('m6', 'man', 6)];
+    expect(couldBuildTenpai([...fourMelds, tile('e', 'wind', 1)])).toBe(true);
+    const orphans = [
+      tile('m1o', 'man', 1), tile('m9o', 'man', 9),
+      tile('p1o', 'pin', 1), tile('p9o', 'pin', 9),
+      tile('s1o', 'sou', 1), tile('s9o', 'sou', 9),
+      tile('e', 'wind', 1), tile('s', 'wind', 2), tile('w', 'wind', 3),
+      tile('n', 'wind', 4), tile('white', 'dragon', 1),
+      tile('green', 'dragon', 2), tile('red', 'dragon', 3),
+    ];
+    expect(couldBuildTenpai(orphans)).toBe(true);
+  });
+
   it('rejects fewer than 13 usable player tiles even if CPU has the missing ones', () => {
     const hand = Array.from({ length: 12 }, (_, index) => tile('m' + index, 'man', 1));
     expect(couldBuildTenpai(hand)).toBe(false);
