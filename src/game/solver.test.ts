@@ -14,7 +14,7 @@ describe('searchBestWin', () => {
     const state = {
       ...makeInitialStateBase([], [], [tile('draw', 'man', 1)], []),
       playerFuro: [{
-        type: 'pon' as const,
+        type: 'pung' as const,
         tiles: [called, tile('pon2', 'man', 3), tile('pon3', 'man', 3)],
         calledTile: called,
       }],
