@@ -47,6 +47,27 @@ describe('searchBestWin', () => {
     expect(winningAction).toMatchObject({ type: 'tsumo', riichi: false });
   });
 
+  it('considers last-moment riichi when a prior discard opportunity exists', () => {
+    const hand = [
+      tile('m1', 'man', 1), tile('m2', 'man', 2), tile('m3', 'man', 3),
+      tile('p1', 'pin', 1), tile('p2', 'pin', 2), tile('p3', 'pin', 3),
+      tile('s1', 'sou', 1), tile('s2', 'sou', 2), tile('s3', 'sou', 3),
+      tile('s7', 'sou', 7), tile('s8', 'sou', 8),
+      tile('w1', 'wind', 1), tile('w2', 'wind', 1),
+    ];
+    const winningTile = tile('s6', 'sou', 6);
+    const state = {
+      ...makeInitialStateBase(hand, [], [winningTile], []),
+      turnCount: 1,
+    };
+
+    const result = searchBestWin(state);
+
+    expect(result.complete).toBe(true);
+    const winningAction = result.line[result.line.length - 1];
+    expect(winningAction).toMatchObject({ type: 'tsumo', riichi: true });
+  });
+
   it('does not claim an optimum when the safety state limit prevents search', () => {
     const state = makeInitialStateBase([], [], [tile('draw', 'man', 1)], []);
 
