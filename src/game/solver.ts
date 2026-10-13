@@ -180,21 +180,90 @@ function couldBuildWinningHand(pool: Tile[]): boolean {
  */
 export function couldBuildTenpai(pool: Tile[]): boolean {
   if (pool.length < 13) return false;
-  // An already completable 14-tile pool necessarily contains a tenpai subset.
-  if (couldBuildWinningHand(pool)) return true;
-  const prototype = pool[0];
-  const suits: Array<{ suit: Tile['suit']; max: number }> = [
-    { suit: 'man', max: 9 }, { suit: 'pin', max: 9 },
-    { suit: 'sou', max: 9 }, { suit: 'wind', max: 4 },
-    { suit: 'dragon', max: 3 },
-  ];
-  for (const { suit, max } of suits) {
-    for (let value = 1; value <= max; value++) {
-      const hypothetical: Tile = { ...prototype, suit, value, isRed: false };
-      if (couldBuildWinningHand([...pool, hypothetical])) return true;
-    }
+  const counts = Array<number>(34).fill(0);
+  for (const tile of pool) {
+    const group = tile.suit === 'man' ? 0 : tile.suit === 'pin' ? 9
+      : tile.suit === 'sou' ? 18 : tile.suit === 'wind' ? 27 : 31;
+    counts[group + tile.value - 1]++;
   }
-  return false;
+
+  // Chiitoitsu: six distinct pairs plus a seventh singleton.
+  const pairs = counts.filter(n => n >= 2).length;
+  if (pairs >= 6 && counts.filter(n => n > 0).length >= 7) return true;
+
+  // Kokushi: twelve distinct terminals/honors plus one duplicate, or all 13.
+  const orphans = [0, 8, 9, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33];
+  const present = orphans.filter(i => counts[i] > 0);
+  if (present.length === 13 ||
+      (present.length === 12 && present.some(i => counts[i] >= 2))) return true;
+
+  // Normal tenpai: three complete melds, one pair, one incomplete meld;
+  // alternatively four complete melds and a singleton pair wait.
+  // Since the pool may contain extra future draws, consume only the tiles
+  // necessary for each pattern, leaving all unrelated tiles unused.
+  const memo = new Map<string, boolean>();
+  const search = (melds: number, pairsNeeded: number, waits: number): boolean => {
+    if (melds === 0 && pairsNeeded === 0 && waits === 0) return true;
+    const key = melds + ':' + pairsNeeded + ':' + waits + ':' + counts.join(',');
+    const hit = memo.get(key);
+    if (hit !== undefined) return hit;
+
+    for (let i = 0; i < 34; i++) {
+      if (pairsNeeded && counts[i] >= 2) {
+        counts[i] -= 2;
+        const ok = search(melds, 0, waits);
+        counts[i] += 2;
+        if (ok) { memo.set(key, true); return true; }
+      }
+      if (waits && counts[i] >= 1) {
+        // Tanki is a one-tile incomplete pair.
+        if (!pairsNeeded && counts[i] >= 1 && melds === 4) {
+          counts[i]--;
+          const ok = search(melds, 0, 0);
+          counts[i]++;
+          if (ok) { memo.set(key, true); return true; }
+        }
+        // Ryanmen, kanchan and penchan: any two ranks that can
+        // participate in a run of three; also a shanpon pair.
+        if (counts[i] >= 2) {
+          counts[i] -= 2;
+          const ok = search(melds, pairsNeeded, 0);
+          counts[i] += 2;
+          if (ok) { memo.set(key, true); return true; }
+        }
+        if (i < 27) {
+          for (let delta = 1; delta <= 2; delta++) {
+            const j = i + delta;
+            if (j >= 27 || Math.floor(j / 9) !== Math.floor(i / 9) || !counts[j]) continue;
+            // The missing tile must make a legal 3-long sequence.
+            if (delta === 2 || i % 9 <= 6 || i % 9 >= 1) {
+              counts[i]--; counts[j]--;
+              const ok = search(melds, pairsNeeded, 0);
+              counts[i]++; counts[j]++;
+              if (ok) { memo.set(key, true); return true; }
+            }
+          }
+        }
+      }
+      if (melds > 0) {
+        if (counts[i] >= 3) {
+          counts[i] -= 3;
+          const ok = search(melds - 1, pairsNeeded, waits);
+          counts[i] += 3;
+          if (ok) { memo.set(key, true); return true; }
+        }
+        if (i < 27 && i % 9 <= 6 && counts[i] && counts[i+1] && counts[i+2]) {
+          counts[i]--; counts[i+1]--; counts[i+2]--;
+          const ok = search(melds - 1, pairsNeeded, waits);
+          counts[i]++; counts[i+1]++; counts[i+2]++;
+          if (ok) { memo.set(key, true); return true; }
+        }
+      }
+    }
+    memo.set(key, false);
+    return false;
+  };
+  return search(3, 1, 1) || search(4, 0, 1);
 }
 
 function optionDescriptor(option: NakiOption): OptionDescriptor {
