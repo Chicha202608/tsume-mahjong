@@ -41,7 +41,14 @@ describe('36-wall candidate benchmark (non-DP)',()=>{
      take('man',4),take('man',5),take('man',6),
      take('pin',1),take('pin',2),take('pin',3),
      take('sou',7),take('sou',9),take('wind',3),take('wind',3)];
-   // Shuffle the remaining deck reproducibly; createDeck() itself is ordered.\n   let seed=20261014;\n   const rng=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);\n   for(let i=deck.length-1;i>0;i--){\n     const j=Math.floor(rng()*(i+1));\n     [deck[i],deck[j]]=[deck[j],deck[i]];\n   }\n   const cpu=deck.splice(0,13);
+   // Shuffle the remaining deck reproducibly; createDeck() itself is ordered.
+   let seed=20261014;
+   const rng=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
+   for(let i=deck.length-1;i>0;i--){
+     const j=Math.floor(rng()*(i+1));
+     [deck[i],deck[j]]=[deck[j],deck[i]];
+   }
+   const cpu=deck.splice(0,13);
    const dead=deck.splice(0,14);
    const wall=deck.splice(0,36);
    const state={...makeInitialStateBase(hand,cpu,wall,dead),
@@ -51,8 +58,12 @@ describe('36-wall candidate benchmark (non-DP)',()=>{
    const generatedMs=Date.now()-start;
    const evaluations=evaluateCandidateWins(state);
    const totalMs=Date.now()-start;
-   const singleWait=candidates.filter(c=>c.waits.length===1).length;\n   const immediatelyAvailable=candidates.filter(c=>c.earliestPlayerDraw===0).length;\n   const withWinOpportunity=new Set(evaluations.map(e=>e.opportunity.candidate.counts.join(','))).size;\n   console.info('[candidate full-wall benchmark]',{
-     count:candidates.length,singleWait,immediatelyAvailable,withWinOpportunity,\n     opportunities:evaluations.length,generatedMs,totalMs,
+   const singleWait=candidates.filter(c=>c.waits.length===1).length;
+   const immediatelyAvailable=candidates.filter(c=>c.earliestPlayerDraw===0).length;
+   const withWinOpportunity=new Set(evaluations.map(e=>e.opportunity.candidate.counts.join(','))).size;
+   console.info('[candidate full-wall benchmark]',{
+     count:candidates.length,singleWait,immediatelyAvailable,withWinOpportunity,
+     opportunities:evaluations.length,generatedMs,totalMs,
      bestScore:evaluations.find(r=>r.score!==null)?.score??null,
    });
    expect(candidates.length).toBeGreaterThan(0);
