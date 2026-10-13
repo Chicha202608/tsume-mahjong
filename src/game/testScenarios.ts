@@ -43,7 +43,7 @@ export function makeRiichiAnkanTestState(): State {
 export function makeOpenIttsuRonTestState(): State {
   const deck = createDeck();
   const take = (suit: Tile['suit'], value: number): Tile => {
-    const index = deck.findIndex(tile => tile.suit === suit && tile.value === value);
+    const index = deck.findIndex(tile => tile.suit === suit && tile.value === value && !tile.isRed);
     if (index < 0) throw new Error(`Missing test tile: ${suit} ${value}`);
     return deck.splice(index, 1)[0];
   };
