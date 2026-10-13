@@ -207,7 +207,7 @@ describe('searchBestWin', () => {
     const state = makeInitialStateBase(hand, [], [tile('west', 'wind', 4)], []);
     const result = searchBestWin(state);
     expect(result.complete).toBe(true);
-    expect(result.line.every((action) => action.type !== 'kan')).toBe(true);
+    expect(result.line.every((action) => action.type === 'draw' || action.type === 'cpu-turn' || action.type === 'discard' || action.type === 'pass-tsumo' || action.type === 'pass-naki' || action.type === 'tsumo' || action.type === 'ron')).toBe(true);
   });
 
   it('records bounded-search metrics for a full 36-tile wall', () => {
