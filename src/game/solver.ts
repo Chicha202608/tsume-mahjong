@@ -474,7 +474,7 @@ export function searchBestWin(
     const considerWin = (winState: State | null, type: 'tsumo' | 'ron') => {
       if (!complete || !winState) return;
       const scored = scoreWinningState(winState, !lastDrawWasKan, scoreCache);
-      if (scored && (bestRank < 2 || (bestRank === 2 && (bestScore === null || scored.score > bestScore)))) {
+      if (scored) {
         bestRank = 2;
         bestScore = scored.score;
         const action: WinAction = type === 'ron'
