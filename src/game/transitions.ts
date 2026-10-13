@@ -33,6 +33,8 @@ export function applyPlayerDraw(cur: State): State | null {
 
 export function applyPlayerDiscard(cur: State, tile: Tile): State | null {
   if (cur.phase !== 'playerDiscard' || !cur.playerDrawnTile) return null;
+  // Riichi players must tsumogiri; a paused kan decision must not unlock hand discards.
+  if (cur.isRiichi && tile.id !== cur.playerDrawnTile.id) return null;
   let newHand: Tile[];
   if (tile.id === cur.playerDrawnTile.id) {
     newHand = cur.playerHand;
