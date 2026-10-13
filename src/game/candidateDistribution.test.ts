@@ -49,7 +49,7 @@ describe('fully shuffled 36-tile wall sampling', () => {
       const distinct = (xs: Array<{opportunity:{candidate:{counts:number[]}}}>) =>
         new Set(xs.map(v => v.opportunity.candidate.counts.join(','))).size;
       shapeCounts.push(candidates.length);
-      opportunityShapeCounts.push(distinct(opportunities));
+      opportunityShapeCounts.push(new Set(opportunities.map(v => v.candidate.counts.join(','))).size);
       positiveShapeCounts.push(distinct(legal));
       legalWinCounts.push(legal.length);
       runTimes.push(Date.now() - began);
