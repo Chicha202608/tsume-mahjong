@@ -313,10 +313,7 @@ function scoreWinningState(
     !state.isRiichi &&
     state.turnCount > 0 &&
     isMenzen(state.playerFuro) &&
-    checkTenpai(state.playerHand, state.playerFuro.length) &&
-    // On a ron, the CPU discard consumes one wall tile. A riichi discard
-    // must leave a subsequent player draw, rather than just a CPU discard.
-    (state.winType !== 'ron' || state.wall.length >= 2)
+    checkTenpai(state.playerHand, state.playerFuro.length)
   ) {
     scoreVariants.push({
       state: { ...state, isRiichi: true, isIppatsu: true },
@@ -443,7 +440,7 @@ export function searchBestWin(
     statesVisited++;
 
     if (state.phase === 'win') {
-      const scored = scoreWinningState(state, !lastDrawWasKan, scoreCache);
+      const scored = scoreWinningState(state, !lastDrawWasKan && (state.winType !== 'ron' || state.wall.length > 0), scoreCache);
       const terminal: SearchNode = scored
         ? { rank: 2, score: scored.score }
         : { rank: 0, score: null };
@@ -476,7 +473,7 @@ export function searchBestWin(
 
     const considerWin = (winState: State | null, type: 'tsumo' | 'ron') => {
       if (!complete || !winState) return;
-      const scored = scoreWinningState(winState, !lastDrawWasKan, scoreCache);
+      const scored = scoreWinningState(winState, !lastDrawWasKan && (type !== 'ron' || state.wall.length > 0), scoreCache);
       if (scored && (bestRank < 2 || (bestRank === 2 && (bestScore === null || scored.score > bestScore)))) {
         bestRank = 2;
         bestScore = scored.score;
@@ -526,7 +523,9 @@ export function searchBestWin(
             playerDrawnTile: null,
             lastCpuDiscard: cpuDiscard,
           };
-          const scored = scoreWinningState(hypotheticalWin, true, scoreCache);
+          // This is BEFORE the CPU discards: one tile is consumed by ron,
+          // so there must be another wall tile for our next draw.
+          const scored = scoreWinningState(hypotheticalWin, state.wall.length >= 2, scoreCache);
           if (scored) {
             bestRank = 2;
             bestScore = scored.score;
