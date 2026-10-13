@@ -69,3 +69,9 @@ export function makeOpenIttsuRonTestState(): State {
     isRiichi: false,
   };
 }
+
+/** The same open ittsu tenpai, with 4p as the player's next self-draw. */
+export function makeOpenIttsuTsumoTestState(): State {
+  const state = makeOpenIttsuRonTestState();
+  return { ...state, phase: 'playerDraw' };
+}
