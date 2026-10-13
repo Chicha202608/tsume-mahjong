@@ -210,6 +210,26 @@ describe('searchBestWin', () => {
     expect(result.line.every((action) => action.type === 'draw' || action.type === 'cpu-turn' || action.type === 'discard' || action.type === 'pass-tsumo' || action.type === 'pass-naki' || action.type === 'tsumo' || action.type === 'ron')).toBe(true);
   });
 
+  it('preserves a final CPU-discard ron when the wall is exhausted', () => {
+    const hand = [
+      tile('m1', 'man', 1), tile('m2', 'man', 2), tile('m3', 'man', 3),
+      tile('m4', 'man', 4), tile('m5', 'man', 5), tile('m6', 'man', 6),
+      tile('p1', 'pin', 1), tile('p2', 'pin', 2), tile('p3', 'pin', 3),
+      tile('s7', 'sou', 7), tile('s9', 'sou', 9),
+      tile('w3a', 'wind', 3), tile('w3b', 'wind', 3),
+    ];
+    const state = {
+      ...makeInitialStateBase(hand, [], [tile('s8', 'sou', 8)], []),
+      phase: 'cpuTurn' as const,
+      roundWind: 'east' as const,
+      playerWind: 'south' as const,
+    };
+    // No riichi possible, but a future discard can still be a winning tile
+    // when the final wall tile belongs to the CPU.
+    const result = searchBestWin(state);
+    expect(result.complete).toBe(true);
+  });
+
   it('records bounded-search metrics for a full 36-tile wall', () => {
     const deck = createDeck();
     const take = (suit: Tile['suit'], value: number): Tile => {
