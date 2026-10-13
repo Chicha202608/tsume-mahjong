@@ -116,7 +116,7 @@ function uniqueTiles(tiles: Tile[]): Tile[] {
 /**
  * Optimistic reverse feasibility test: could ANY winning 14-tile hand be
  * assembled from the supplied optimistic tile pool?
- * The caller allows only the player's future draws plus at most one CPU discard.
+ * The caller checks whether the player's pool could form tenpai with a hypothetical winning tile.
  * False therefore proves that no winning continuation exists.
  * Also admits chiitoitsu and kokushi, not just four melds plus a pair.
  */
@@ -168,6 +168,31 @@ function couldBuildWinningHand(pool: Tile[]): boolean {
     const possible = meldsPossible(4);
     counts[i] += 2;
     if (possible) return true;
+  }
+  return false;
+}
+
+/**
+ * Optimistic tenpai feasibility: the final 13 tiles must be selectable from
+ * the player's tiles, with ONE arbitrary hypothetical winning tile completing
+ * a legal hand. This covers normal hands, chiitoitsu and kokushi.
+ * The arbitrary tile is not drawn from the wall: tenpai need not be agari.
+ */
+export function couldBuildTenpai(pool: Tile[]): boolean {
+  if (pool.length < 13) return false;
+  // An already completable 14-tile pool necessarily contains a tenpai subset.
+  if (couldBuildWinningHand(pool)) return true;
+  const prototype = pool[0];
+  const suits: Array<{ suit: Tile['suit']; max: number }> = [
+    { suit: 'man', max: 9 }, { suit: 'pin', max: 9 },
+    { suit: 'sou', max: 9 }, { suit: 'wind', max: 4 },
+    { suit: 'dragon', max: 3 },
+  ];
+  for (const { suit, max } of suits) {
+    for (let value = 1; value <= max; value++) {
+      const hypothetical: Tile = { ...prototype, suit, value, isRed: false };
+      if (couldBuildWinningHand([...pool, hypothetical])) return true;
+    }
   }
   return false;
 }
@@ -449,46 +474,25 @@ export function searchBestWin(
   const scoreCache = new Map<string, number | null>();
   const tenpaiCache = new Map<string, boolean>();
   const completionCache = new Map<string, boolean>();
-  const futureCompletionPossible = (state: State): boolean => {
-    // No kan in this milestone: future wall draws alternate CPU/player.
-    // CPU discards are only eligible as the ONE winning ron tile.
-    // We deliberately ignore chronology and furiten here, so this is an
-    // optimistic upper bound; a false result safely rules out any win.
+  const futureTenpaiPossible = (state: State): boolean => {
+    // No kan in this milestone. CPU draws cannot be used to build tenpai,
+    // though they can still be the final ron tile AFTER tenpai is achieved.
+    // Deliberately ignore draw chronology, allowing extra false positives.
     const key = state.phase + '|' + state.playerHand.map(furitenTileKey).sort().join(',') + '|' +
       (state.playerDrawnTile ? furitenTileKey(state.playerDrawnTile) : '') + '|' +
-      state.wallDrawnCount + ':' + state.wall.length + '|' +
-      (state.phase === 'naki' && state.lastCpuDiscard ? furitenTileKey(state.lastCpuDiscard) : '');
+      state.wallDrawnCount + ':' + state.wall.length;
     const cached = completionCache.get(key);
     if (cached !== undefined) return cached;
-
     const playerPool = [
       ...state.playerHand,
       ...(state.playerDrawnTile ? [state.playerDrawnTile] : []),
     ];
-    const cpuTiles: Tile[] = [];
-    if (state.phase === 'naki' && state.lastCpuDiscard) cpuTiles.push(state.lastCpuDiscard);
     const cpuFirst = state.phase === 'playerDiscard' || state.phase === 'cpuTurn' ||
       state.phase === 'playerNakiDiscard';
     for (let i = 0; i < state.wall.length; i++) {
-      const cpuDraw = (i % 2 === 0) === cpuFirst;
-      if (cpuDraw) cpuTiles.push(state.wall[i]);
-      else playerPool.push(state.wall[i]);
+      if ((i % 2 === 0) !== cpuFirst) playerPool.push(state.wall[i]);
     }
-
-    // Tsumo consumes no CPU tile; ron consumes precisely one.
-    let possible = couldBuildWinningHand(playerPool);
-    if (!possible) {
-      const seen = new Set<string>();
-      for (const tile of cpuTiles) {
-        const face = furitenTileKey(tile);
-        if (seen.has(face)) continue;
-        seen.add(face);
-        if (couldBuildWinningHand([...playerPool, tile])) {
-          possible = true;
-          break;
-        }
-      }
-    }
+    const possible = couldBuildTenpai(playerPool);
     completionCache.set(key, possible);
     return possible;
   };
@@ -545,10 +549,10 @@ export function searchBestWin(
 
     const consider = (action: StepAction, nextState: State | null, nextDrawWasKan = false) => {
       if (!complete || !nextState) return;
-      // Once a winning line exists, a branch proven unable to make ANY
-      // complete hand cannot improve it. Do not prune tenpai fallback.
-      if (bestRank === 2 && nextState.wall.length <= 12 &&
-          !futureCompletionPossible(nextState)) {
+      // A branch that cannot even reach tenpai cannot improve an existing
+      // tenpai-or-better result. A noten fallback remains unpruned.
+      if (bestRank >= 1 && nextState.wall.length <= 12 &&
+          !futureTenpaiPossible(nextState)) {
         prunedBranches++;
         return;
       }
