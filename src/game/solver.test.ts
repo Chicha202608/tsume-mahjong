@@ -90,7 +90,7 @@ describe('searchBestWin', () => {
     expect(result.complete).toBe(true);
     expect(result.line.map((action) => action.type)).toEqual(['cpu-turn', 'ron']);
     const winningAction = result.line[result.line.length - 1];
-    expect(winningAction).toMatchObject({ type: 'ron', tile: winningTile, riichi: true });
+    expect(winningAction).toMatchObject({ type: 'ron', tile: winningTile, riichi: true, lastMomentRiichi: true });
     expect(result.bestScore).toBeGreaterThan(0);
   });
 
