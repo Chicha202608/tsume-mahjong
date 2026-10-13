@@ -1,12 +1,33 @@
 import { describe, expect, it } from 'vitest';
 import { findAnkanOptions, findLegalAnkanOptions } from '@/gameLogic';
 import { makeInitialStateBase } from '@/game/gameState';
-import { applyDeclareKan } from '@/game/transitions';
+import { applyDeclareKan, applyPlayerDraw, applyPlayerDiscard } from '@/game/transitions';
+import { makeRiichiAnkanTestState } from '@/game/testScenarios';
 import type { Tile } from '@/types';
 
 let counter = 0;
 const t = (suit: Tile['suit'], value: number): Tile => ({
   id: String(++counter), suit, value,
+});
+
+describe('riichi ankan debug setup', () => {
+  it('draws the fourth 1m and allows either a legal ankan or tsumogiri', () => {
+    const initial = makeRiichiAnkanTestState();
+    expect(initial.isRiichi).toBe(true);
+    expect(initial.phase).toBe('playerDraw');
+    expect(initial.playerHand.filter(tile => tile.suit === 'man' && tile.value === 1)).toHaveLength(3);
+
+    const afterDraw = applyPlayerDraw(initial);
+    expect(afterDraw?.phase).toBe('playerDiscard');
+    expect(afterDraw?.playerDrawnTile).toMatchObject({ suit: 'man', value: 1 });
+    expect(afterDraw?.tsumoAvailable).toBe(false);
+    if (!afterDraw || !afterDraw.playerDrawnTile) throw new Error('Test scenario could not draw');
+
+    const options = findLegalAnkanOptions(afterDraw.playerHand, afterDraw.playerDrawnTile, afterDraw.playerFuro, afterDraw.isRiichi);
+    expect(options).toHaveLength(1);
+    expect(applyDeclareKan(afterDraw, options[0])?.playerFuro[0]?.type).toBe('ankan');
+    expect(applyPlayerDiscard(afterDraw, afterDraw.playerDrawnTile)?.playerDiscards).toHaveLength(1);
+  });
 });
 
 describe('riichi concealed-kan availability', () => {
