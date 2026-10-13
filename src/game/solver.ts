@@ -39,6 +39,8 @@ export interface SolverResult {
   /** False when the input state is outside this closed-hand solver's scope. */
   supported: boolean;
   unsupportedReason?: 'open-hand';
+  /** Final result: wins outrank tenpai, which outranks noten. Null means unsupported or incomplete. */
+  outcome: 'win' | 'tenpai' | 'noten' | null;
   /** Best score for the player. Null means no winning line was found. */
   bestScore: number | null;
   /** One maximum-score line. Other equally scoring lines are not enumerated yet. */
@@ -89,6 +91,8 @@ type SearchChoice =
   | { kind: 'cpu-turn-ron'; win: Extract<WinDescriptor, { type: 'ron' }> };
 
 interface SearchNode {
+  /** 2 = win, 1 = tenpai at exhaustion, 0 = noten/no valid win. */
+  rank: 0 | 1 | 2;
   score: number | null;
   /** Semantic action descriptor; contains no physical tile IDs. */
   choice?: SearchChoice;
@@ -353,6 +357,7 @@ export function searchBestWin(
     return {
       supported: false,
       unsupportedReason: 'open-hand',
+      outcome: null,
       bestScore: null,
       line: [],
       complete: false,
@@ -372,7 +377,7 @@ export function searchBestWin(
     statesVisited >= maxStates || Date.now() - startedAt >= maxDurationMs;
 
   const search = (state: State, lastDrawWasKan = false): SearchNode => {
-    if (!complete) return { score: null };
+    if (!complete) return { rank: 0, score: null };
 
     const key = memoKey(state, lastDrawWasKan);
     const cached = memo.get(key);
@@ -389,23 +394,31 @@ export function searchBestWin(
 
     if (state.phase === 'win') {
       const scored = scoreWinningState(state, !lastDrawWasKan);
-      const terminal: SearchNode = { score: scored?.score ?? null };
+      const terminal: SearchNode = scored
+        ? { rank: 2, score: scored.score }
+        : { rank: 0, score: null };
       memo.set(key, terminal);
       return terminal;
     }
     if (state.phase === 'exhausted') {
-      const terminal: SearchNode = { score: null };
+      const tenpai = checkTenpai(state.playerHand, state.playerFuro.length);
+      const terminal: SearchNode = { rank: tenpai ? 1 : 0, score: null };
       memo.set(key, terminal);
       return terminal;
     }
 
+    let bestRank: 0 | 1 | 2 = 0;
     let bestScore: number | null = null;
     let bestChoice: SearchChoice | undefined;
 
     const consider = (action: StepAction, nextState: State | null, nextDrawWasKan = false) => {
       if (!complete || !nextState) return;
       const child = search(nextState, nextDrawWasKan);
-      if (child.score !== null && (bestScore === null || child.score > bestScore)) {
+      const isBetter = child.rank > bestRank ||
+        (child.rank === 2 && bestRank === 2 && child.score !== null &&
+          (bestScore === null || child.score > bestScore));
+      if (isBetter) {
+        bestRank = child.rank;
         bestScore = child.score;
         bestChoice = { kind: 'step', action: describeStep(action) };
       }
@@ -414,7 +427,8 @@ export function searchBestWin(
     const considerWin = (winState: State | null, type: 'tsumo' | 'ron') => {
       if (!complete || !winState) return;
       const scored = scoreWinningState(winState, !lastDrawWasKan);
-      if (scored && (bestScore === null || scored.score > bestScore)) {
+      if (scored && (bestRank < 2 || (bestRank === 2 && (bestScore === null || scored.score > bestScore)))) {
+        bestRank = 2;
         bestScore = scored.score;
         const action: WinAction = type === 'ron'
           ? {
@@ -463,7 +477,8 @@ export function searchBestWin(
             lastCpuDiscard: cpuDiscard,
           };
           const scored = scoreWinningState(hypotheticalWin);
-          if (scored && (bestScore === null || scored.score > bestScore)) {
+          if (scored && (bestRank < 2 || (bestRank === 2 && (bestScore === null || scored.score > bestScore)))) {
+            bestRank = 2;
             bestScore = scored.score;
             bestChoice = {
               kind: 'cpu-turn-ron',
@@ -538,7 +553,7 @@ export function searchBestWin(
         break;
     }
 
-    const result: SearchNode = { score: bestScore, choice: bestChoice };
+    const result: SearchNode = { rank: bestRank, score: bestScore, choice: bestChoice };
     if (complete) memo.set(key, result);
     return result;
   };
@@ -609,7 +624,8 @@ export function searchBestWin(
   const elapsedMs = Date.now() - startedAt;
   return {
     supported: true,
-    bestScore: complete ? root.score : null,
+    outcome: complete ? (root.rank === 2 ? 'win' : root.rank === 1 ? 'tenpai' : 'noten') : null,
+    bestScore: complete && root.rank === 2 ? root.score : null,
     line: complete ? line : [],
     complete,
     stats: { statesVisited, cacheHits, elapsedMs },
