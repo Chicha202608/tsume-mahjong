@@ -103,6 +103,10 @@ function scoreWinningState(state: State, allowLastMomentRiichi = true): { score:
   if (
     allowLastMomentRiichi &&
     !state.isRiichi &&
+    // turnCount is incremented by the player's discard. At the initial
+    // deal there has been no discard opportunity, so riichi cannot be added
+    // retroactively to a win on the very first draw.
+    state.turnCount > 0 &&
     isMenzen(state.playerFuro) &&
     checkTenpai(state.playerHand, state.playerFuro.length)
   ) {
