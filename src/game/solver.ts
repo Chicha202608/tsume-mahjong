@@ -365,8 +365,9 @@ export function searchBestWin(
     winningAction.riichi
   ) {
     for (let i = line.length - 2; i >= 0; i--) {
-      if (line[i].type === 'discard') {
-        line[i] = { ...line[i], riichi: true };
+      const action = line[i];
+      if (action.type === 'discard') {
+        line[i] = { ...action, riichi: true };
         break;
       }
     }
