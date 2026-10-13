@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { enumerateTenpaiCandidates } from '@/game/tenpaiCandidates';
+import { enumerateTenpaiCandidates, findCandidateWinOpportunities } from '@/game/tenpaiCandidates';
 import { makeInitialStateBase } from '@/game/gameState';
 import type { Tile } from '@/types';
 
@@ -15,6 +15,22 @@ describe('enumerateTenpaiCandidates', () => {
     ];
     const result = enumerateTenpaiCandidates(makeInitialStateBase(hand,[],[],[]));
     expect(result.some(x => x.earliestPlayerDraw === 0 && x.waits.includes(25))).toBe(true);
+  });
+  it('finds a win after tenpai but not before required player draws', () => {
+    const hand = [
+      tile('man',1,'m1'),tile('man',2,'m2'),tile('man',3,'m3'),
+      tile('pin',1,'p1'),tile('pin',2,'p2'),tile('pin',3,'p3'),
+      tile('sou',1,'s1'),tile('sou',2,'s2'),tile('sou',3,'s3'),
+      tile('sou',7,'s7'),tile('dragon',1,'d1'),
+      tile('wind',1,'e1'),tile('wind',1,'e2'),
+    ];
+    const state = makeInitialStateBase(hand,[],[
+      tile('sou',9,'drawNeeded'),tile('sou',8,'cpuWin'),
+      tile('pin',9,'nextOwnDraw'),tile('sou',8,'laterCpuWin'),
+    ],[]);
+    const candidates = enumerateTenpaiCandidates(state);
+    const opportunities = findCandidateWinOpportunities(state,candidates);
+    expect(opportunities.some(o => o.wallIndex === 1 && o.type === 'ron')).toBe(true);
   });
   it('requires the missing tile to be on the player draw positions', () => {
     const hand = [
