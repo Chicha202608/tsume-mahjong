@@ -149,7 +149,7 @@ function stateKey(state: State): string {
     })),
     turnCount: state.turnCount,
     lastCpuDiscard: state.lastCpuDiscard ? tileKey(state.lastCpuDiscard) : null,
-    nakiOptions: state.nakiOptions.map(optionKey).sort(),
+    // nakiOptions are derived from the hand, current discard, and riichi state.
     ronAvailable: state.ronAvailable,
     winType: state.winType,
     doraCount: state.doraCount,
