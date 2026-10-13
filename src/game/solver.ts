@@ -299,6 +299,7 @@ function applyStep(state: State, action: StepAction): State | null {
 function scoreWinningState(
   state: State,
   allowLastMomentRiichi = true,
+  scoreCache?: Map<string, number | null>,
 ): { score: number; riichi: boolean; lastMomentRiichi: boolean } | null {
   const scoreVariants: Array<{ state: State; riichi: boolean; lastMomentRiichi: boolean }> = [
     { state, riichi: state.isRiichi, lastMomentRiichi: false },
@@ -324,9 +325,45 @@ function scoreWinningState(
   let best: { score: number; riichi: boolean; lastMomentRiichi: boolean } | null = null;
   for (const variant of scoreVariants) {
     try {
+      // scoreAdapter.buildHandInput consumes only these fields. Ignore river,
+      // physical tile IDs and wall position so equivalent winning hands can
+      // share the costly riichi-score analysis across different search paths.
+      const scoreKey = JSON.stringify({
+        hand: variant.state.playerHand.map(tileKey).sort(),
+        furo: variant.state.playerFuro.map((meld) => ({
+          type: meld.type,
+          tiles: meld.tiles.map(tileKey).sort(),
+          called: tileKey(meld.calledTile),
+        })),
+        winType: variant.state.winType,
+        winTile: variant.state.winTile ? tileKey(variant.state.winTile) : null,
+        wind: [variant.state.roundWind, variant.state.playerWind],
+        indicators: variant.state.wanpai.slice(4, 4 + variant.state.doraCount).map(furitenTileKey),
+        ura: variant.state.isRiichi
+          ? variant.state.wanpai.slice(9, 9 + variant.state.doraCount).map(furitenTileKey)
+          : [],
+        riichi: variant.state.isRiichi,
+        ippatsu: variant.state.isIppatsu,
+      });
+      const cached = scoreCache?.get(scoreKey);
+      if (scoreCache?.has(scoreKey)) {
+        if (cached !== null && cached !== undefined &&
+            (!best || cached > best.score)) {
+          best = {
+            score: cached,
+            riichi: variant.riichi,
+            lastMomentRiichi: variant.lastMomentRiichi,
+          };
+        }
+        continue;
+      }
       const analysis = scoreHand(variant.state);
-      if (!analysis?.valid || analysis.handInterpretations.length === 0) continue;
+      if (!analysis?.valid || analysis.handInterpretations.length === 0) {
+        scoreCache?.set(scoreKey, null);
+        continue;
+      }
       const score = Math.max(...analysis.handInterpretations.map((hand) => hand.totalWinnings));
+      scoreCache?.set(scoreKey, Number.isFinite(score) ? score : null);
       if (Number.isFinite(score) && (!best || score > best.score)) {
         best = {
           score,
@@ -369,6 +406,16 @@ export function searchBestWin(
   const maxDurationMs = options.maxDurationMs ?? 3_000;
   const startedAt = Date.now();
   const memo = new Map<string, SearchNode>();
+  const scoreCache = new Map<string, number | null>();
+  const tenpaiCache = new Map<string, boolean>();
+  const isTenpai = (state: State): boolean => {
+    const key = state.playerFuro.length + '|' + state.playerHand.map(furitenTileKey).sort().join(',');
+    const cached = tenpaiCache.get(key);
+    if (cached !== undefined) return cached;
+    const value = checkTenpai(state.playerHand, state.playerFuro.length);
+    tenpaiCache.set(key, value);
+    return value;
+  };
   let statesVisited = 0;
   let cacheHits = 0;
   let complete = true;
@@ -393,7 +440,7 @@ export function searchBestWin(
     statesVisited++;
 
     if (state.phase === 'win') {
-      const scored = scoreWinningState(state, !lastDrawWasKan);
+      const scored = scoreWinningState(state, !lastDrawWasKan, scoreCache);
       const terminal: SearchNode = scored
         ? { rank: 2, score: scored.score }
         : { rank: 0, score: null };
@@ -401,7 +448,7 @@ export function searchBestWin(
       return terminal;
     }
     if (state.phase === 'exhausted') {
-      const tenpai = checkTenpai(state.playerHand, state.playerFuro.length);
+      const tenpai = isTenpai(state);
       const terminal: SearchNode = { rank: tenpai ? 1 : 0, score: null };
       memo.set(key, terminal);
       return terminal;
@@ -426,7 +473,7 @@ export function searchBestWin(
 
     const considerWin = (winState: State | null, type: 'tsumo' | 'ron') => {
       if (!complete || !winState) return;
-      const scored = scoreWinningState(winState, !lastDrawWasKan);
+      const scored = scoreWinningState(winState, !lastDrawWasKan, scoreCache);
       if (scored && (bestRank < 2 || (bestRank === 2 && (bestScore === null || scored.score > bestScore)))) {
         bestRank = 2;
         bestScore = scored.score;
@@ -476,7 +523,7 @@ export function searchBestWin(
             playerDrawnTile: null,
             lastCpuDiscard: cpuDiscard,
           };
-          const scored = scoreWinningState(hypotheticalWin);
+          const scored = scoreWinningState(hypotheticalWin, true, scoreCache);
           if (scored && (bestRank < 2 || (bestRank === 2 && (bestScore === null || scored.score > bestScore)))) {
             bestRank = 2;
             bestScore = scored.score;
