@@ -300,6 +300,25 @@ describe('searchBestWin', () => {
     expect(result.complete).toBe(true);
   });
 
+  it('can preserve completed melds when the heuristic is explicitly enabled', () => {
+    const hand = [
+      tile('m1','man',1),tile('m2','man',2),tile('m3','man',3),
+      tile('p1','pin',1),tile('p2','pin',2),tile('p3','pin',3),
+      tile('s1','sou',1),tile('s2','sou',2),tile('s3','sou',3),
+      tile('e1','wind',1),tile('e2','wind',1),
+      tile('s7','sou',7),tile('s9','sou',9),
+    ];
+    const state = makeInitialStateBase(hand, [], [tile('draw','pin',9), tile('cpu','dragon',1)], []);
+    const result = searchBestWin(state, { preserveCompletedMelds: true });
+    expect(result.complete).toBe(true);
+    const firstDiscard = result.line.find(action => action.type === 'discard');
+    expect(firstDiscard).toBeDefined();
+    if (firstDiscard?.type === 'discard') {
+      expect(['man-1','man-2','man-3','pin-1','pin-2','pin-3',
+        'sou-1','sou-2','sou-3']).not.toContain(firstDiscard.tile.suit + '-' + firstDiscard.tile.value);
+    }
+  });
+
   it('records bounded-search metrics for a full 36-tile wall', () => {
     const deck = createDeck();
     const take = (suit: Tile['suit'], value: number): Tile => {
