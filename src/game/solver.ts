@@ -4,6 +4,9 @@ import {
   findKakanOptions,
   isMenzen,
   checkTenpai,
+  canRonConcealed,
+  getWaits,
+  isFuriten,
   type NakiOption,
 } from '@/gameLogic';
 import type { State } from '@/game/gameState';
@@ -30,7 +33,7 @@ export type SolverAction =
   | { type: 'pass-tsumo' }
   | { type: 'pass-naki' }
   | { type: 'tsumo'; riichi: boolean; score: number }
-  | { type: 'ron'; riichi: boolean; score: number };
+  | { type: 'ron'; tile: Tile; riichi: boolean; score: number };
 
 export interface SolverResult {
   /** Best score for the player. Null means no winning line was found. */
@@ -208,7 +211,9 @@ export function searchBestWin(
       const scored = scoreWinningState(winState, !lastDrawWasKan);
       if (scored && (bestScore === null || scored.score > bestScore)) {
         bestScore = scored.score;
-        bestAction = { type, riichi: scored.riichi, score: scored.score };
+        bestAction = type === 'ron'
+          ? { type, tile: winState.winTile!, riichi: scored.riichi, score: scored.score }
+          : { type, riichi: scored.riichi, score: scored.score };
         bestNext = undefined;
         bestTerminal = true;
       }
@@ -221,6 +226,46 @@ export function searchBestWin(
       }
 
       case 'cpuTurn': {
+        // The regular game transition only exposes a ron decision when the
+        // hand already has yaku. For the solver's "riichi immediately before
+        // the final ron" rule, also test a legal tenpai ron that would gain
+        // riichi/ippatsu, even when normal gameplay would not set ronAvailable.
+        const cpuDiscard = state.wall[0];
+        if (
+          cpuDiscard &&
+          !state.isRiichi &&
+          state.turnCount > 0 &&
+          isMenzen(state.playerFuro) &&
+          checkTenpai(state.playerHand, state.playerFuro.length) &&
+          canRonConcealed(state.playerHand, cpuDiscard, state.playerFuro.length) &&
+          !isFuriten(getWaits(state.playerHand, state.playerFuro), state.playerDiscards)
+        ) {
+          const hypotheticalWin: State = {
+            ...state,
+            phase: 'win',
+            winType: 'ron',
+            winTile: cpuDiscard,
+            playerDrawnTile: null,
+            lastCpuDiscard: cpuDiscard,
+          };
+          const scored = scoreWinningState(hypotheticalWin);
+          if (scored && (bestScore === null || scored.score > bestScore)) {
+            bestScore = scored.score;
+            bestAction = { type: 'cpu-turn' };
+            bestNext = {
+              score: scored.score,
+              action: {
+                type: 'ron',
+                tile: cpuDiscard,
+                riichi: scored.riichi,
+                score: scored.score,
+              },
+              terminal: true,
+            };
+            bestTerminal = false;
+          }
+        }
+
         consider({ type: 'cpu-turn' }, applyCpuTurn(state));
         break;
       }
