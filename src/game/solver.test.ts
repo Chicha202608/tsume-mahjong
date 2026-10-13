@@ -20,7 +20,7 @@ describe('future tenpai feasibility', () => {
     expect(couldBuildTenpai(hand)).toBe(true);
   });
 
-  it('recognizes tanki, shanpon, kanchan and kokushi patterns', () => {
+  it('recognizes tanki, shanpon and kanchan but excludes kokushi', () => {
     const melds = [
       tile('m1', 'man', 1), tile('m2', 'man', 2), tile('m3', 'man', 3),
       tile('p1', 'pin', 1), tile('p2', 'pin', 2), tile('p3', 'pin', 3),
@@ -43,7 +43,7 @@ describe('future tenpai feasibility', () => {
       tile('n', 'wind', 4), tile('white', 'dragon', 1),
       tile('green', 'dragon', 2), tile('red', 'dragon', 3),
     ];
-    expect(couldBuildTenpai(orphans)).toBe(true);
+    expect(couldBuildTenpai(orphans)).toBe(false);
   });
 
   it('rejects fewer than 13 usable player tiles even if CPU has the missing ones', () => {
