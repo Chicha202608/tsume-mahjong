@@ -94,6 +94,29 @@ describe('searchBestWin', () => {
     expect(result.bestScore).toBeGreaterThan(0);
   });
 
+  it('marks the discard where last-moment riichi should be declared', () => {
+    const hand = [
+      tile('m1', 'man', 1), tile('m2', 'man', 2), tile('m3', 'man', 3),
+      tile('m4', 'man', 4), tile('m5', 'man', 5), tile('m6', 'man', 6),
+      tile('p1', 'pin', 1), tile('p2', 'pin', 2), tile('p3', 'pin', 3),
+      tile('s7', 'sou', 7), tile('s9', 'sou', 9),
+      tile('w3a', 'wind', 3), tile('w3b', 'wind', 3),
+    ];
+    const drawnTile = tile('p2-draw', 'pin', 2);
+    const winningTile = tile('s8', 'sou', 8);
+    const state = {
+      ...makeInitialStateBase(hand, [], [drawnTile, winningTile], []),
+      roundWind: 'east' as const,
+      playerWind: 'south' as const,
+    };
+
+    const result = searchBestWin(state);
+
+    expect(result.complete).toBe(true);
+    expect(result.line[result.line.length - 1]).toMatchObject({ type: 'ron', riichi: true });
+    expect(result.line.some((action) => action.type === 'discard' && action.riichi === true)).toBe(true);
+  });
+
   it('does not claim an optimum when the safety state limit prevents search', () => {
     const state = makeInitialStateBase([], [], [tile('draw', 'man', 1)], []);
 
