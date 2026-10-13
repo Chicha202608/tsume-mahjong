@@ -195,6 +195,21 @@ describe('searchBestWin', () => {
     expect(result.line.some((action) => action.type === 'discard' && action.riichi === true)).toBe(true);
   });
 
+  it('does not choose concealed kan even when four identical tiles are present', () => {
+    const hand = [
+      tile('m1a', 'man', 1), tile('m1b', 'man', 1),
+      tile('m1c', 'man', 1), tile('m1d', 'man', 1),
+      tile('m2', 'man', 2), tile('m3', 'man', 3),
+      tile('p1', 'pin', 1), tile('p2', 'pin', 2), tile('p3', 'pin', 3),
+      tile('s1', 'sou', 1), tile('s2', 'sou', 2), tile('s3', 'sou', 3),
+      tile('east', 'wind', 1),
+    ];
+    const state = makeInitialStateBase(hand, [], [tile('west', 'wind', 4)], []);
+    const result = searchBestWin(state);
+    expect(result.complete).toBe(true);
+    expect(result.line.every((action) => action.type !== 'kan')).toBe(true);
+  });
+
   it('records bounded-search metrics for a full 36-tile wall', () => {
     const deck = createDeck();
     const take = (suit: Tile['suit'], value: number): Tile => {
