@@ -9,16 +9,6 @@ on:
       - 'tsconfig*.json'
       - 'vite.config.*'
       - '.github/workflows/solver-validation.yml'
-  push:
-    branches:
-      - feat/solver-dp-prototype
-    paths:
-      - 'src/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tsconfig*.json'
-      - 'vite.config.*'
-      - '.github/workflows/solver-validation.yml'
 
 jobs:
   validate:
