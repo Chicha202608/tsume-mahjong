@@ -9,6 +9,7 @@ interface Props {
   playerDrawnTile: Tile | null;
   playerFuro: Furo[];
   phase: Phase;
+  isRiichi: boolean;
   isViewingPast: boolean;
   canTsumo: boolean;
   canRiichi: boolean;
@@ -29,7 +30,7 @@ interface Props {
 }
 
 export default function HandSection({
-  playerHand, playerDrawnTile, playerFuro, phase, isViewingPast,
+  playerHand, playerDrawnTile, playerFuro, phase, isRiichi, isViewingPast,
   canTsumo, canRiichi, riichiValidTiles, isDora,
   onDiscard, onNakiDiscard, onRiichiDiscard,
   onDeclareTsumo, onPassTsumo, onDeclareRiichi, onShowWall,
@@ -106,7 +107,7 @@ export default function HandSection({
                   dora={isDora(tile)}
                   className={`w-full h-full object-contain ${isRiichiInvalid ? 'opacity-30 grayscale pointer-events-none' : ''}`}
                   onClick={
-                    phase === 'playerDiscard' ? () => onDiscard(tile) :
+                    phase === 'playerDiscard' && !isRiichi ? () => onDiscard(tile) :
                     phase === 'playerNakiDiscard' ? () => onNakiDiscard(tile) :
                     phase === 'riichiSelect' && !isRiichiInvalid ? () => onRiichiDiscard(tile) :
                     undefined

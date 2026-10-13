@@ -338,6 +338,38 @@ export function findAnkanOptions(hand: Tile[], drawnTile: Tile | null): NakiOpti
   return options;
 }
 
+/**
+ * Riichi concealed-kan candidates must use the drawn fourth copy and must
+ * preserve the full set of waits. Other kan choices remain available before riichi.
+ */
+export function findLegalAnkanOptions(
+  hand: Tile[],
+  drawnTile: Tile | null,
+  furoList: Furo[],
+  isRiichi: boolean,
+): NakiOption[] {
+  const choices = findAnkanOptions(hand, drawnTile);
+  if (!isRiichi) return choices;
+  if (!drawnTile) return [];
+
+  const before = getWaits(hand, furoList)
+    .map(tileKey).sort().join('|');
+
+  return choices.filter(option => {
+    if (!option.tiles.some(t => t.id === drawnTile.id)) return false;
+    const kanIds = new Set(option.tiles.map(t => t.id));
+    const remaining = hand.filter(t => !kanIds.has(t.id));
+    const furo: Furo = {
+      type: 'ankan',
+      tiles: option.tiles,
+      calledTile: option.tiles[0],
+    };
+    const after = getWaits(remaining, [...furoList, furo])
+      .map(tileKey).sort().join('|');
+    return before === after;
+  });
+}
+
 export function findKakanOptions(hand: Tile[], drawnTile: Tile | null, furoList: Furo[]): NakiOption[] {
   const options: NakiOption[] = [];
   const allHand = drawnTile ? [...hand, drawnTile] : [...hand];

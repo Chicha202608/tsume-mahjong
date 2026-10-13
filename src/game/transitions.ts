@@ -5,6 +5,7 @@ import {
   canRonConcealed,
   findNakiOptions,
   sameTile,
+  findLegalAnkanOptions,
   getWaits,
   isFuriten,
   NakiOption,
@@ -32,6 +33,8 @@ export function applyPlayerDraw(cur: State): State | null {
 
 export function applyPlayerDiscard(cur: State, tile: Tile): State | null {
   if (cur.phase !== 'playerDiscard' || !cur.playerDrawnTile) return null;
+  // Riichi players must tsumogiri; a paused kan decision must not unlock hand discards.
+  if (cur.isRiichi && tile.id !== cur.playerDrawnTile.id) return null;
   let newHand: Tile[];
   if (tile.id === cur.playerDrawnTile.id) {
     newHand = cur.playerHand;
@@ -121,6 +124,14 @@ export function applyDeclareTsumo(cur: State): State | null {
 }
 
 export function applyDeclareKan(cur: State, option: NakiOption): State | null {
+  if (cur.isRiichi) {
+    if (cur.phase !== 'playerDiscard' || option.type !== 'ankan') return null;
+    const legal = findLegalAnkanOptions(cur.playerHand, cur.playerDrawnTile, cur.playerFuro, true);
+    if (!legal.some(candidate =>
+      candidate.tiles.length === option.tiles.length &&
+      candidate.tiles.every(tile => option.tiles.some(selected => selected.id === tile.id))
+    )) return null;
+  }
   const tilesToRemove = new Set(option.tiles.map(t => t.id));
   const isAnkan = option.type === 'ankan';
   const isKakan = option.type === 'kakan';

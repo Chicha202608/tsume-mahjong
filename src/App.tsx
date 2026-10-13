@@ -162,6 +162,7 @@ export default function App() {
           playerDrawnTile={playerDrawnTile}
           playerFuro={playerFuro}
           phase={phase}
+          isRiichi={isRiichi}
           isViewingPast={isViewingPast}
           canTsumo={canTsumo}
           canRiichi={canRiichi}
