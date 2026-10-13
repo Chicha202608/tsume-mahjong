@@ -486,6 +486,10 @@ export function searchBestWin(
       case 'playerDiscard': {
         if (state.tsumoAvailable) {
           considerWin(applyDeclareTsumo(state), 'tsumo');
+          // A player must pass the available tsumo before taking another
+          // action. Search the discard/kan choices from that explicit state.
+          consider({ type: 'pass-tsumo' }, applyPassTsumo(state));
+          break;
         }
 
         const discardChoices = uniqueTiles([
