@@ -91,15 +91,16 @@ interface SearchNode {
   choice?: SearchChoice;
 }
 
+const TILE_SUIT_OFFSET: Record<Tile['suit'], number> = {
+  man: 0,
+  pin: 9,
+  sou: 18,
+  wind: 27,
+  dragon: 31,
+};
+
 function baseTileCode(tile: Tile): number {
-  const suitOffset: Record<Tile['suit'], number> = {
-    man: 0,
-    pin: 9,
-    sou: 18,
-    wind: 27,
-    dragon: 31,
-  };
-  return suitOffset[tile.suit] + tile.value - 1;
+  return TILE_SUIT_OFFSET[tile.suit] + tile.value - 1;
 }
 
 // Compact single-character face keys keep memoized state strings small.
