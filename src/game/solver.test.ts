@@ -9,6 +9,27 @@ function tile(id: string, suit: Tile['suit'], value: number): Tile {
 }
 
 describe('searchBestWin', () => {
+  it('explicitly rejects an already-open hand in the closed-hand solver', () => {
+    const called = tile('called', 'man', 3);
+    const state = {
+      ...makeInitialStateBase([], [], [tile('draw', 'man', 1)], []),
+      playerFuro: [{
+        type: 'pon' as const,
+        tiles: [called, tile('pon2', 'man', 3), tile('pon3', 'man', 3)],
+        calledTile: called,
+      }],
+    };
+
+    const result = searchBestWin(state);
+
+    expect(result.supported).toBe(false);
+    expect(result.unsupportedReason).toBe('open-hand');
+    expect(result.complete).toBe(false);
+    expect(result.bestScore).toBeNull();
+    expect(result.line).toEqual([]);
+    expect(result.stats.statesVisited).toBe(0);
+  });
+
   it('returns a completed no-solution result when the wall is empty before drawing', () => {
     const hand = [
       tile('1', 'man', 1), tile('2', 'man', 2), tile('3', 'man', 3),
