@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { searchBestWin } from '@/game/solver';
+import { couldBuildTenpai, searchBestWin } from '@/game/solver';
 import { createDeck } from '@/gameLogic';
 import { makeInitialStateBase } from '@/game/gameState';
 import type { Tile } from '@/types';
@@ -7,6 +7,37 @@ import type { Tile } from '@/types';
 function tile(id: string, suit: Tile['suit'], value: number): Tile {
   return { id, suit, value };
 }
+
+describe('future tenpai feasibility', () => {
+  it('accepts a 13-tile ready hand without needing an actual winning tile', () => {
+    const hand = [
+      tile('m1', 'man', 1), tile('m2', 'man', 2), tile('m3', 'man', 3),
+      tile('p1', 'pin', 1), tile('p2', 'pin', 2), tile('p3', 'pin', 3),
+      tile('s1', 'sou', 1), tile('s2', 'sou', 2), tile('s3', 'sou', 3),
+      tile('s7', 'sou', 7), tile('s8', 'sou', 8),
+      tile('w1', 'wind', 1), tile('w2', 'wind', 1),
+    ];
+    expect(couldBuildTenpai(hand)).toBe(true);
+  });
+
+  it('rejects fewer than 13 usable player tiles even if CPU has the missing ones', () => {
+    const hand = Array.from({ length: 12 }, (_, index) => tile('m' + index, 'man', 1));
+    expect(couldBuildTenpai(hand)).toBe(false);
+  });
+
+  it('recognizes seven-pairs tenpai without a wall winning tile', () => {
+    const hand = [
+      tile('m1a', 'man', 1), tile('m1b', 'man', 1),
+      tile('m2a', 'man', 2), tile('m2b', 'man', 2),
+      tile('m3a', 'man', 3), tile('m3b', 'man', 3),
+      tile('p1a', 'pin', 1), tile('p1b', 'pin', 1),
+      tile('p2a', 'pin', 2), tile('p2b', 'pin', 2),
+      tile('s1a', 'sou', 1), tile('s1b', 'sou', 1),
+      tile('e', 'wind', 1),
+    ];
+    expect(couldBuildTenpai(hand)).toBe(true);
+  });
+});
 
 describe('searchBestWin', () => {
   it('explicitly rejects an already-open hand in the closed-hand solver', () => {
