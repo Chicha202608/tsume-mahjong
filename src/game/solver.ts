@@ -55,6 +55,8 @@ export interface SolverOptions {
   maxStates?: number;
   /** Safety time limit for the first prototype. An incomplete search never claims an answer. */
   maxDurationMs?: number;
+  /** Experimental heuristic: skip discards from any currently completed meld. Not exact. */
+  preserveCompletedMelds?: boolean;
 }
 
 type StepAction = Extract<
@@ -100,6 +102,28 @@ function tileKey(tile: Tile): string {
 
 function furitenTileKey(tile: Tile): string {
   return `${tile.suit}-${tile.value}`;
+}
+
+/** Faces belonging to at least one completed triplet or sequence. */
+function completedMeldFaces(tiles: Tile[]): Set<string> {
+  const counts = new Map<string, number>();
+  for (const tile of tiles) {
+    const key = furitenTileKey(tile);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  const protectedFaces = new Set<string>();
+  for (const tile of tiles) {
+    const face = furitenTileKey(tile);
+    if ((counts.get(face) ?? 0) >= 3) protectedFaces.add(face);
+    if (tile.suit !== 'man' && tile.suit !== 'pin' && tile.suit !== 'sou') continue;
+    for (let start = Math.max(1, tile.value - 2); start <= Math.min(7, tile.value); start++) {
+      const faces = [start, start + 1, start + 2].map(v => tile.suit + '-' + v);
+      if (faces.every(k => (counts.get(k) ?? 0) > 0)) {
+        for (const k of faces) protectedFaces.add(k);
+      }
+    }
+  }
+  return protectedFaces;
 }
 
 function uniqueTiles(tiles: Tile[]): Tile[] {
@@ -510,6 +534,7 @@ export function searchBestWin(
   }
 
   const maxStates = options.maxStates ?? 200_000;
+  const preserveCompletedMelds = options.preserveCompletedMelds ?? false;
   const maxDurationMs = options.maxDurationMs ?? 3_000;
   const startedAt = Date.now();
   const memo = new Map<string, SearchNode>();
@@ -693,10 +718,16 @@ export function searchBestWin(
           break;
         }
 
-        const discardChoices = uniqueTiles([
+        const allDiscardChoices = uniqueTiles([
           ...state.playerHand,
           ...(state.playerDrawnTile ? [state.playerDrawnTile] : []),
         ]);
+        const protectedFaces = preserveCompletedMelds
+          ? completedMeldFaces([...state.playerHand, ...(state.playerDrawnTile ? [state.playerDrawnTile] : [])])
+          : new Set<string>();
+        const filteredDiscards = allDiscardChoices.filter(tile => !protectedFaces.has(furitenTileKey(tile)));
+        // If every tile belongs to a meld, retain all choices instead of dead-ending.
+        const discardChoices = filteredDiscards.length ? filteredDiscards : allDiscardChoices;
         for (const tile of discardChoices) {
           consider({ type: 'discard', tile }, applyPlayerDiscard(state, tile));
           if (!complete) break;
