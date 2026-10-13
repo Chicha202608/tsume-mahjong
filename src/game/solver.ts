@@ -55,54 +55,234 @@ export interface SolverOptions {
   maxDurationMs?: number;
 }
 
-interface SearchNode {
-  score: number | null;
-  action?: SolverAction;
-  next?: SearchNode;
-  terminal?: boolean;
+type StepAction = Extract<
+  SolverAction,
+  { type: 'draw' | 'cpu-turn' | 'discard' | 'call-naki' | 'kan' | 'pass-tsumo' | 'pass-naki' }
+>;
+type WinAction = Extract<SolverAction, { type: 'tsumo' | 'ron' }>;
+
+interface OptionDescriptor {
+  type: NakiOption['type'];
+  tiles: string[];
+  calledTile: string;
 }
 
-function tileSemanticKey(tile: Tile): string {
+type StepDescriptor =
+  | { type: 'draw' }
+  | { type: 'cpu-turn' }
+  | { type: 'discard'; tileKey: string }
+  | { type: 'call-naki'; option: OptionDescriptor }
+  | { type: 'kan'; option: OptionDescriptor }
+  | { type: 'pass-tsumo' }
+  | { type: 'pass-naki' };
+
+type WinDescriptor =
+  | { type: 'tsumo'; riichi: boolean; lastMomentRiichi: boolean; score: number }
+  | { type: 'ron'; tileKey: string; riichi: boolean; lastMomentRiichi: boolean; score: number };
+
+type SearchChoice =
+  | { kind: 'step'; action: StepDescriptor }
+  | { kind: 'win'; action: WinDescriptor }
+  | { kind: 'cpu-turn-ron'; win: Extract<WinDescriptor, { type: 'ron' }> };
+
+interface SearchNode {
+  score: number | null;
+  /** Semantic action descriptor; contains no physical tile IDs. */
+  choice?: SearchChoice;
+}
+
+function tileKey(tile: Tile): string {
   return `${tile.suit}-${tile.value}-${tile.isRed ? 1 : 0}`;
+}
+
+function furitenTileKey(tile: Tile): string {
+  return `${tile.suit}-${tile.value}`;
 }
 
 function uniqueTiles(tiles: Tile[]): Tile[] {
   const seen = new Set<string>();
   return tiles.filter((tile) => {
-    const key = tileSemanticKey(tile);
+    const key = tileKey(tile);
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
 }
 
+function optionDescriptor(option: NakiOption): OptionDescriptor {
+  return {
+    type: option.type,
+    tiles: option.tiles.map(tileKey).sort(),
+    calledTile: tileKey(option.calledTile),
+  };
+}
+
+function optionKey(option: NakiOption): string {
+  return JSON.stringify(optionDescriptor(option));
+}
+
+function optionDescriptorKey(option: OptionDescriptor): string {
+  return JSON.stringify(option);
+}
+
 /**
- * Exact-state memoization for the initial solver prototype.
- *
- * Physical tile IDs are retained in the key to avoid merging states that the
- * current transition code might distinguish. Discard order is normalized
- * because the current rules only use the player's river as a set for furiten.
- * This favors correctness over maximum cache reuse; semantic-state compression
- * can be added after correctness and performance are measured.
+ * Semantic DP key: identical tile faces are interchangeable unless they are
+ * red fives. This lets paths that differ only by physical copy IDs share work.
+ * Only fields that affect future legal actions or scoring are included.
  */
 function stateKey(state: State): string {
-  // These fields do not affect any future legal action or score in this app:
-  // the CPU's held hand/furo are unused because it always discards the next
-  // wall tile; fullWall is immutable history; cpuDiscards are display-only;
-  // wallDrawnCount is informational. Excluding them keeps each DP key small.
-  const {
-    cpuHand: _cpuHand,
-    cpuFuro: _cpuFuro,
-    fullWall: _fullWall,
-    cpuDiscards: _cpuDiscards,
-    wallDrawnCount: _wallDrawnCount,
-    ...relevant
-  } = state;
   return JSON.stringify({
-    ...relevant,
-    playerHand: [...state.playerHand].sort((a, b) => a.id.localeCompare(b.id)),
-    playerDiscards: [...state.playerDiscards].sort((a, b) => a.id.localeCompare(b.id)),
+    phase: state.phase,
+    playerHand: state.playerHand.map(tileKey).sort(),
+    playerDrawnTile: state.playerDrawnTile ? tileKey(state.playerDrawnTile) : null,
+    wall: state.wall.map(tileKey),
+    wanpai: state.wanpai.map(tileKey),
+    playerDiscards: [...new Set(state.playerDiscards.map(furitenTileKey))].sort(),
+    playerFuro: state.playerFuro.map((furo) => ({
+      type: furo.type,
+      tiles: furo.tiles.map(tileKey),
+      calledTile: tileKey(furo.calledTile),
+    })),
+    turnCount: state.turnCount,
+    lastCpuDiscard: state.lastCpuDiscard ? tileKey(state.lastCpuDiscard) : null,
+    nakiOptions: state.nakiOptions.map(optionKey).sort(),
+    ronAvailable: state.ronAvailable,
+    winType: state.winType,
+    doraCount: state.doraCount,
+    isRiichi: state.isRiichi,
+    tsumoAvailable: state.tsumoAvailable,
+    missedRonAfterRiichi: state.missedRonAfterRiichi,
+    roundWind: state.roundWind,
+    playerWind: state.playerWind,
+    winTile: state.winTile ? tileKey(state.winTile) : null,
+    isIppatsu: state.isIppatsu,
   });
+}
+
+function memoKey(state: State, lastDrawWasKan: boolean): string {
+  return `${stateKey(state)}|lastDrawWasKan:${lastDrawWasKan ? 1 : 0}`;
+}
+
+function describeStep(action: StepAction): StepDescriptor {
+  switch (action.type) {
+    case 'draw':
+      return { type: 'draw' };
+    case 'cpu-turn':
+      return { type: 'cpu-turn' };
+    case 'discard':
+      return { type: 'discard', tileKey: tileKey(action.tile) };
+    case 'call-naki':
+      return { type: 'call-naki', option: optionDescriptor(action.option) };
+    case 'kan':
+      return { type: 'kan', option: optionDescriptor(action.option) };
+    case 'pass-tsumo':
+      return { type: 'pass-tsumo' };
+    case 'pass-naki':
+      return { type: 'pass-naki' };
+  }
+}
+
+function describeWin(action: WinAction): WinDescriptor {
+  if (action.type === 'ron') {
+    return {
+      type: 'ron',
+      tileKey: tileKey(action.tile),
+      riichi: action.riichi,
+      lastMomentRiichi: action.lastMomentRiichi,
+      score: action.score,
+    };
+  }
+  return {
+    type: 'tsumo',
+    riichi: action.riichi,
+    lastMomentRiichi: action.lastMomentRiichi,
+    score: action.score,
+  };
+}
+
+function materializeStep(state: State, descriptor: StepDescriptor): StepAction | null {
+  switch (descriptor.type) {
+    case 'draw':
+      return { type: 'draw' };
+    case 'cpu-turn':
+      return { type: 'cpu-turn' };
+    case 'discard': {
+      const candidates = state.phase === 'playerNakiDiscard'
+        ? uniqueTiles(state.playerHand)
+        : uniqueTiles([
+            ...state.playerHand,
+            ...(state.playerDrawnTile ? [state.playerDrawnTile] : []),
+          ]);
+      const tile = candidates.find((candidate) => tileKey(candidate) === descriptor.tileKey);
+      return tile ? { type: 'discard', tile } : null;
+    }
+    case 'call-naki': {
+      const option = state.nakiOptions.find(
+        (candidate) => optionKey(candidate) === optionDescriptorKey(descriptor.option),
+      );
+      return option ? { type: 'call-naki', option } : null;
+    }
+    case 'kan': {
+      const options = state.phase === 'naki'
+        ? state.nakiOptions
+        : [
+            ...findAnkanOptions(state.playerHand, state.playerDrawnTile),
+            ...findKakanOptions(state.playerHand, state.playerDrawnTile, state.playerFuro),
+          ];
+      const option = options.find(
+        (candidate) => optionKey(candidate) === optionDescriptorKey(descriptor.option),
+      );
+      return option ? { type: 'kan', option } : null;
+    }
+    case 'pass-tsumo':
+      return { type: 'pass-tsumo' };
+    case 'pass-naki':
+      return { type: 'pass-naki' };
+  }
+}
+
+function materializeWin(state: State, descriptor: WinDescriptor): WinAction | null {
+  if (descriptor.type === 'tsumo') {
+    return {
+      type: 'tsumo',
+      riichi: descriptor.riichi,
+      lastMomentRiichi: descriptor.lastMomentRiichi,
+      score: descriptor.score,
+    };
+  }
+
+  const tile = state.phase === 'cpuTurn'
+    ? state.wall[0]
+    : state.lastCpuDiscard ?? state.winTile;
+  if (!tile || tileKey(tile) !== descriptor.tileKey) return null;
+  return {
+    type: 'ron',
+    tile,
+    riichi: descriptor.riichi,
+    lastMomentRiichi: descriptor.lastMomentRiichi,
+    score: descriptor.score,
+  };
+}
+
+function applyStep(state: State, action: StepAction): State | null {
+  switch (action.type) {
+    case 'draw':
+      return applyPlayerDraw(state);
+    case 'cpu-turn':
+      return applyCpuTurn(state);
+    case 'discard':
+      return state.phase === 'playerNakiDiscard'
+        ? applyPlayerNakiDiscard(state, action.tile)
+        : applyPlayerDiscard(state, action.tile);
+    case 'call-naki':
+      return applyCallNaki(state, action.option);
+    case 'kan':
+      return applyDeclareKan(state, action.option);
+    case 'pass-tsumo':
+      return applyPassTsumo(state);
+    case 'pass-naki':
+      return applyPassNaki(state);
+  }
 }
 
 function scoreWinningState(
@@ -113,16 +293,12 @@ function scoreWinningState(
     { state, riichi: state.isRiichi, lastMomentRiichi: false },
   ];
 
-  // Per this app's agreed puzzle rule, evaluate an immediate riichi + ippatsu
-  // option only at the winning point; do not branch into earlier riichi timing.
-  // Riichi is only available for a closed hand that was already tenpai before
-  // the winning tile was added.
+  // The app's puzzle rule only evaluates riichi immediately before the final
+  // win. A previous discard must exist, the hand must be closed and tenpai,
+  // and a rinshan win cannot gain a retroactive riichi declaration.
   if (
     allowLastMomentRiichi &&
     !state.isRiichi &&
-    // turnCount is incremented by the player's discard. At the initial
-    // deal there has been no discard opportunity, so riichi cannot be added
-    // retroactively to a win on the very first draw.
     state.turnCount > 0 &&
     isMenzen(state.playerFuro) &&
     checkTenpai(state.playerHand, state.playerFuro.length)
@@ -155,14 +331,9 @@ function scoreWinningState(
 }
 
 /**
- * Searches the existing deterministic-wall game rules for one highest-scoring
- * winning line. This is an independent engine: it does not mutate React state
- * or add any UI.
- *
- * The search uses memoization over game states. The first version deliberately
- * uses the existing transition functions so search behavior stays aligned with
- * gameplay. If a safety limit is reached, complete=false and bestScore=null:
- * a partial search is never reported as a proven optimum.
+ * Searches the deterministic-wall game rules for one highest-scoring win.
+ * Values and choices are memoized by semantic state, while physical tile IDs
+ * are rebound during reconstruction so the returned line can be replayed.
  */
 export function searchBestWin(
   initialState: State,
@@ -182,7 +353,7 @@ export function searchBestWin(
   const search = (state: State, lastDrawWasKan = false): SearchNode => {
     if (!complete) return { score: null };
 
-    const key = `${stateKey(state)}|lastDrawWasKan:${lastDrawWasKan ? 1 : 0}`;
+    const key = memoKey(state, lastDrawWasKan);
     const cached = memo.get(key);
     if (cached) {
       cacheHits++;
@@ -197,31 +368,25 @@ export function searchBestWin(
 
     if (state.phase === 'win') {
       const scored = scoreWinningState(state, !lastDrawWasKan);
-      const terminal: SearchNode = scored
-        ? { score: scored.score, terminal: true }
-        : { score: null, terminal: true };
+      const terminal: SearchNode = { score: scored?.score ?? null };
       memo.set(key, terminal);
       return terminal;
     }
     if (state.phase === 'exhausted') {
-      const terminal: SearchNode = { score: null, terminal: true };
+      const terminal: SearchNode = { score: null };
       memo.set(key, terminal);
       return terminal;
     }
 
     let bestScore: number | null = null;
-    let bestAction: SolverAction | undefined;
-    let bestNext: SearchNode | undefined;
-    let bestTerminal = false;
+    let bestChoice: SearchChoice | undefined;
 
-    const consider = (action: SolverAction, nextState: State | null, nextDrawWasKan = false) => {
+    const consider = (action: StepAction, nextState: State | null, nextDrawWasKan = false) => {
       if (!complete || !nextState) return;
       const child = search(nextState, nextDrawWasKan);
       if (child.score !== null && (bestScore === null || child.score > bestScore)) {
         bestScore = child.score;
-        bestAction = action;
-        bestNext = child;
-        bestTerminal = false;
+        bestChoice = { kind: 'step', action: describeStep(action) };
       }
     };
 
@@ -230,11 +395,21 @@ export function searchBestWin(
       const scored = scoreWinningState(winState, !lastDrawWasKan);
       if (scored && (bestScore === null || scored.score > bestScore)) {
         bestScore = scored.score;
-        bestAction = type === 'ron'
-          ? { type, tile: winState.winTile!, riichi: scored.riichi, lastMomentRiichi: scored.lastMomentRiichi, score: scored.score }
-          : { type, riichi: scored.riichi, lastMomentRiichi: scored.lastMomentRiichi, score: scored.score };
-        bestNext = undefined;
-        bestTerminal = true;
+        const action: WinAction = type === 'ron'
+          ? {
+              type: 'ron',
+              tile: winState.winTile!,
+              riichi: scored.riichi,
+              lastMomentRiichi: scored.lastMomentRiichi,
+              score: scored.score,
+            }
+          : {
+              type: 'tsumo',
+              riichi: scored.riichi,
+              lastMomentRiichi: scored.lastMomentRiichi,
+              score: scored.score,
+            };
+        bestChoice = { kind: 'win', action: describeWin(action) };
       }
     };
 
@@ -245,10 +420,9 @@ export function searchBestWin(
       }
 
       case 'cpuTurn': {
-        // The regular game transition only exposes a ron decision when the
-        // hand already has yaku. For the solver's "riichi immediately before
-        // the final ron" rule, also test a legal tenpai ron that would gain
-        // riichi/ippatsu, even when normal gameplay would not set ronAvailable.
+        // Normal gameplay only exposes ron when the current hand already has
+        // yaku. Also test the puzzle's last-moment-riichi ron before this
+        // deterministic CPU discard, even when normal gameplay hides no-yaku ron.
         const cpuDiscard = state.wall[0];
         if (
           cpuDiscard &&
@@ -270,19 +444,16 @@ export function searchBestWin(
           const scored = scoreWinningState(hypotheticalWin);
           if (scored && (bestScore === null || scored.score > bestScore)) {
             bestScore = scored.score;
-            bestAction = { type: 'cpu-turn' };
-            bestNext = {
-              score: scored.score,
-              action: {
+            bestChoice = {
+              kind: 'cpu-turn-ron',
+              win: {
                 type: 'ron',
-                tile: cpuDiscard,
+                tileKey: tileKey(cpuDiscard),
                 riichi: scored.riichi,
                 lastMomentRiichi: scored.lastMomentRiichi,
                 score: scored.score,
               },
-              terminal: true,
             };
-            bestTerminal = false;
           }
         }
 
@@ -293,7 +464,6 @@ export function searchBestWin(
       case 'playerDiscard': {
         if (state.tsumoAvailable) {
           considerWin(applyDeclareTsumo(state), 'tsumo');
-          consider({ type: 'pass-tsumo' }, applyPassTsumo(state));
         }
 
         const discardChoices = uniqueTiles([
@@ -347,48 +517,75 @@ export function searchBestWin(
         break;
       }
 
-      // The solver does not create early riichi decisions. A starting state
-      // already in riichi selection is outside this prototype's supported input.
+      // Early riichi decisions are intentionally not explored.
       case 'riichiSelect':
         break;
     }
 
-    const result: SearchNode = bestScore === null
-      ? { score: null }
-      : {
-          score: bestScore,
-          action: bestAction,
-          next: bestNext,
-          terminal: bestTerminal,
-        };
+    const result: SearchNode = { score: bestScore, choice: bestChoice };
     if (complete) memo.set(key, result);
     return result;
   };
 
   const root = search(initialState);
   const line: SolverAction[] = [];
-  let node: SearchNode | undefined = root;
-  while (node?.action) {
-    line.push(node.action);
-    if (node.terminal) break;
-    node = node.next;
-  }
 
-  // A last-moment riichi is declared on the discard immediately before the
-  // opponent's discard / the next winning draw. Mark that discard in the
-  // returned line when it is included in this search path. The winning action's
-  // riichi flag still records which scoring variant was selected.
-  const winningAction = line[line.length - 1];
-  if (
-    winningAction &&
-    (winningAction.type === 'tsumo' || winningAction.type === 'ron') &&
-    winningAction.lastMomentRiichi
-  ) {
-    for (let i = line.length - 2; i >= 0; i--) {
-      const action = line[i];
-      if (action.type === 'discard') {
-        line[i] = { ...action, riichi: true };
+  if (complete) {
+    let current = initialState;
+    let lastDrawWasKan = false;
+
+    // Every reconstructed step consumes a draw, discard, call, pass, or kan;
+    // the guard is defensive against a malformed transition graph.
+    for (let step = 0; step < 100; step++) {
+      const record = memo.get(memoKey(current, lastDrawWasKan));
+      if (!record?.choice) break;
+
+      const choice = record.choice;
+      if (choice.kind === 'win') {
+        const action = materializeWin(current, choice.action);
+        if (action) line.push(action);
         break;
+      }
+
+      if (choice.kind === 'cpu-turn-ron') {
+        line.push({ type: 'cpu-turn' });
+        const tile = current.wall[0];
+        if (tile) {
+          line.push({
+            type: 'ron',
+            tile,
+            riichi: choice.win.riichi,
+            lastMomentRiichi: choice.win.lastMomentRiichi,
+            score: choice.win.score,
+          });
+        }
+        break;
+      }
+
+      const action = materializeStep(current, choice.action);
+      if (!action) break;
+      line.push(action);
+      const nextState = applyStep(current, action);
+      if (!nextState) break;
+
+      lastDrawWasKan = action.type === 'kan';
+      current = nextState;
+    }
+
+    // Riichi is declared on the discard before the final ron / tsumo. Mark it
+    // in the returned line when that discard is part of the searched path.
+    const winningAction = line[line.length - 1];
+    if (
+      winningAction &&
+      (winningAction.type === 'tsumo' || winningAction.type === 'ron') &&
+      winningAction.lastMomentRiichi
+    ) {
+      for (let i = line.length - 2; i >= 0; i--) {
+        const action = line[i];
+        if (action.type === 'discard') {
+          line[i] = { ...action, riichi: true };
+          break;
+        }
       }
     }
   }
