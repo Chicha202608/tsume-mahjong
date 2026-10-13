@@ -135,7 +135,7 @@ describe('searchBestWin', () => {
     ];
     const winningTile = tile('s8', 'sou', 8);
     const state = {
-      ...makeInitialStateBase(hand, [], [winningTile], []),
+      ...makeInitialStateBase(hand, [], [winningTile, tile('nextDraw', 'pin', 9)], []),
       phase: 'cpuTurn' as const,
       turnCount: 1,
       roundWind: 'east' as const,
@@ -149,6 +149,27 @@ describe('searchBestWin', () => {
     const winningAction = result.line[result.line.length - 1];
     expect(winningAction).toMatchObject({ type: 'ron', tile: winningTile, riichi: true, lastMomentRiichi: true });
     expect(result.bestScore).toBeGreaterThan(0);
+  });
+
+  it('does not retroactively grant riichi on the last CPU discard with no future player draw', () => {
+    const hand = [
+      tile('m1', 'man', 1), tile('m2', 'man', 2), tile('m3', 'man', 3),
+      tile('m4', 'man', 4), tile('m5', 'man', 5), tile('m6', 'man', 6),
+      tile('p1', 'pin', 1), tile('p2', 'pin', 2), tile('p3', 'pin', 3),
+      tile('s7', 'sou', 7), tile('s9', 'sou', 9),
+      tile('w3a', 'wind', 3), tile('w3b', 'wind', 3),
+    ];
+    const state = {
+      ...makeInitialStateBase(hand, [], [tile('lastCpuDiscard', 'sou', 8)], []),
+      phase: 'cpuTurn' as const,
+      turnCount: 1,
+      roundWind: 'east' as const,
+      playerWind: 'south' as const,
+    };
+    const result = searchBestWin(state);
+    expect(result.complete).toBe(true);
+    expect(result.bestScore).toBeNull();
+    expect(result.line.every((action) => action.type !== 'ron')).toBe(true);
   });
 
   it('marks the discard where last-moment riichi should be declared', () => {
