@@ -91,12 +91,29 @@ interface SearchNode {
   choice?: SearchChoice;
 }
 
+function baseTileCode(tile: Tile): number {
+  const suitOffset: Record<Tile['suit'], number> = {
+    man: 0,
+    pin: 9,
+    sou: 18,
+    wind: 27,
+    dragon: 31,
+  };
+  return suitOffset[tile.suit] + tile.value - 1;
+}
+
+// Compact single-character face keys keep memoized state strings small.
+// Red fives have separate codes; ordinary copies of the same tile share one.
 function tileKey(tile: Tile): string {
-  return `${tile.suit}-${tile.value}-${tile.isRed ? 1 : 0}`;
+  let code = baseTileCode(tile);
+  if (tile.isRed && tile.value === 5 && (tile.suit === 'man' || tile.suit === 'pin' || tile.suit === 'sou')) {
+    code = 34 + (tile.suit === 'man' ? 0 : tile.suit === 'pin' ? 1 : 2);
+  }
+  return String.fromCharCode(65 + code);
 }
 
 function furitenTileKey(tile: Tile): string {
-  return `${tile.suit}-${tile.value}`;
+  return String.fromCharCode(65 + baseTileCode(tile));
 }
 
 function uniqueTiles(tiles: Tile[]): Tile[] {
