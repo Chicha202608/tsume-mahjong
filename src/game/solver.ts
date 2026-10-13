@@ -111,6 +111,66 @@ function uniqueTiles(tiles: Tile[]): Tile[] {
   });
 }
 
+
+/**
+ * Optimistic reverse feasibility test: could ANY winning 14-tile hand be
+ * assembled from the hand plus the entire remaining wall?
+ * Treating CPU draws as available deliberately over-approximates supply.
+ * False therefore proves that no winning continuation exists.
+ * Also admits chiitoitsu and kokushi, not just four melds plus a pair.
+ */
+function couldBuildWinningHand(pool: Tile[]): boolean {
+  const counts = Array<number>(34).fill(0);
+  for (const tile of pool) {
+    const group = tile.suit === 'man' ? 0 : tile.suit === 'pin' ? 9
+      : tile.suit === 'sou' ? 18 : tile.suit === 'wind' ? 27 : 31;
+    const index = group + tile.value - 1;
+    if (index >= 0 && index < 34) counts[index]++;
+  }
+  const total = counts.reduce((sum, n) => sum + n, 0);
+  if (total < 14) return false;
+
+  const pairs = counts.filter(n => n >= 2).length;
+  if (pairs >= 7) return true;
+
+  const orphans = [0, 8, 9, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33];
+  if (orphans.every(i => counts[i] >= 1) && orphans.some(i => counts[i] >= 2)) return true;
+
+  // Explore all possible meld compositions, not just a single partition.
+  // The memo key includes the remaining supply and number of melds required.
+  const memo = new Map<string, boolean>();
+  const meldsPossible = (needed: number): boolean => {
+    if (needed === 0) return true;
+    const key = needed + ':' + counts.join(',');
+    const cached = memo.get(key);
+    if (cached !== undefined) return cached;
+    for (let i = 0; i < 34; i++) {
+      if (counts[i] >= 3) {
+        counts[i] -= 3;
+        const possible = meldsPossible(needed - 1);
+        counts[i] += 3;
+        if (possible) { memo.set(key, true); return true; }
+      }
+      if (i < 27 && i % 9 <= 6 && counts[i] && counts[i+1] && counts[i+2]) {
+        counts[i]--; counts[i+1]--; counts[i+2]--;
+        const possible = meldsPossible(needed - 1);
+        counts[i]++; counts[i+1]++; counts[i+2]++;
+        if (possible) { memo.set(key, true); return true; }
+      }
+    }
+    memo.set(key, false);
+    return false;
+  };
+  for (let i = 0; i < 34; i++) {
+    if (counts[i] < 2) continue;
+    counts[i] -= 2;
+    const possible = meldsPossible(4);
+    counts[i] += 2;
+    if (possible) return true;
+  }
+  return false;
+}
+
 function optionDescriptor(option: NakiOption): OptionDescriptor {
   return {
     type: option.type,
@@ -387,6 +447,18 @@ export function searchBestWin(
   const memo = new Map<string, SearchNode>();
   const scoreCache = new Map<string, number | null>();
   const tenpaiCache = new Map<string, boolean>();
+  const completionCache = new Map<string, boolean>();
+  const futureCompletionPossible = (state: State): boolean => {
+    const key = state.playerHand.map(furitenTileKey).sort().join(',') + '|' +
+      (state.playerDrawnTile ? furitenTileKey(state.playerDrawnTile) : '') + '|' +
+      state.wallDrawnCount + ':' + state.wall.length;
+    const cached = completionCache.get(key);
+    if (cached !== undefined) return cached;
+    const value = couldBuildWinningHand([...state.playerHand,
+      ...(state.playerDrawnTile ? [state.playerDrawnTile] : []), ...state.wall]);
+    completionCache.set(key, value);
+    return value;
+  };
   const isTenpai = (state: State): boolean => {
     const key = state.playerFuro.length + '|' + state.playerHand.map(furitenTileKey).sort().join(',');
     const cached = tenpaiCache.get(key);
@@ -439,6 +511,10 @@ export function searchBestWin(
 
     const consider = (action: StepAction, nextState: State | null, nextDrawWasKan = false) => {
       if (!complete || !nextState) return;
+      // Once a winning line exists, a branch proven unable to make ANY
+      // complete hand cannot improve it. Do not prune tenpai fallback.
+      if (bestRank === 2 && nextState.wall.length <= 12 &&
+          !futureCompletionPossible(nextState)) return;
       const child = search(nextState, nextDrawWasKan);
       const isBetter = !bestChoice || child.rank > bestRank ||
         (child.rank === 2 && bestRank === 2 && child.score !== null &&
