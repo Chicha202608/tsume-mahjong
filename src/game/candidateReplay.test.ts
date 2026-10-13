@@ -56,4 +56,31 @@ describe('candidate replay', () => {
       r.opportunity.type === 'ron' && !r.furiten && r.score !== null)).toBe(true);
   });
 
+  it('retains a red five instead of a normal five when both fit the same target', () => {
+    const redHand = [
+      tile('man',1,'m1'),tile('man',2,'m2'),tile('man',3,'m3'),
+      tile('pin',1,'p1'),tile('pin',2,'p2'),tile('pin',3,'p3'),
+      tile('sou',4,'s4'),{...tile('sou',5,'red5'),isRed:true},tile('sou',6,'s6'),
+      tile('sou',7,'s7'),tile('sou',9,'s9'),
+      tile('wind',1,'e1'),tile('wind',1,'e2'),
+    ];
+    const state = {...makeInitialStateBase(redHand,[],[
+      tile('sou',5,'normal5'),tile('dragon',1,'cpu'),
+      tile('sou',8,'tsumo'),
+    ],[]),roundWind:'east' as const,playerWind:'south' as const};
+    const scores=evaluateCandidateWins(state);
+    const result=scores.find(x=>x.opportunity.wallIndex===2 && x.opportunity.type==='tsumo' &&
+      x.opportunity.candidate.counts[22]===1 && x.score!==null);
+    expect(result).toBeDefined();
+    expect(result?.discards[0].id).toBe('normal5');
+  });
+  it('does not grant last-moment riichi on a final CPU discard with no future own draw', () => {
+    const state = {...makeInitialStateBase(hand,[],[
+      tile('pin',9,'own'),tile('sou',8,'ron'),
+    ],[]),roundWind:'east' as const,playerWind:'south' as const};
+    const results=evaluateCandidateWins(state);
+    expect(results.filter(x=>x.opportunity.type==='ron' && x.score!==null)
+      .every(x=>x.riichi===false)).toBe(true);
+  });
+
 });
