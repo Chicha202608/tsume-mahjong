@@ -388,7 +388,7 @@ export function searchBestWin(
 
     if (interrupted()) {
       complete = false;
-      return { score: null };
+      return { rank: 0, score: null };
     }
     statesVisited++;
 
@@ -414,7 +414,7 @@ export function searchBestWin(
     const consider = (action: StepAction, nextState: State | null, nextDrawWasKan = false) => {
       if (!complete || !nextState) return;
       const child = search(nextState, nextDrawWasKan);
-      const isBetter = child.rank > bestRank ||
+      const isBetter = !bestChoice || child.rank > bestRank ||
         (child.rank === 2 && bestRank === 2 && child.score !== null &&
           (bestScore === null || child.score > bestScore));
       if (isBetter) {
