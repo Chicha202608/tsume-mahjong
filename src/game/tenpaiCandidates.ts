@@ -74,29 +74,33 @@ export function enumerateTenpaiCandidates(state: State): TenpaiCandidate[] {
   for (const tile of [...fixed, ...draws]) available[indexOf(tile)]++;
   const counts = Array<number>(34).fill(0);
   const found = new Map<string, TenpaiCandidate>();
+  const examined = new Set<string>();
+  const initialCounts = Array<number>(34).fill(0);
+  for (const tile of fixed) initialCounts[indexOf(tile)]++;
+  const drawFaces = draws.map(indexOf);
 
   // Build complete melds and partial melds directly, never choose arbitrary
   // 13-subsets of the entire tile pool.
   const emit = () => {
-    const waits = waitsFor(counts);
-    if (!waits.length) return;
     const key = counts.join(',');
-    if (found.has(key)) return;
+    if (examined.has(key)) return;
+    examined.add(key);
     // For every required face, use initially held copies first, then find the
     // earliest own draw covering the shortfall. This is an optimistic lower
     // bound on when the shape can be reached, not a claim of legal replay.
-    const used = Array<number>(34).fill(0);
-    for (const tile of fixed) used[indexOf(tile)]++;
+    const used = initialCounts;
     let earliest = 0;
     const gathered = [...used];
     const meets = () => counts.every((n, i) => gathered[i] >= n);
     if (!meets()) {
       for (let d = 0; d < draws.length; d++) {
-        gathered[indexOf(draws[d])]++;
+        gathered[drawFaces[d]]++;
         if (meets()) { earliest = d + 1; break; }
       }
     }
     if (!meets()) return;
+    const waits = waitsFor(counts);
+    if (!waits.length) return;
     found.set(key, { counts: [...counts], earliestPlayerDraw: earliest, waits });
   };
   const select = (tiles: number[], next: () => void) => {
