@@ -168,9 +168,6 @@ export function findCandidateWinOpportunities(
   const opportunities: CandidateWinOpportunity[] = [];
   for (let wallIndex = 0; wallIndex < state.wall.length; wallIndex++) {
     const ownDraw = (wallIndex % 2 === 0) === playerFirst;
-    // In the actual game, player-first ends after the eighteenth player discard.
-    // Thus the hypothetical final CPU discard (wall[35]) is never reached.
-    if (playerFirst && wallIndex >= 35) break;
     // At this point, held contains the starting hand and all PRECEDING
     // own draws, not the current winning tile.
     const winFace = indexOf(state.wall[wallIndex]);
