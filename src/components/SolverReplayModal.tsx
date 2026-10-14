@@ -5,6 +5,8 @@ import { buildSolverReplay, buildNotenReplay } from '@/game/solverReplay';
 import TileCard from '@/components/TileCard';
 import { getDoraTileKeys } from '@/gameLogic';
 import { isStopState } from '@/game/history';
+import { scoreHand } from '@/game/scoreAdapter';
+import YakuDisplay from '@/components/YakuDisplay';
 
 interface Props {
   initial: State;
@@ -25,8 +27,21 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
   const stops = useMemo(() => frames.map((frame, i) => i)
     .filter(i => i === 0 || i === frames.length - 1 || isStopState(frames[i].state)), [frames]);
   const [stopPosition, setStopPosition] = useState(0);
+  const [scoreDismissed, setScoreDismissed] = useState(false);
   const index = stops[Math.min(stopPosition, stops.length - 1)] ?? 0;
   const frame = frames[Math.min(index, frames.length - 1)];
+  const scoreResult = useMemo(() => {
+    if (frame?.state.phase !== 'win') return null;
+    try {
+      return scoreHand(frame.state);
+    } catch {
+      return null;
+    }
+  }, [frame]);
+  const navigate = (position: number) => {
+    setStopPosition(position);
+    setScoreDismissed(false);
+  };
   if (!frame) return null;
   const { state, action } = frame;
   const dora = getDoraTileKeys(state.wanpai, state.doraCount);
@@ -71,14 +86,26 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
           </div>
         </div>
         {index === frames.length - 1 && <p className="text-center text-yellow-200 font-bold">{resultText}</p>}
+        {state.phase === 'win' && <button onClick={() => setScoreDismissed(false)} className="self-center rounded-lg bg-amber-700 hover:bg-amber-600 px-4 py-2 font-bold">役・点数を表示</button>}
         </div>
         <div className="shrink-0 flex flex-wrap justify-center gap-2 border-t border-green-800 pt-3">
-          <button className="bg-gray-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === 0} onClick={() => setStopPosition(0)}>最初へ</button>
-          <button className="bg-gray-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === 0} onClick={() => setStopPosition(v => v-1)}>◀ 戻る</button>
-          <button className="bg-green-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === stops.length - 1} onClick={() => setStopPosition(v => v+1)}>進む ▶</button>
-          <button className="bg-green-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === stops.length - 1} onClick={() => setStopPosition(stops.length-1)}>最後へ</button>
+          <button className="bg-gray-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === 0} onClick={() => navigate(0)}>最初へ</button>
+          <button className="bg-gray-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === 0} onClick={() => navigate(stopPosition - 1)}>◀ 戻る</button>
+          <button className="bg-green-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === stops.length - 1} onClick={() => navigate(stopPosition + 1)}>進む ▶</button>
+          <button className="bg-green-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === stops.length - 1} onClick={() => navigate(stops.length - 1)}>最後へ</button>
         </div>
       </div>
+      {state.phase === 'win' && !scoreDismissed && (
+        <div role="dialog" aria-modal="true" aria-labelledby="ai-score-title" className="fixed inset-0 z-[80] bg-black/60 flex items-center justify-center p-3">
+          <div className="bg-[#2a2a1a] border border-yellow-500 rounded-2xl p-6 flex flex-col items-center gap-5 shadow-2xl max-w-[min(94vw,42rem)] max-h-[88dvh] overflow-y-auto text-white">
+            <h2 id="ai-score-title" className="text-2xl font-bold">AIの和了 — {state.winType === 'ron' ? 'ロン' : 'ツモ'}</h2>
+            {scoreResult?.valid && scoreResult.handInterpretations.length > 0
+              ? <YakuDisplay result={scoreResult} />
+              : <p className="text-red-300">AIの和了の採点結果を取得できませんでした。</p>}
+            <button autoFocus onClick={() => setScoreDismissed(true)} className="rounded-xl bg-gray-600 hover:bg-gray-500 px-6 py-3 font-bold">手順に戻る</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
