@@ -4,7 +4,7 @@ import {
   createDeck,
   shuffle,
   sortHand,
-  findAnkanOptions,
+  findLegalAnkanOptions,
   findKakanOptions,
   isMenzen as isMenzenLogic,
   canRiichi as canRiichiLogic,
@@ -13,6 +13,7 @@ import {
   NakiOption,
 } from '@/gameLogic';
 import { State, makeInitialState, makeInitialStateBase } from '@/game/gameState';
+import { makeRiichiAnkanTestState, makeOpenIttsuRonTestState, makeOpenIttsuTsumoTestState } from '@/game/testScenarios';
 import {
   MAX_DRAWS,
   applyPlayerDraw,
@@ -60,7 +61,7 @@ export interface GameEngine {
   riichiValidTiles: Set<string>;
   isDora: (t: Tile) => boolean;
   restart: () => void;
-  setupTestState: (mode: 'ankan' | 'kakan' | 'daiminkan') => void;
+  setupTestState: (mode: 'ankan' | 'kakan' | 'daiminkan' | 'riichi-ankan' | 'open-ittsu-ron' | 'open-ittsu-tsumo') => void;
   playerDiscard: (tile: Tile) => void;
   playerNakiDiscard: (tile: Tile) => void;
   riichiDiscard: (tile: Tile) => void;
@@ -102,8 +103,26 @@ export function useGameEngine(): GameEngine {
     setDismissedIndex(-1);
   }, [clearTimer]);
 
-  const setupTestState = useCallback((mode: 'ankan' | 'kakan' | 'daiminkan') => {
+  const setupTestState = useCallback((mode: 'ankan' | 'kakan' | 'daiminkan' | 'riichi-ankan' | 'open-ittsu-ron' | 'open-ittsu-tsumo') => {
     clearTimer();
+    if (mode === 'riichi-ankan') {
+      setHistory([makeRiichiAnkanTestState()]);
+      setHistoryIndex(0);
+      setDismissedIndex(-1);
+      return;
+    }
+    if (mode === 'open-ittsu-ron') {
+      setHistory([makeOpenIttsuRonTestState()]);
+      setHistoryIndex(0);
+      setDismissedIndex(-1);
+      return;
+    }
+    if (mode === 'open-ittsu-tsumo') {
+      setHistory([makeOpenIttsuTsumoTestState()]);
+      setHistoryIndex(0);
+      setDismissedIndex(-1);
+      return;
+    }
 
     const deck = shuffle(createDeck());
 
@@ -366,7 +385,8 @@ export function useGameEngine(): GameEngine {
       timeoutRef.current = setTimeout(() => playerDraw(), 500);
       return () => { clearTimer(); };
     }
-    if (state.phase === 'playerDiscard' && state.isRiichi && state.playerDrawnTile && !state.tsumoAvailable && !isViewingPast) {
+    if (state.phase === 'playerDiscard' && state.isRiichi && state.playerDrawnTile && !state.tsumoAvailable && !isViewingPast &&
+        findLegalAnkanOptions(state.playerHand, state.playerDrawnTile, state.playerFuro, true).length === 0) {
       timeoutRef.current = setTimeout(() => playerDiscard(state.playerDrawnTile!), 700);
       return () => { clearTimer(); };
     }
@@ -386,8 +406,8 @@ export function useGameEngine(): GameEngine {
   } = state;
 
   const canTsumo = tsumoAvailable;
-  const ankanOptions = playerDrawnTile ? findAnkanOptions(playerHand, playerDrawnTile) : [];
-  const kakanOptions = playerDrawnTile ? findKakanOptions(playerHand, playerDrawnTile, playerFuro) : [];
+  const ankanOptions = findLegalAnkanOptions(playerHand, playerDrawnTile, playerFuro, isRiichi);
+  const kakanOptions = !isRiichi && playerDrawnTile ? findKakanOptions(playerHand, playerDrawnTile, playerFuro) : [];
 
   const isMenzen = isMenzenLogic(playerFuro);
   const canRiichi = !isRiichi && isMenzen && phase === 'playerDiscard' && !!playerDrawnTile && canRiichiLogic(playerHand, playerDrawnTile!, playerFuro);

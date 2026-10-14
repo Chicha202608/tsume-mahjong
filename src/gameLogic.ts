@@ -338,7 +338,10 @@ export function findAnkanOptions(hand: Tile[], drawnTile: Tile | null): NakiOpti
   return options;
 }
 
-
+/**
+ * Riichi concealed-kan candidates must use the drawn fourth copy and must
+ * preserve the full set of waits. Other kan choices remain available before riichi.
+ */
 export function findLegalAnkanOptions(
   hand: Tile[],
   drawnTile: Tile | null,

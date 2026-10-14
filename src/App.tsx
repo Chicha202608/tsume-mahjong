@@ -117,7 +117,7 @@ export default function App() {
     && solverResult.bestScore !== null && playerScore !== null
     ? playerScore - solverResult.bestScore : null;
   const comparisonText = scoreDifference === null ? solverSummary
-    : `${solverSummary} / ${scoreDifference > 0 ? '探索結果を上回りました：+' : scoreDifference < 0 ? 'AIの得点との差：' : 'AIの得点と同点：'}${scoreDifference.toLocaleString()}点`;
+    : `${solverSummary} / ${scoreDifference > 0 ? '探索結果を上回りました：+' : scoreDifference < 0 ? 'AIの得点との差：' : 'AIと同点：'}${scoreDifference.toLocaleString()}点`;
 
   function handleDismissWin() {
     setShowScoreModal(false);
@@ -195,17 +195,20 @@ export default function App() {
 
         <PlayerDiscards playerDiscards={playerDiscards} isDora={isDora} />
 
-        <NakiRonButtons
-          phase={phase}
-          lastCpuDiscard={lastCpuDiscard}
-          ronAvailable={ronAvailable}
-          nakiOptions={nakiOptions}
-          onRon={callRon}
-          onNaki={callNaki}
-          onDeclareKan={declareKan}
-          onPassNaki={passNaki}
-        />
+        </div>
 
+        {/* Keep call and ron controls visible below the scrolling river. */}
+        <div className="shrink-0">
+          <NakiRonButtons
+            phase={phase}
+            lastCpuDiscard={lastCpuDiscard}
+            ronAvailable={ronAvailable}
+            nakiOptions={nakiOptions}
+            onRon={callRon}
+            onNaki={callNaki}
+            onDeclareKan={declareKan}
+            onPassNaki={passNaki}
+          />
         </div>
 
         {/* Status bar */}
@@ -219,6 +222,7 @@ export default function App() {
           playerDrawnTile={playerDrawnTile}
           playerFuro={playerFuro}
           phase={phase}
+          isRiichi={isRiichi}
           isViewingPast={isViewingPast}
           canTsumo={canTsumo}
           canRiichi={canRiichi}
