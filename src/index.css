@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Kouzan Score';
+  src: url('/fonts/kouzan-score.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Yuji Yaku';
+  src: url('/fonts/yuji-yaku.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.score-tier-brush {
+  font-family: 'Kouzan Score', serif;
+  font-weight: 400;
+  font-synthesis: none;
+}
+
+.yaku-brush {
+  font-family: 'Yuji Yaku', serif;
+  font-weight: 400;
+  font-synthesis: none;
+}
+
 @layer utilities {
   .w-13 { width: 3.25rem; }
   .h-18 { height: 4.5rem; }
