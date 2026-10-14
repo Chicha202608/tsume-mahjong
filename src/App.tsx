@@ -15,7 +15,7 @@ import NakiRonButtons from '@/components/NakiRonButtons';
 import HandSection from '@/components/HandSection';
 import WallModal from '@/components/WallModal';
 import SolverReplayModal from '@/components/SolverReplayModal';
-import { searchBestWin, type SolverResult } from '@/game/solver';
+import type { SolverResult } from '@/game/solver';
 
 export default function App() {
   const [showWall, setShowWall] = useState(false);
@@ -84,19 +84,25 @@ export default function App() {
 
   useEffect(() => {
     if (phase !== 'win' && phase !== 'exhausted') return;
-    // Run the solver against the untouched initial deal, not the player's final hand.
-    // Delay one event-loop turn so the score overlay can paint first.
+    // Search the untouched initial deal without blocking game and modal rendering.
     setSolverResult(null);
     setSolverBusy(true);
-    const timer = setTimeout(() => {
-      const result = searchBestWin(initialState);
-      setSolverResult(result);
+    const worker = new Worker(new URL('./game/solver.worker.ts', import.meta.url), { type: 'module' });
+    worker.onmessage = (event: MessageEvent<{ result?: SolverResult; error?: string }>) => {
+      setSolverResult(event.data.result ?? null);
       setSolverBusy(false);
-    }, 0);
-    return () => clearTimeout(timer);
+      worker.terminate();
+    };
+    worker.onerror = () => {
+      setSolverResult(null);
+      setSolverBusy(false);
+      worker.terminate();
+    };
+    worker.postMessage(initialState);
+    return () => worker.terminate();
   }, [initialState, phase]);
 
-  const solverSummary = solverBusy ? '探索中…' : !solverResult ? null
+  const solverSummary = solverBusy ? '探索中…（最大15秒）' : !solverResult ? '探索結果を取得できませんでした'
     : !solverResult.complete || !solverResult.supported ? '探索未完了（得点比較不可）'
     : solverResult.outcome === 'win' ? `探索結果（鳴き・カンなし）：${solverResult.bestScore?.toLocaleString()}点`
     : solverResult.outcome === 'tenpai' ? '探索結果：テンパイ'
