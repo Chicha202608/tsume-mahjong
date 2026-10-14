@@ -43,7 +43,7 @@ export function applyPlayerDiscard(cur: State, tile: Tile): State | null {
   }
   const newDiscards = [...cur.playerDiscards, tile];
   const newTurnCount = cur.turnCount + 1;
-  if (cur.wall.length === 0 || newTurnCount >= MAX_DRAWS) {
+  if (cur.wall.length === 0) {
     return { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'exhausted', turnCount: newTurnCount, isIppatsu: false };
   }
   return { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'cpuTurn', turnCount: newTurnCount, isIppatsu: false };
@@ -235,7 +235,7 @@ export function applyRiichiDiscard(cur: State, tile: Tile): State | null {
   }
   const newDiscards = [...cur.playerDiscards, tile];
   const newTurnCount = cur.turnCount + 1;
-  if (cur.wall.length === 0 || newTurnCount >= MAX_DRAWS) {
+  if (cur.wall.length === 0) {
     return { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'exhausted', turnCount: newTurnCount, isRiichi: true, isIppatsu: true };
   }
   return { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'cpuTurn', turnCount: newTurnCount, isRiichi: true, isIppatsu: true };
