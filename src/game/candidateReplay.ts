@@ -85,7 +85,7 @@ export function replayCandidateOpportunity(
   const evaluate = (riichi: boolean): number | null => {
     try {
       const result = scoreHand({ ...winState, isRiichi: riichi,
-        isIppatsu: riichi });
+        isIppatsu: riichi && (!initial.isRiichi || initial.isIppatsu) });
       return result?.valid && result.handInterpretations.length
         ? Math.max(...result.handInterpretations.map(h => h.totalWinnings))
         : null;
