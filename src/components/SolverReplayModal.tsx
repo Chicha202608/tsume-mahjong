@@ -31,7 +31,10 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
   const { state, action } = frame;
   const dora = getDoraTileKeys(state.wanpai, state.doraCount);
   const isDora = (tile: typeof state.playerHand[number]) => dora.has(`${tile.suit}-${tile.value}`);
-  const nextDiscard = result.outcome !== 'noten' ? frames[index + 1]?.action : null;
+  const followingStop = stops[stopPosition + 1] ?? index;
+  const nextDiscard = result.outcome !== 'noten'
+    ? frames.slice(index + 1, followingStop + 1).map(frame => frame.action)
+      .find(action => action?.type === 'discard') ?? null : null;
   // A riichi announcement precedes the declaration discard, not follows it.
   const isRiichiStep = nextDiscard?.type === 'discard' && !!nextDiscard.riichi;
   const highlightedId = nextDiscard?.type === 'discard' ? nextDiscard.tile.id : null;
