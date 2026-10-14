@@ -40,7 +40,8 @@ export default function TileCard({ tile, size = 'md', onClick, highlighted, face
         style={{ width: `${h}px`, height: `${w}px` }}
       >
         <div
-          className={`${base} ${outer} ${interactive} ${highlight} ${className}`}
+          data-tile-card=""
+        className={`${base} ${outer} ${interactive} ${highlight} ${className}`}
           style={{ boxShadow: faceDown ? 'none' : shadow, transform: 'rotate(90deg)' }}
           onClick={onClick}
           title={label}
@@ -62,7 +63,8 @@ export default function TileCard({ tile, size = 'md', onClick, highlighted, face
 
   return (
     <div
-      className={`${base} ${outer} ${interactive} ${highlight} ${hoverStyle} ${className}`}
+      data-tile-card=""
+        className={`${base} ${outer} ${interactive} ${highlight} ${hoverStyle} ${className}`}
       style={{ boxShadow: faceDown ? 'none' : shadow }}
       onClick={onClick}
       title={label}
