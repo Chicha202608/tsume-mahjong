@@ -31,8 +31,8 @@ export function buildSolverReplay(initial: State, result: SolverResult): ReplayF
       case 'pass-naki': next = applyPassNaki(state); break;
       case 'ron':
         next = applyCallRon(state) ?? (
-          state.lastCpuDiscard ? { ...state, phase: 'win', winType: 'ron',
-            winTile: state.lastCpuDiscard, ronAvailable: false } : null
+          { ...state, phase: 'win', winType: 'ron',
+            winTile: action.tile, lastCpuDiscard: action.tile, ronAvailable: false }
         );
         if (next && action.riichi) next = { ...next, isRiichi: true, isIppatsu: true };
         break;
