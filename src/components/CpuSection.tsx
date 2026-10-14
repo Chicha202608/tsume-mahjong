@@ -13,7 +13,7 @@ export default function CpuSection({ cpuHand, cpuFuro, cpuDiscards, lastCpuDisca
   // Tiles the player called from CPU discards — dim them in the CPU's discard river.
   const calledTileIds = new Set(playerFuro.map(f => f.calledTile.id));
   return (
-    <section className="px-3 py-1.5 bg-[#152615] border-b border-[#2d4a2d]">
+    <section className="h-[90px] shrink-0 overflow-hidden px-3 py-1.5 bg-[#152615] border-b border-[#2d4a2d]">
       {cpuFuro.length > 0 && (
         <div className="flex items-center gap-2 mb-1">
           <span className="text-green-400 text-[10px] font-semibold tracking-wider uppercase shrink-0">
@@ -30,8 +30,7 @@ export default function CpuSection({ cpuHand, cpuFuro, cpuDiscards, lastCpuDisca
           </div>
         </div>
       )}
-      {cpuDiscards.length > 0 && (
-        <div className="mt-1">
+      <div className="mt-1">
           <span className="text-green-600 text-[10px]">捨て牌: </span>
           <div className="flex flex-wrap gap-0.5 mt-0.5">
             {cpuDiscards.map(tile => {
@@ -50,7 +49,6 @@ export default function CpuSection({ cpuHand, cpuFuro, cpuDiscards, lastCpuDisca
             })}
           </div>
         </div>
-      )}
     </section>
   );
 }
