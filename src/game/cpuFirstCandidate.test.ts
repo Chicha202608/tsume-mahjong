@@ -39,10 +39,10 @@ describe('CPU-first boundary win opportunities', () => {
     expect(wins.length).toBeGreaterThan(0);
     expect(wins.some(x => x.riichi && x.discards.length === 17)).toBe(true);
   }, 120_000);
-  it('excludes unreachable player-first CPU discard after eighteenth own discard', () => {
+  it('includes player-first final CPU discard after eighteenth own discard', () => {
     const state = makeState(false, 36, 35);
     const opportunities = findCandidateWinOpportunities(state, enumerateTenpaiCandidates(state));
-    expect(opportunities.every(x => x.wallIndex !== 35)).toBe(true);
+    expect(opportunities.some(x => x.wallIndex === 35 && x.type === 'ron')).toBe(true);
   }, 120_000);
   it('treats first own draw as wall index 1 when CPU starts', () => {
     const state = makeState(true, 2, 1);
