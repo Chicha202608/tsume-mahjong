@@ -52,6 +52,7 @@ describe('scoreHand — menzen tsumo (pinfu + riichi + tsumo)', () => {
     missedRonAfterRiichi: false,
     roundWind: 'east',
     playerWind: 'south',
+    cpuWind: 'east',
     winTile,
     isIppatsu: false,
   };
@@ -157,6 +158,7 @@ describe('scoreHand — menzen tsumo with dora×2 (tanyao + iipeiko)', () => {
     missedRonAfterRiichi: false,
     roundWind: 'south',
     playerWind: 'west',
+    cpuWind: 'east',
     winTile,
     isIppatsu: false,
   };
@@ -267,6 +269,7 @@ describe('scoreHand — menzen tsumo with akadora (red 5pin)', () => {
     missedRonAfterRiichi: false,
     roundWind: 'east',
     playerWind: 'east',
+    cpuWind: 'south',
     winTile,
     isIppatsu: false,
   };
@@ -378,6 +381,7 @@ describe('scoreHand — menzen ron (pinfu + riichi, no tsumo yaku)', () => {
     missedRonAfterRiichi: false,
     roundWind: 'east',
     playerWind: 'south',
+    cpuWind: 'east',
     winTile,
     isIppatsu: false,
   };
@@ -504,6 +508,7 @@ describe('scoreHand — open hand tsumo with pon of white dragons', () => {
     missedRonAfterRiichi: false,
     roundWind: 'east',
     playerWind: 'south',
+    cpuWind: 'east',
     winTile,
     isIppatsu: false,
   };
@@ -620,6 +625,7 @@ describe('scoreHand — ippatsu tsumo (riichi + ippatsu + tsumo + pinfu + urador
     missedRonAfterRiichi: false,
     roundWind: 'east',
     playerWind: 'south',
+    cpuWind: 'east',
     winTile,
     isIppatsu: true,
   };
@@ -715,6 +721,7 @@ describe('scoreHand — ippatsu ron (riichi + ippatsu + pinfu + uradora)', () =>
     missedRonAfterRiichi: false,
     roundWind: 'east',
     playerWind: 'south',
+    cpuWind: 'east',
     winTile,
     isIppatsu: true,
   };
@@ -808,6 +815,7 @@ describe('scoreHand — ippatsu invalidated by naki (riichi but no ippatsu)', ()
     missedRonAfterRiichi: false,
     roundWind: 'east',
     playerWind: 'south',
+    cpuWind: 'east',
     winTile,
     isIppatsu: false, // invalidated by naki
   };
@@ -889,6 +897,7 @@ describe('scoreHand — uradora not counted without riichi', () => {
     missedRonAfterRiichi: false,
     roundWind: 'east',
     playerWind: 'south',
+    cpuWind: 'east',
     winTile,
     isIppatsu: false,
   };
@@ -977,6 +986,7 @@ describe('scoreHand — multiple uradora (2 ura indicators matching)', () => {
     missedRonAfterRiichi: false,
     roundWind: 'east',
     playerWind: 'south',
+    cpuWind: 'east',
     winTile,
     isIppatsu: false,
   };
@@ -1068,6 +1078,7 @@ describe('canRonWithYaku — yaku-less open hand', () => {
     missedRonAfterRiichi: false,
     roundWind: 'east',
     playerWind: 'south',
+    cpuWind: 'east',
     winTile: null,
     isIppatsu: false,
   };
@@ -1123,6 +1134,7 @@ describe('canRonWithYaku — valid ron with riichi + pinfu', () => {
     missedRonAfterRiichi: false,
     roundWind: 'east',
     playerWind: 'south',
+    cpuWind: 'east',
     winTile: null,
     isIppatsu: false,
   };
@@ -1180,6 +1192,7 @@ describe('canTsumoWithYaku — yaku-less open hand', () => {
     missedRonAfterRiichi: false,
     roundWind: 'east',
     playerWind: 'south',
+    cpuWind: 'east',
     winTile: null,
     isIppatsu: false,
   };
@@ -1234,6 +1247,7 @@ describe('canTsumoWithYaku — valid tsumo with menzen-tsumo + tanyao', () => {
     missedRonAfterRiichi: false,
     roundWind: 'east',
     playerWind: 'south',
+    cpuWind: 'east',
     winTile: null,
     isIppatsu: false,
   };
@@ -1289,6 +1303,7 @@ describe('canTsumoWithYaku — valid tsumo with riichi + pinfu', () => {
     missedRonAfterRiichi: false,
     roundWind: 'east',
     playerWind: 'south',
+    cpuWind: 'east',
     winTile: null,
     isIppatsu: false,
   };
@@ -1325,6 +1340,7 @@ describe('scoreHand — red five dora indicator is treated as an ordinary five',
     lastCpuDiscard: null, nakiOptions: [], ronAvailable: false,
     winType: 'tsumo', doraCount: 1, isRiichi: false, tsumoAvailable: true,
     missedRonAfterRiichi: false, roundWind: 'east', playerWind: 'east',
+    cpuWind: 'south',
     winTile, isIppatsu: false,
   };
 
