@@ -43,12 +43,17 @@ export function isPlayerUpwind(playerWind: Wind, cpuWind: Wind): boolean {
 
 export function makeInitialState(): State {
   const { playerHand, cpuHand, wall, wanpai } = initGame();
-  return makeInitialStateBase(playerHand, cpuHand, wall, wanpai);
+  const playerWind = randomWind();
+  const otherSeats = winds.filter(w => w !== playerWind);
+  const cpuWind = otherSeats[Math.floor(Math.random() * otherSeats.length)];
+  return makeInitialStateBase(playerHand, cpuHand, wall, wanpai, playerWind, cpuWind);
 }
 
-export function makeInitialStateBase(playerHand: Tile[], cpuHand: Tile[], wall: Tile[], wanpai: Tile[]): State {
-  const playerWind = randomWind();
-  const cpuWind = winds.filter(w => w !== playerWind)[Math.floor(Math.random() * 3)];
+export function makeInitialStateBase(
+  playerHand: Tile[], cpuHand: Tile[], wall: Tile[], wanpai: Tile[],
+  playerWind: Wind = 'east', cpuWind: Wind = 'south',
+): State {
+  if (playerWind === cpuWind) throw new Error('Player and CPU must occupy different seats');
   return {
     playerHand, playerDrawnTile: null,
     cpuHand, wall,
