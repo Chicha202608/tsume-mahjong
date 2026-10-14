@@ -13,16 +13,19 @@ interface Props {
   onNaki: (option: NakiOption) => void;
   onDeclareKan: (option: NakiOption) => void;
   onPassNaki: () => void;
+  readOnly?: boolean;
+  replayChoice?: 'pass' | 'ron';
 }
 
-export default function NakiRonButtons({ phase, lastCpuDiscard, ronAvailable, nakiOptions, onRon, onNaki, onDeclareKan, onPassNaki }: Props) {
+export default function NakiRonButtons({ phase, lastCpuDiscard, ronAvailable, nakiOptions, onRon, onNaki, onDeclareKan, onPassNaki, readOnly = false, replayChoice }: Props) {
   if (phase !== 'naki' || !lastCpuDiscard) return null;
   return (
     <div className="px-4 py-3 bg-[#1e3a1e] border-b border-[#2d4a2d] flex items-center justify-center gap-3 flex-wrap">
       {ronAvailable && (
         <button
+          disabled={readOnly}
           onClick={onRon}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 active:scale-95 text-white font-bold text-base transition-all shadow-lg animate-pulse"
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-lg bg-red-600 enabled:hover:bg-red-500 enabled:active:scale-95 text-white font-bold text-base transition-all shadow-lg ${readOnly ? 'cursor-default' : 'animate-pulse'} ${replayChoice === 'ron' ? 'ring-4 ring-yellow-400' : ''}`}
         >
           <Trophy size={18} />
           ロン
@@ -31,8 +34,9 @@ export default function NakiRonButtons({ phase, lastCpuDiscard, ronAvailable, na
       {nakiOptions.map((opt, idx) => (
         <button
           key={idx}
+          disabled={readOnly}
           onClick={() => (opt.type === 'daiminkan' || opt.type === 'kan') ? onDeclareKan(opt) : onNaki(opt)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${(opt.type === 'daiminkan' || opt.type === 'kan') ? 'bg-purple-600 hover:bg-purple-500' : 'bg-blue-600 hover:bg-blue-500'} active:scale-95 text-white font-bold text-sm transition-all shadow-lg`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${(opt.type === 'daiminkan' || opt.type === 'kan') ? 'bg-purple-600 enabled:hover:bg-purple-500' : 'bg-blue-600 enabled:hover:bg-blue-500'} enabled:active:scale-95 text-white font-bold text-sm transition-all shadow-lg ${readOnly ? 'cursor-default' : ''}`}
         >
           <Hand size={16} />
           <span>{opt.type === 'pung' ? 'ポン' : (opt.type === 'daiminkan' || opt.type === 'kan') ? 'カン' : 'チー'}</span>
@@ -46,8 +50,9 @@ export default function NakiRonButtons({ phase, lastCpuDiscard, ronAvailable, na
         </button>
       ))}
       <button
+        disabled={readOnly}
         onClick={onPassNaki}
-        className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gray-600 hover:bg-gray-500 active:scale-95 text-white font-bold text-base transition-all shadow-lg"
+        className={`flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gray-600 enabled:hover:bg-gray-500 enabled:active:scale-95 text-white font-bold text-base transition-all shadow-lg ${readOnly ? 'cursor-default' : ''} ${replayChoice === 'pass' ? 'ring-4 ring-yellow-400' : ''}`}
       >
         <X size={18} />
         キャンセル
