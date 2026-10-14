@@ -14,13 +14,19 @@ import PlayerDiscards from '@/components/PlayerDiscards';
 import NakiRonButtons from '@/components/NakiRonButtons';
 import HandSection from '@/components/HandSection';
 import WallModal from '@/components/WallModal';
+import SolverReplayModal from '@/components/SolverReplayModal';
+import { searchBestWin, type SolverResult } from '@/game/solver';
 
 export default function App() {
   const [showWall, setShowWall] = useState(false);
   const [showScoreModal, setShowScoreModal] = useState(false);
+  const [showSolverReplay, setShowSolverReplay] = useState(false);
+  const [solverResult, setSolverResult] = useState<SolverResult | null>(null);
+  const [solverBusy, setSolverBusy] = useState(false);
   const engine = useGameEngine();
   const {
     state,
+    initialState,
     isViewingPast,
     canUndo,
     canStepForward,
@@ -76,6 +82,26 @@ export default function App() {
     prevHistoryIndexRef.current = historyIndex;
   }, [historyIndex, isValidWin]);
 
+  useEffect(() => {
+    if (phase !== 'win' && phase !== 'exhausted') return;
+    // Run the solver against the untouched initial deal, not the player's final hand.
+    // Delay one event-loop turn so the score overlay can paint first.
+    setSolverResult(null);
+    setSolverBusy(true);
+    const timer = setTimeout(() => {
+      const result = searchBestWin(initialState);
+      setSolverResult(result);
+      setSolverBusy(false);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [initialState, phase]);
+
+  const solverSummary = solverBusy ? '探索中…' : !solverResult ? null
+    : !solverResult.complete || !solverResult.supported ? '探索未完了（得点比較不可）'
+    : solverResult.outcome === 'win' ? `探索結果（鳴き・カンなし）：${solverResult.bestScore?.toLocaleString()}点`
+    : solverResult.outcome === 'tenpai' ? '探索結果：テンパイ'
+    : '探索結果：ノーテン';
+
   function handleDismissWin() {
     setShowScoreModal(false);
     dismissGameOver();
@@ -83,6 +109,8 @@ export default function App() {
 
   function handleRestart() {
     setShowScoreModal(false);
+    setShowSolverReplay(false);
+    setSolverResult(null);
     restart();
   }
 
@@ -211,6 +239,8 @@ export default function App() {
           message={`ツモ${MAX_DRAWS}回に達しました`}
           onRestart={handleRestart}
           onOk={handleDismissWin}
+          solverSummary={solverSummary ?? undefined}
+          onShowSolver={solverResult?.complete && solverResult.supported ? () => setShowSolverReplay(true) : undefined}
         />
       )}
 
@@ -223,7 +253,12 @@ export default function App() {
           onOk={handleDismissWin}
           isWin
           scoreResult={scoreResult}
+          solverSummary={solverSummary ?? undefined}
+          onShowSolver={solverResult?.complete && solverResult.supported ? () => setShowSolverReplay(true) : undefined}
         />
+      )}
+      {showSolverReplay && solverResult?.complete && solverResult.supported && (
+        <SolverReplayModal initial={initialState} result={solverResult} onClose={() => setShowSolverReplay(false)} />
       )}
     </div>
     </div>
