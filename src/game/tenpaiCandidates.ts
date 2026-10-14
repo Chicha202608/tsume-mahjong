@@ -2,7 +2,7 @@ import type { Tile } from '@/types';
 import type { State } from '@/game/gameState';
 
 /**
- * Standard-hand tenpai candidates from initial 13 tiles and all future player
+ * Standard-hand and seven-pairs tenpai candidates from initial 13 tiles and future player
  * draws. This is a candidate generator, not yet a score optimizer.
  * CPU discards cannot contribute to a tenpai hand.
  */
@@ -81,9 +81,16 @@ export function enumerateTenpaiCandidates(state: State): TenpaiCandidate[] {
 
   // Build complete melds and partial melds directly, never choose arbitrary
   // 13-subsets of the entire tile pool.
-  const emit = () => {
+  const emit = (knownWaits?: number[]) => {
     const key = counts.join(',');
-    if (examined.has(key)) return;
+    const existing = found.get(key);
+    if (existing && knownWaits) {
+      // A shape can be both standard and seven-pairs tenpai. Keep every wait
+      // on the same target, including standard waits relevant to furiten.
+      existing.waits = [...new Set([...existing.waits, ...knownWaits])].sort((a, b) => a - b);
+      return;
+    }
+    if (!knownWaits && examined.has(key)) return;
     examined.add(key);
     // For every required face, use initially held copies first, then find the
     // earliest own draw covering the shortfall. This is an optimistic lower
@@ -99,7 +106,7 @@ export function enumerateTenpaiCandidates(state: State): TenpaiCandidate[] {
       }
     }
     if (!meets()) return;
-    const waits = waitsFor(counts);
+    const waits = knownWaits ?? waitsFor(counts);
     if (!waits.length) return;
     found.set(key, { counts: [...counts], earliestPlayerDraw: earliest, waits });
   };
@@ -125,21 +132,39 @@ export function enumerateTenpaiCandidates(state: State): TenpaiCandidate[] {
   };
   // Four melds + singleton (tanki).
   buildMelds(4, 0, () => {
-    for (let i = 0; i < 34; i++) select([i], emit);
+    for (let i = 0; i < 34; i++) select([i], () => emit());
   });
   // Three melds + pair + taatsu (including shanpon).
   buildMelds(3, 0, () => {
     for (let head = 0; head < 34; head++) select([head, head], () => {
       for (let i = 0; i < 34; i++) {
-        select([i,i], emit);
+        select([i,i], () => emit());
         if (i < 27) for (const delta of [1,2]) {
           const j = i + delta;
           if (j < 27 && Math.floor(j / 9) === Math.floor(i / 9))
-            select([i,j], emit);
+            select([i,j], () => emit());
         }
       }
     });
   });
+  // Seven pairs: choose six DISTINCT pair faces and one different singleton.
+  // Four identical tiles are never treated as two pairs. Enumerating this
+  // structure directly avoids arbitrary 13-subsets of the available pool.
+  const pairFaces = available.flatMap((n, i) => n >= 2 ? [i] : []);
+  const buildPairs = (remaining: number, start: number): void => {
+    if (remaining === 0) {
+      for (let i = 0; i < 34; i++) {
+        if (available[i] === 0 || counts[i] !== 0) continue;
+        select([i], () => emit([i]));
+      }
+      return;
+    }
+    for (let p = start; p <= pairFaces.length - remaining; p++) {
+      const i = pairFaces[p];
+      select([i, i], () => buildPairs(remaining - 1, p + 1));
+    }
+  };
+  buildPairs(6, 0);
   return [...found.values()].sort((a,b) =>
     a.earliestPlayerDraw - b.earliestPlayerDraw ||
     a.counts.join(',').localeCompare(b.counts.join(',')));

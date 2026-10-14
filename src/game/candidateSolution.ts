@@ -10,7 +10,7 @@ import {
 /**
  * Candidate-first search. This is a feasible *lower bound*, not a proof of the
  * global maximum: candidateReplay uses one deterministic discard order per
- * target and only searches standard four-meld-and-pair waits.
+ * target and searches standard four-meld-and-pair and seven-pairs waits.
  */
 export function findCandidateSolution(initial: State): SolverResult | null {
   if (initial.playerFuro.length || initial.playerDrawnTile ||
