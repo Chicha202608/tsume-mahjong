@@ -604,7 +604,7 @@ export function searchBestWin(
 
     if (interrupted()) {
       complete = false;
-      return { rank: 0, score: null };
+      return { rank: 0, score: null, winWallDrawCount: null };
     }
     statesVisited++;
 
