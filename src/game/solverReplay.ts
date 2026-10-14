@@ -12,7 +12,7 @@ export interface ReplayFrame {
 
 /** Read-only states; never mutates the player's actual game history. */
 export function buildSolverReplay(initial: State, result: SolverResult): ReplayFrame[] {
-  if (!result.complete || !result.supported) return [];
+  if ((!result.complete && result.line.length === 0) || !result.supported) return [];
   const frames: ReplayFrame[] = [{ state: initial, action: null }];
   let state = initial;
   for (const action of result.line) {
