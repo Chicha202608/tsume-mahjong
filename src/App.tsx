@@ -107,7 +107,7 @@ export default function App() {
   const solverSummary = !solverResult && solverBusy ? '探索中…' : !solverResult ? '探索結果を取得できませんでした'
     : solverResult.outcome === 'win' && solverResult.bestScore !== null
       ? `${solverResult.complete ? '探索結果' : '発見済み得点（最高点未確定）'}：${solverResult.bestScore.toLocaleString()}点${solverBusy ? '・探索継続中' : ''}`
-    : !solverResult.complete || !solverResult.supported ? '探索未完了（得点比較不可）'
+    : !solverResult.complete || !solverResult.supported ? '通常形の和了手順を発見できませんでした（最高点未確定）'
     : solverResult.outcome === 'tenpai' ? '探索結果：テンパイ'
     : '探索結果：ノーテン';
 
