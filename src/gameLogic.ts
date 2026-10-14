@@ -338,6 +338,24 @@ export function findAnkanOptions(hand: Tile[], drawnTile: Tile | null): NakiOpti
   return options;
 }
 
+
+/** Restrict riichi-time concealed kans to those which preserve the winning waits. */
+export function findLegalAnkanOptions(
+  hand: Tile[], drawnTile: Tile | null, furoList: Furo[], afterRiichi: boolean,
+): NakiOption[] {
+  const options = findAnkanOptions(hand, drawnTile);
+  if (!afterRiichi) return options;
+  const originalWaits = getWaits(hand, furoList).map(tileKey).sort().join(',');
+  return options.filter(option => {
+    const ids = new Set(option.tiles.map(t => t.id));
+    const remainder = [...hand, ...(drawnTile ? [drawnTile] : [])].filter(t => !ids.has(t.id));
+    const waits = getWaits(remainder, [...furoList, {
+      type: 'ankan' as const, tiles: option.tiles, calledTile: option.tiles[0],
+    }]).map(tileKey).sort().join(',');
+    return originalWaits === waits;
+  });
+}
+
 export function findKakanOptions(hand: Tile[], drawnTile: Tile | null, furoList: Furo[]): NakiOption[] {
   const options: NakiOption[] = [];
   const allHand = drawnTile ? [...hand, drawnTile] : [...hand];
