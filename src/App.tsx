@@ -117,7 +117,8 @@ export default function App() {
     && solverResult.bestScore !== null && playerScore !== null
     ? playerScore - solverResult.bestScore : null;
   const comparisonText = scoreDifference === null ? solverSummary
-    : `${solverSummary} / ${scoreDifference > 0 ? '探索結果を上回りました：+' : scoreDifference < 0 ? 'AIの得点との差：' : 'AIと同点：'}${scoreDifference.toLocaleString()}点`;
+    : scoreDifference === 0 ? `${solverSummary} / AIと同点`
+    : `${solverSummary} / ${scoreDifference > 0 ? '探索結果を上回りました：+' : 'AIの得点との差：'}${scoreDifference.toLocaleString()}点`;
 
   function handleDismissWin() {
     setShowScoreModal(false);

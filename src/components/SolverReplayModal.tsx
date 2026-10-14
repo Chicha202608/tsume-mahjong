@@ -3,8 +3,11 @@ import type { State } from '@/game/gameState';
 import type { SolverResult } from '@/game/solver';
 import { buildSolverReplay, buildNotenReplay } from '@/game/solverReplay';
 import TileCard from '@/components/TileCard';
-import { getDoraTileKeys } from '@/gameLogic';
+import { getDoraTileKeys, canRiichi } from '@/gameLogic';
 import { isStopState } from '@/game/history';
+import { scoreHand } from '@/game/scoreAdapter';
+import YakuDisplay from '@/components/YakuDisplay';
+import NakiRonButtons from '@/components/NakiRonButtons';
 
 interface Props {
   initial: State;
@@ -25,18 +28,37 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
   const stops = useMemo(() => frames.map((frame, i) => i)
     .filter(i => i === 0 || i === frames.length - 1 || isStopState(frames[i].state)), [frames]);
   const [stopPosition, setStopPosition] = useState(0);
+  const [scoreDismissed, setScoreDismissed] = useState(false);
   const index = stops[Math.min(stopPosition, stops.length - 1)] ?? 0;
   const frame = frames[Math.min(index, frames.length - 1)];
+  const scoreResult = useMemo(() => {
+    if (frame?.state.phase !== 'win') return null;
+    try {
+      return scoreHand(frame.state);
+    } catch {
+      return null;
+    }
+  }, [frame]);
+  const navigate = (position: number) => {
+    setStopPosition(position);
+    setScoreDismissed(false);
+  };
   if (!frame) return null;
   const { state, action } = frame;
   const dora = getDoraTileKeys(state.wanpai, state.doraCount);
   const isDora = (tile: typeof state.playerHand[number]) => dora.has(`${tile.suit}-${tile.value}`);
   const followingStop = stops[stopPosition + 1] ?? index;
+  const nextAction = frames[index + 1]?.action;
+  const replayChoice = nextAction?.type === 'pass-naki' ? 'pass'
+    : nextAction?.type === 'ron' ? 'ron' : undefined;
+  const showRiichi = state.phase === 'playerDiscard' && !state.isRiichi &&
+    !!state.playerDrawnTile && canRiichi(state.playerHand, state.playerDrawnTile, state.playerFuro);
+  const chooseRiichi = (nextAction?.type === 'discard' || nextAction?.type === 'tsumo') && nextAction.riichi;
+  const cancelRiichi = nextAction?.type === 'discard' && !nextAction.riichi;
+  const choiceClass = (selected: boolean) => `rounded-lg px-5 py-2.5 font-bold cursor-default ${selected ? 'ring-4 ring-yellow-400' : ''}`;
   const nextDiscard = result.outcome !== 'noten'
     ? frames.slice(index + 1, followingStop + 1).map(frame => frame.action)
       .find(action => action?.type === 'discard') ?? null : null;
-  // A riichi announcement precedes the declaration discard, not follows it.
-  const isRiichiStep = nextDiscard?.type === 'discard' && !!nextDiscard.riichi;
   const highlightedId = nextDiscard?.type === 'discard' ? nextDiscard.tile.id : null;
   const resultText = result.outcome === 'win' ? `AIの得点 ${result.bestScore?.toLocaleString()}点`
     : result.outcome === 'tenpai' ? 'テンパイ' : 'ノーテン（ツモ切り例）';
@@ -50,7 +72,6 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
         </div>
         <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-3">
         <p className="text-green-200 text-sm">手順 {stopPosition + 1} / {stops.length}　{action ? actionLabel[action.type] : '配牌'}</p>
-        <div className="h-10 shrink-0 flex items-center justify-center">{isRiichiStep && <span className="text-center text-xl font-black text-yellow-300 bg-yellow-900/40 rounded-lg py-1 px-6">リーチ</span>}</div>
         <div className="h-[86px] shrink-0 overflow-hidden bg-[#152615] border border-[#2d4a2d] rounded-lg p-3">
           <div className="text-green-400 text-sm mb-2">CPUの捨て牌</div>
           <div className="flex flex-wrap gap-1 min-h-9">
@@ -63,6 +84,28 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
             {state.playerDiscards.map(tile => <TileCard key={tile.id} tile={tile} size="xs" dora={isDora(tile)} />)}
           </div>
         </div>
+        <div className="h-20 shrink-0 overflow-y-auto">
+        {state.phase === 'naki' && state.lastCpuDiscard && (
+          <div className="rounded-lg border border-green-700 overflow-hidden">
+            <NakiRonButtons phase={state.phase} lastCpuDiscard={state.lastCpuDiscard}
+              ronAvailable={state.ronAvailable || replayChoice === 'ron'} nakiOptions={state.nakiOptions}
+              readOnly replayChoice={replayChoice}
+              onRon={() => {}} onNaki={() => {}} onDeclareKan={() => {}} onPassNaki={() => {}} />
+          </div>
+        )}
+        {state.phase === 'playerDiscard' && (showRiichi || state.tsumoAvailable) && (
+          <div className="flex flex-wrap items-center justify-center gap-6 rounded-lg border border-green-700 bg-[#1e3a1e] px-4 py-3">
+            {showRiichi && <div className="flex gap-3">
+              <button disabled className={`${choiceClass(!!chooseRiichi)} bg-blue-600`}>リーチ</button>
+              <button disabled className={`${choiceClass(cancelRiichi)} bg-gray-600`} aria-label="リーチをキャンセル">キャンセル</button>
+            </div>}
+            {state.tsumoAvailable && <div className="flex gap-3">
+              <button disabled className={`${choiceClass(nextAction?.type === 'tsumo')} bg-yellow-500 text-yellow-900`}>ツモ</button>
+              <button disabled className={`${choiceClass(nextAction?.type === 'pass-tsumo')} bg-gray-600`} aria-label="ツモをキャンセル">キャンセル</button>
+            </div>}
+          </div>
+        )}
+        </div>
         <div className="flex-1 min-h-[130px] bg-[#152615] rounded-lg p-3">
           <div className="text-green-400 text-sm mb-2">手牌　{highlightedId ? '（黄色枠が次に切る牌）' : ''}</div>
           <div className="flex flex-nowrap items-end justify-start gap-1 mx-auto w-[850px] min-h-[90px]">
@@ -70,15 +113,25 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
             <div className="ml-2 shrink-0">{state.playerDrawnTile && <div className={highlightedId === state.playerDrawnTile.id ? 'ring-4 ring-yellow-400 rounded' : ''}><TileCard tile={state.playerDrawnTile} size="md" dora={isDora(state.playerDrawnTile)} /></div>}</div>
           </div>
         </div>
-        {index === frames.length - 1 && <p className="text-center text-yellow-200 font-bold">{resultText}</p>}
         </div>
         <div className="shrink-0 flex flex-wrap justify-center gap-2 border-t border-green-800 pt-3">
-          <button className="bg-gray-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === 0} onClick={() => setStopPosition(0)}>最初へ</button>
-          <button className="bg-gray-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === 0} onClick={() => setStopPosition(v => v-1)}>◀ 戻る</button>
-          <button className="bg-green-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === stops.length - 1} onClick={() => setStopPosition(v => v+1)}>進む ▶</button>
-          <button className="bg-green-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === stops.length - 1} onClick={() => setStopPosition(stops.length-1)}>最後へ</button>
+          <button className="bg-gray-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === 0} onClick={() => navigate(0)}>最初へ</button>
+          <button className="bg-gray-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === 0} onClick={() => navigate(stopPosition - 1)}>◀ 戻る</button>
+          <button className="bg-green-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === stops.length - 1 && state.phase !== 'win'} onClick={() => state.phase === 'win' ? setScoreDismissed(false) : navigate(stopPosition + 1)}>進む ▶</button>
+          <button className="bg-green-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === stops.length - 1} onClick={() => navigate(stops.length - 1)}>最後へ</button>
         </div>
       </div>
+      {state.phase === 'win' && !scoreDismissed && (
+        <div role="dialog" aria-modal="true" aria-labelledby="ai-score-title" className="fixed inset-0 z-[80] bg-black/60 flex items-center justify-center p-3">
+          <div className="bg-[#2a2a1a] border border-yellow-500 rounded-2xl p-6 flex flex-col items-center gap-5 shadow-2xl max-w-[min(94vw,42rem)] max-h-[88dvh] overflow-y-auto text-white">
+            <h2 id="ai-score-title" className="text-2xl font-bold">AIの和了 — {state.winType === 'ron' ? 'ロン' : 'ツモ'}</h2>
+            {scoreResult?.valid && scoreResult.handInterpretations.length > 0
+              ? <YakuDisplay result={scoreResult} />
+              : <p className="text-red-300">AIの和了の採点結果を取得できませんでした。</p>}
+            <button autoFocus onClick={() => setScoreDismissed(true)} className="rounded-xl bg-gray-600 hover:bg-gray-500 px-6 py-3 font-bold">手順に戻る</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

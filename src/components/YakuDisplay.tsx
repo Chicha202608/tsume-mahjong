@@ -6,6 +6,23 @@ interface RSYaku {
   limit?: string;
 }
 
+// Follow the customary counting flow: riichi/ippatsu, basic yaku,
+// situational yaku, whole-hand yaku, partial-hand yaku, then dora below.
+// Reference: https://www.1jann.com/pairi/kouza/098.html
+const YAKU_DISPLAY_ORDER = [
+  'double-riichi', 'riichi', 'ippatsu',
+  'menzen-tsumo', 'tanyao', 'pinfu',
+  'round-wind', 'seat-wind', 'haku', 'hatsu', 'chun',
+  'haitei', 'houtei', 'rinshan-kaihou', 'chankan',
+  'chinitsu', 'honitsu', 'junchan', 'honroutou', 'chanta', 'chiitoitsu', 'toitoi',
+  'ryanpeikou', 'shousangen', 'sankantsu', 'sanankou', 'sanshoku-doukou',
+  'sanshoku', 'ittsuu', 'iipeiko',
+  'tenhou', 'chiihou', 'kokushi-musou', 'suuankou', 'daisangen',
+  'daisuushii', 'shousuushii', 'tsuuiisou', 'chinroutou', 'ryuuiisou',
+  'chuuren-poutou', 'suukantsu',
+];
+const yakuOrder = new Map(YAKU_DISPLAY_ORDER.map((name, index) => [name, index]));
+
 const YAKU_JP: Record<string, string> = {
   'riichi': '立直',
   'double-riichi': 'ダブル立直',
@@ -95,12 +112,16 @@ export default function YakuDisplay({ result }: Props) {
   }
 
   const tierLabel = scoreTierLabel(best);
+  // Sort a copy: scoring results and interpretation priority stay unchanged.
+  const displayYaku = [...best.yaku].sort((a, b) =>
+    (yakuOrder.get(a.name) ?? YAKU_DISPLAY_ORDER.length) -
+    (yakuOrder.get(b.name) ?? YAKU_DISPLAY_ORDER.length));
 
   return (
     <div className="flex flex-col gap-3 w-full max-w-2xl">
       {/* Yaku list */}
       <div className="flex flex-col gap-1.5 bg-black/30 rounded-xl p-4">
-        {best.yaku.map((yaku, i) => (
+        {displayYaku.map((yaku, i) => (
           <div key={i} className="flex items-center justify-between text-sm">
             <span className="text-white font-semibold">{yakuLabel(yaku)}</span>
             <span className="text-white font-bold">{yakuHanLabel(yaku)}</span>
