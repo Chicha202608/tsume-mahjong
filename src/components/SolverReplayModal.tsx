@@ -3,7 +3,7 @@ import type { State } from '@/game/gameState';
 import type { SolverResult } from '@/game/solver';
 import { buildSolverReplay, buildNotenReplay } from '@/game/solverReplay';
 import TileCard from '@/components/TileCard';
-import { getDoraTileKeys } from '@/gameLogic';
+import { getDoraTileKeys, canRiichi } from '@/gameLogic';
 import { isStopState } from '@/game/history';
 import { scoreHand } from '@/game/scoreAdapter';
 import YakuDisplay from '@/components/YakuDisplay';
@@ -51,6 +51,11 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
   const nextAction = frames[index + 1]?.action;
   const replayChoice = nextAction?.type === 'pass-naki' ? 'pass'
     : nextAction?.type === 'ron' ? 'ron' : undefined;
+  const showRiichi = state.phase === 'playerDiscard' && !state.isRiichi &&
+    !!state.playerDrawnTile && canRiichi(state.playerHand, state.playerDrawnTile, state.playerFuro);
+  const chooseRiichi = (nextAction?.type === 'discard' || nextAction?.type === 'tsumo') && nextAction.riichi;
+  const cancelRiichi = nextAction?.type === 'discard' && !nextAction.riichi;
+  const choiceClass = (selected: boolean) => `rounded-lg px-5 py-2.5 font-bold cursor-default ${selected ? 'ring-4 ring-yellow-400' : ''}`;
   const nextDiscard = result.outcome !== 'noten'
     ? frames.slice(index + 1, followingStop + 1).map(frame => frame.action)
       .find(action => action?.type === 'discard') ?? null : null;
@@ -86,9 +91,21 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
         {state.phase === 'naki' && state.lastCpuDiscard && (
           <div className="rounded-lg border border-green-700 overflow-hidden">
             <NakiRonButtons phase={state.phase} lastCpuDiscard={state.lastCpuDiscard}
-              ronAvailable={state.ronAvailable} nakiOptions={state.nakiOptions}
+              ronAvailable={state.ronAvailable || replayChoice === 'ron'} nakiOptions={state.nakiOptions}
               readOnly replayChoice={replayChoice}
               onRon={() => {}} onNaki={() => {}} onDeclareKan={() => {}} onPassNaki={() => {}} />
+          </div>
+        )}
+        {state.phase === 'playerDiscard' && (showRiichi || state.tsumoAvailable) && (
+          <div className="flex flex-wrap items-center justify-center gap-6 rounded-lg border border-green-700 bg-[#1e3a1e] px-4 py-3">
+            {showRiichi && <div className="flex gap-3">
+              <button disabled className={`${choiceClass(!!chooseRiichi)} bg-blue-600`}>リーチ</button>
+              <button disabled className={`${choiceClass(cancelRiichi)} bg-gray-600`} aria-label="リーチをキャンセル">キャンセル</button>
+            </div>}
+            {state.tsumoAvailable && <div className="flex gap-3">
+              <button disabled className={`${choiceClass(nextAction?.type === 'tsumo')} bg-yellow-500 text-yellow-900`}>ツモ</button>
+              <button disabled className={`${choiceClass(nextAction?.type === 'pass-tsumo')} bg-gray-600`} aria-label="ツモをキャンセル">キャンセル</button>
+            </div>}
           </div>
         )}
         </div>
@@ -99,13 +116,11 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
             <div className="ml-2 shrink-0">{state.playerDrawnTile && <div className={highlightedId === state.playerDrawnTile.id ? 'ring-4 ring-yellow-400 rounded' : ''}><TileCard tile={state.playerDrawnTile} size="md" dora={isDora(state.playerDrawnTile)} /></div>}</div>
           </div>
         </div>
-        {index === frames.length - 1 && <p className="text-center text-yellow-200 font-bold">{resultText}</p>}
-        {state.phase === 'win' && <button onClick={() => setScoreDismissed(false)} className="self-center rounded-lg bg-amber-700 hover:bg-amber-600 px-4 py-2 font-bold">役・点数を表示</button>}
         </div>
         <div className="shrink-0 flex flex-wrap justify-center gap-2 border-t border-green-800 pt-3">
           <button className="bg-gray-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === 0} onClick={() => navigate(0)}>最初へ</button>
           <button className="bg-gray-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === 0} onClick={() => navigate(stopPosition - 1)}>◀ 戻る</button>
-          <button className="bg-green-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === stops.length - 1} onClick={() => navigate(stopPosition + 1)}>進む ▶</button>
+          <button className="bg-green-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === stops.length - 1 && state.phase !== 'win'} onClick={() => state.phase === 'win' ? setScoreDismissed(false) : navigate(stopPosition + 1)}>進む ▶</button>
           <button className="bg-green-700 rounded-lg px-4 py-2 disabled:opacity-30" disabled={stopPosition === stops.length - 1} onClick={() => navigate(stops.length - 1)}>最後へ</button>
         </div>
       </div>
