@@ -121,8 +121,8 @@ export function buildHandInput(state: State): HandInput | null {
     uradoraIndicators,
     isRiichi: state.isRiichi,
     isIppatsu: state.isIppatsu,
-    isHaitei: state.winType === 'tsumo' && state.wall.length === 0 && state.fullWall.length > 0,
-    isHoutei: state.winType === 'ron' && state.wall.length === 0 && state.fullWall.length > 0,
+    isHaitei: state.winType === 'tsumo' && state.wall.length === 0 && state.fullWall.length === 36,
+    isHoutei: state.winType === 'ron' && state.wall.length === 0 && state.fullWall.length === 36,
   });
 
   return {
