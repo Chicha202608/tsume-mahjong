@@ -17,10 +17,10 @@ describe('solver replay modal state', () => {
     const frames = buildNotenReplay(initial);
     expect(frames.length).toBeGreaterThan(1);
     expect(frames[0].state).toBe(initial);
-    expect(frames.at(-1)?.state.phase).toBe('exhausted');
+    expect(frames[frames.length - 1]?.state.phase).toBe('exhausted');
     expect(JSON.stringify(initial)).toBe(original);
     expect(frames.filter(f => f.action?.type === 'discard').every(f =>
-      f.state.playerDiscards.at(-1)?.id === (f.action?.type === 'discard' ? f.action.tile.id : '')
+      f.state.playerDiscards[f.state.playerDiscards.length - 1]?.id === (f.action?.type === 'discard' ? f.action.tile.id : '')
     )).toBe(true);
   });
 
