@@ -124,7 +124,9 @@ export function replayCandidateOpportunity(
     ? (lastDiscardWallIndex - firstOwnIndex) / 2 + 1 : 0;
   const canLateRiichi = !initial.isRiichi && priorIsTenpai &&
     previousOwnTurn < 18 &&
-    lastDiscardWallIndex + 1 < initial.wall.length;
+    // A riichi declaration needs at least one subsequent own draw available.
+    // This excludes the player-first 18th CPU ron but permits CPU-first 18th ron.
+    lastDiscardWallIndex + 2 < initial.wall.length;
   const withRiichi = canLateRiichi ? evaluate(true) : null;
   const useRiichi = withRiichi !== null && (without === null || withRiichi > without);
   return { opportunity, discards, furiten,
