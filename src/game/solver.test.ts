@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { couldBuildTenpai, searchBestWin } from '@/game/solver';
+import { couldBuildTenpai, preferSolverCandidate, searchBestWin } from '@/game/solver';
 import { createDeck } from '@/gameLogic';
 import { makeInitialStateBase } from '@/game/gameState';
 import type { Tile } from '@/types';
@@ -359,5 +359,22 @@ describe('searchBestWin', () => {
     expect(result.complete).toBe(false);
     expect(result.bestScore).toBeNull();
     expect(result.line).toEqual([]);
+  });
+});
+
+describe('equal-score win tie breaker', () => {
+  const win = (score: number, draw: number) => ({
+    rank: 2 as const, score, winWallDrawCount: draw,
+  });
+  it('prefers an earlier win at equal score', () => {
+    expect(preferSolverCandidate(win(12000, 9), win(12000, 23))).toBe(true);
+    expect(preferSolverCandidate(win(12000, 23), win(12000, 9))).toBe(false);
+  });
+  it('always prioritizes score over winning time', () => {
+    expect(preferSolverCandidate(win(16000, 35), win(12000, 1))).toBe(true);
+    expect(preferSolverCandidate(win(8000, 1), win(12000, 35))).toBe(false);
+  });
+  it('keeps the first encountered route on an exact tie', () => {
+    expect(preferSolverCandidate(win(12000, 17), win(12000, 17))).toBe(false);
   });
 });
