@@ -81,6 +81,8 @@ export function replayCandidateOpportunity(
     phase: 'win',
     winType: opportunity.type,
     winTile: winningTile,
+    // Advance the wall through this win for accurate last-tile yaku flags.
+    wall: initial.wall.slice(opportunity.wallIndex + 1),
     isIppatsu: false,
   };
   const evaluate = (riichi: boolean): number | null => {
@@ -116,10 +118,8 @@ export function replayCandidateOpportunity(
   const priorCounts = Array<number>(34).fill(0);
   if (previousHand) for (const tile of previousHand) priorCounts[face(tile)]++;
   const priorIsTenpai = previousHand !== null && priorCounts.every((n, i) => n === target[i]);
-  // An immediately following CPU discard permits a final riichi, provided
-  // the player's last discard was not the terminal eighteenth discard.
-  // This works on CPU-first index 34 (18th CPU ron) but not the unreachable
-  // player-first index 35 after the player's terminal discard.
+  // Last-discard riichi is legal only when an ensuing player draw remains;
+  // the CPU's last discard still exists in player-first order.
   const previousOwnTurn = lastDiscardWallIndex >= firstOwnIndex
     ? (lastDiscardWallIndex - firstOwnIndex) / 2 + 1 : 0;
   const canLateRiichi = !initial.isRiichi && priorIsTenpai &&
