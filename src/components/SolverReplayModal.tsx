@@ -50,24 +50,24 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
         </div>
         <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-3">
         <p className="text-green-200 text-sm">手順 {stopPosition + 1} / {stops.length}　{action ? actionLabel[action.type] : '配牌'}</p>
-        {isRiichiStep && <p className="text-center text-xl font-black text-yellow-300 bg-yellow-900/40 rounded-lg py-2">リーチ</p>}
-        <div className="bg-[#152615] border border-[#2d4a2d] rounded-lg p-3">
+        <div className="h-10 shrink-0 flex items-center justify-center">{isRiichiStep && <span className="text-center text-xl font-black text-yellow-300 bg-yellow-900/40 rounded-lg py-1 px-6">リーチ</span>}</div>
+        <div className="h-[86px] shrink-0 overflow-hidden bg-[#152615] border border-[#2d4a2d] rounded-lg p-3">
           <div className="text-green-400 text-sm mb-2">CPUの捨て牌</div>
           <div className="flex flex-wrap gap-1 min-h-9">
             {state.cpuDiscards.map((tile) => <TileCard key={tile.id} tile={tile} size="xs" />)}
           </div>
         </div>
-        <div className="bg-[#172917] border border-[#2d4a2d] rounded-lg p-3">
+        <div className="h-[86px] shrink-0 overflow-hidden bg-[#172917] border border-[#2d4a2d] rounded-lg p-3">
           <div className="text-green-400 text-sm mb-2">自分の捨て牌</div>
           <div className="flex flex-wrap gap-1 min-h-9">
             {state.playerDiscards.map(tile => <TileCard key={tile.id} tile={tile} size="xs" dora={isDora(tile)} />)}
           </div>
         </div>
-        <div className="bg-[#152615] rounded-lg p-3">
+        <div className="flex-1 min-h-[130px] bg-[#152615] rounded-lg p-3">
           <div className="text-green-400 text-sm mb-2">手牌　{highlightedId ? '（黄色枠が次に切る牌）' : ''}</div>
-          <div className="flex flex-wrap items-end justify-center gap-1">
+          <div className="flex flex-nowrap items-end justify-start gap-1 mx-auto w-[850px] min-h-[90px]">
             {state.playerHand.map(tile => <div key={tile.id} className={highlightedId === tile.id ? 'ring-4 ring-yellow-400 rounded' : ''}><TileCard tile={tile} size="md" dora={isDora(tile)} /></div>)}
-            {state.playerDrawnTile && <div className={`ml-2 ${highlightedId === state.playerDrawnTile.id ? 'ring-4 ring-yellow-400 rounded' : ''}`}><TileCard tile={state.playerDrawnTile} size="md" dora={isDora(state.playerDrawnTile)} /></div>}
+            <div className="ml-2 shrink-0">{state.playerDrawnTile && <div className={highlightedId === state.playerDrawnTile.id ? 'ring-4 ring-yellow-400 rounded' : ''}><TileCard tile={state.playerDrawnTile} size="md" dora={isDora(state.playerDrawnTile)} /></div>}</div>
           </div>
         </div>
         {index === frames.length - 1 && <p className="text-center text-yellow-200 font-bold">{resultText}</p>}
