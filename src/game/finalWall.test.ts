@@ -24,7 +24,7 @@ describe('last live wall tile and last-tile yaku', () => {
   });
   it('sets last-tile gameState flags for tsumo and ron independently', () => {
     const initial = makeInitialStateBase([], [], [], [], 'east', 'south');
-    const base = { ...initial, phase: 'win' as const, winTile: tile('win') };
+    const base = { ...initial, fullWall: [tile('last-wall')], phase: 'win' as const, winTile: tile('win') };
     const haitei = buildHandInput({ ...base, winType: 'tsumo', playerDrawnTile: base.winTile });
     const houtei = buildHandInput({ ...base, winType: 'ron' });
     expect(haitei?.gameState.isHaitei).toBe(true);
