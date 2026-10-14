@@ -92,8 +92,21 @@ interface SearchNode {
   /** 2 = win, 1 = tenpai at exhaustion, 0 = noten/no valid win. */
   rank: 0 | 1 | 2;
   score: number | null;
+  /** Number of wall draws consumed when this winning line ends. */
+  winWallDrawCount: number | null;
   /** Semantic action descriptor; contains no physical tile IDs. */
   choice?: SearchChoice;
+}
+
+/** Prefer a higher score, then the earlier win, leaving an exact tie stable. */
+export function preferSolverCandidate(
+  candidate: { rank: 0 | 1 | 2; score: number | null; winWallDrawCount: number | null },
+  incumbent: { rank: 0 | 1 | 2; score: number | null; winWallDrawCount: number | null },
+): boolean {
+  if (candidate.rank !== incumbent.rank) return candidate.rank > incumbent.rank;
+  if (candidate.rank !== 2) return false;
+  if (candidate.score !== incumbent.score) return (candidate.score ?? -1) > (incumbent.score ?? -1);
+  return (candidate.winWallDrawCount ?? Infinity) < (incumbent.winWallDrawCount ?? Infinity);
 }
 
 function tileKey(tile: Tile): string {
@@ -580,7 +593,7 @@ export function searchBestWin(
     statesVisited >= maxStates || Date.now() - startedAt >= maxDurationMs;
 
   const search = (state: State, lastDrawWasKan = false): SearchNode => {
-    if (!complete) return { rank: 0, score: null };
+    if (!complete) return { rank: 0, score: null, winWallDrawCount: null };
 
     const key = memoKey(state, lastDrawWasKan);
     const cached = memo.get(key);
@@ -598,20 +611,21 @@ export function searchBestWin(
     if (state.phase === 'win') {
       const scored = scoreWinningState(state, !lastDrawWasKan && (state.winType !== 'ron' || state.wall.length > 0), scoreCache);
       const terminal: SearchNode = scored
-        ? { rank: 2, score: scored.score }
-        : { rank: 0, score: null };
+        ? { rank: 2, score: scored.score, winWallDrawCount: state.wallDrawnCount }
+        : { rank: 0, score: null, winWallDrawCount: null };
       memo.set(key, terminal);
       return terminal;
     }
     if (state.phase === 'exhausted') {
       const tenpai = isTenpai(state);
-      const terminal: SearchNode = { rank: tenpai ? 1 : 0, score: null };
+      const terminal: SearchNode = { rank: tenpai ? 1 : 0, score: null, winWallDrawCount: null };
       memo.set(key, terminal);
       return terminal;
     }
 
     let bestRank: 0 | 1 | 2 = 0;
     let bestScore: number | null = null;
+    let bestWinWallDrawCount: number | null = null;
     let bestChoice: SearchChoice | undefined;
 
     const consider = (action: StepAction, nextState: State | null, nextDrawWasKan = false) => {
@@ -624,12 +638,13 @@ export function searchBestWin(
         return;
       }
       const child = search(nextState, nextDrawWasKan);
-      const isBetter = !bestChoice || child.rank > bestRank ||
-        (child.rank === 2 && bestRank === 2 && child.score !== null &&
-          (bestScore === null || child.score > bestScore));
+      const isBetter = !bestChoice || preferSolverCandidate(child, {
+        rank: bestRank, score: bestScore, winWallDrawCount: bestWinWallDrawCount,
+      });
       if (isBetter) {
         bestRank = child.rank;
         bestScore = child.score;
+        bestWinWallDrawCount = child.winWallDrawCount;
         bestChoice = { kind: 'step', action: describeStep(action) };
       }
     };
@@ -637,9 +652,12 @@ export function searchBestWin(
     const considerWin = (winState: State | null, type: 'tsumo' | 'ron') => {
       if (!complete || !winState) return;
       const scored = scoreWinningState(winState, !lastDrawWasKan && (type !== 'ron' || state.wall.length > 0), scoreCache);
-      if (scored && (bestRank < 2 || (bestRank === 2 && (bestScore === null || scored.score > bestScore)))) {
+      if (scored && (bestRank < 2 || preferSolverCandidate({
+        rank: 2, score: scored.score, winWallDrawCount: winState!.wallDrawnCount,
+      }, { rank: bestRank, score: bestScore, winWallDrawCount: bestWinWallDrawCount }))) {
         bestRank = 2;
         bestScore = scored.score;
+        bestWinWallDrawCount = winState!.wallDrawnCount;
         const action: WinAction = type === 'ron'
           ? {
               type: 'ron',
@@ -692,6 +710,7 @@ export function searchBestWin(
           if (scored) {
             bestRank = 2;
             bestScore = scored.score;
+            bestWinWallDrawCount = state.wallDrawnCount + 1;
             bestChoice = {
               kind: 'cpu-turn-ron',
               win: {
@@ -762,7 +781,7 @@ export function searchBestWin(
         break;
     }
 
-    const result: SearchNode = { rank: bestRank, score: bestScore, choice: bestChoice };
+    const result: SearchNode = { rank: bestRank, score: bestScore, winWallDrawCount: bestWinWallDrawCount, choice: bestChoice };
     if (complete) memo.set(key, result);
     return result;
   };
