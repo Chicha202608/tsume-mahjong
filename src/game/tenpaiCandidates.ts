@@ -161,12 +161,16 @@ export function findCandidateWinOpportunities(
   state: State,
   candidates: TenpaiCandidate[],
 ): CandidateWinOpportunity[] {
-  if (state.playerFuro.length || state.phase !== 'playerDraw') return [];
+  if (state.playerFuro.length || !['playerDraw', 'cpuTurn'].includes(state.phase)) return [];
+  const playerFirst = state.phase === 'playerDraw';
   const held = Array<number>(34).fill(0);
   for (const tile of state.playerHand) held[indexOf(tile)]++;
   const opportunities: CandidateWinOpportunity[] = [];
   for (let wallIndex = 0; wallIndex < state.wall.length; wallIndex++) {
-    const ownDraw = wallIndex % 2 === 0;
+    const ownDraw = (wallIndex % 2 === 0) === playerFirst;
+    // In the actual game, player-first ends after the eighteenth player discard.
+    // Thus the hypothetical final CPU discard (wall[35]) is never reached.
+    if (playerFirst && wallIndex >= 35) break;
     // At this point, held contains the starting hand and all PRECEDING
     // own draws, not the current winning tile.
     const winFace = indexOf(state.wall[wallIndex]);
