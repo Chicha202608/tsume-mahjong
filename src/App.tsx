@@ -146,7 +146,13 @@ export default function App() {
   return (
     <div className="h-dvh w-full bg-black flex items-center justify-center overflow-hidden">
     <div style={{ width: DESIGN_WIDTH * scale, height: DESIGN_HEIGHT * scale }}>
-    <div className="bg-[#1a2e1a] flex flex-col overflow-hidden" style={{ width: DESIGN_WIDTH, height: DESIGN_HEIGHT, transform: `scale(${scale})`, transformOrigin: 'top left', fontFamily: "'Segoe UI', system-ui', sans-serif" }}>
+    <div className="bg-[#1a2e1a] flex flex-col overflow-hidden" onDoubleClickCapture={(event) => {
+      if (phase !== 'naki' || isViewingPast || pendingAction) return;
+      const target = event.target as HTMLElement;
+      if (target.closest('button, input, select, textarea, [role="button"]')) return;
+      event.preventDefault();
+      passNaki();
+    }} style={{ width: DESIGN_WIDTH, height: DESIGN_HEIGHT, transform: `scale(${scale})`, transformOrigin: 'top left', fontFamily: "'Segoe UI', system-ui', sans-serif" }}>
       <Header
         turnCount={turnCount}
         maxDraws={MAX_DRAWS}
