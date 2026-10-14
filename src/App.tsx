@@ -83,8 +83,8 @@ export default function App() {
   }, [historyIndex, isValidWin]);
 
   useEffect(() => {
-    if (phase !== 'win' && phase !== 'exhausted') return;
-    // Search the untouched initial deal without blocking game and modal rendering.
+    // Start as soon as the initial deal exists. Restart only when the deal changes.
+    // Searching must not depend on the current phase or history navigation.
     setSolverResult(null);
     setSolverBusy(true);
     const worker = new Worker(new URL('./game/solver.worker.ts', import.meta.url), { type: 'module' });
@@ -100,7 +100,7 @@ export default function App() {
     };
     worker.postMessage(initialState);
     return () => worker.terminate();
-  }, [initialState, phase]);
+  }, [initialState]);
 
   const solverSummary = solverBusy ? '探索中…（最大15秒）' : !solverResult ? '探索結果を取得できませんでした'
     : !solverResult.complete || !solverResult.supported ? '探索未完了（得点比較不可）'
