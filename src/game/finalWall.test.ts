@@ -8,7 +8,7 @@ const tile = (id: string, value = 1): Tile => ({ id, suit: 'man', value });
 describe('last live wall tile and last-tile yaku', () => {
   it('player-first: eighteenth discard still gives CPU its final draw and discard', () => {
     const current = makeInitialStateBase([], [], [tile('final')], [], 'east', 'south');
-    const afterDiscard = applyPlayerDiscard({ ...current, phase: 'playerDiscard', playerDrawnTile: tile('held'), turnCount: 17 });
+    const afterDiscard = applyPlayerDiscard({ ...current, phase: 'playerDiscard', playerDrawnTile: tile('held'), turnCount: 17 }, tile('held'));
     expect(afterDiscard?.phase).toBe('cpuTurn');
     expect(afterDiscard?.turnCount).toBe(18);
     const afterCpu = applyCpuTurn(afterDiscard!);
