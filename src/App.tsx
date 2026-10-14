@@ -107,7 +107,7 @@ export default function App() {
   const solverSummary = !solverResult && solverBusy ? '探索中…' : !solverResult ? '探索結果を取得できませんでした'
     : solverResult.outcome === 'win' && solverResult.bestScore !== null
       ? `AIの得点：${solverResult.bestScore.toLocaleString()}点${solverBusy ? '・探索継続中' : ''}`
-    : !solverResult.complete || !solverResult.supported ? '通常形の和了手順を発見できませんでした（最高点未確定）'
+    : !solverResult.complete || !solverResult.supported ? 'AI：ノーテン'
     : solverResult.outcome === 'tenpai' ? '探索結果：テンパイ'
     : '探索結果：ノーテン';
 
@@ -117,7 +117,7 @@ export default function App() {
     && solverResult.bestScore !== null && playerScore !== null
     ? playerScore - solverResult.bestScore : null;
   const comparisonText = scoreDifference === null ? solverSummary
-    : `${solverSummary} / ${scoreDifference > 0 ? '探索結果を上回りました：+' : scoreDifference < 0 ? 'AIの得点との差：' : '探索結果と同点：'}${scoreDifference.toLocaleString()}点`;
+    : `${solverSummary} / ${scoreDifference > 0 ? '探索結果を上回りました：+' : scoreDifference < 0 ? 'AIの得点との差：' : 'AIの得点と同点：'}${scoreDifference.toLocaleString()}点`;
 
   function handleDismissWin() {
     setShowScoreModal(false);
@@ -147,11 +147,17 @@ export default function App() {
     <div className="h-dvh w-full bg-black flex items-center justify-center overflow-hidden">
     <div style={{ width: DESIGN_WIDTH * scale, height: DESIGN_HEIGHT * scale }}>
     <div className="bg-[#1a2e1a] flex flex-col overflow-hidden" onDoubleClickCapture={(event) => {
-      if (phase !== 'naki' || isViewingPast || pendingAction) return;
+      if (isViewingPast || pendingAction || showWall || showScoreModal || showSolverReplay) return;
       const target = event.target as HTMLElement;
-      if (target.closest('button, input, select, textarea, [role="button"]')) return;
-      event.preventDefault();
-      passNaki();
+      // Tile faces and buttons must retain their normal click behavior.
+      if (target.closest('button, input, select, textarea, [role="button"], [data-tile-card]')) return;
+      if (phase === 'naki') {
+        event.preventDefault();
+        passNaki();
+      } else if (phase === 'playerDiscard' && playerDrawnTile && !isRiichi) {
+        event.preventDefault();
+        playerDiscard(playerDrawnTile);
+      }
     }} style={{ width: DESIGN_WIDTH, height: DESIGN_HEIGHT, transform: `scale(${scale})`, transformOrigin: 'top left', fontFamily: "'Segoe UI', system-ui', sans-serif" }}>
       <Header
         turnCount={turnCount}
