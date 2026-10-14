@@ -1339,7 +1339,7 @@ describe('scoreHand — red five dora indicator is treated as an ordinary five',
     playerFuro: [], cpuFuro: [], phase: 'win', turnCount: 10,
     lastCpuDiscard: null, nakiOptions: [], ronAvailable: false,
     winType: 'tsumo', doraCount: 1, isRiichi: false, tsumoAvailable: true,
-    missedRonAfterRiichi: false, roundWind: 'east', playerWind: 'east',
+    missedRonAfterRiichi: false, roundWind: 'east', playerWind: 'east', cpuWind: 'south',
     winTile, isIppatsu: false,
   };
 
