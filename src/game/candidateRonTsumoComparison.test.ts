@@ -22,6 +22,21 @@ const maxScore = (state: ReturnType<typeof makeInitialStateBase>, type: 'ron' | 
 };
 
 describe('identical closed hand and winning face', () => {
+  it('does not invent ippatsu for an already declared riichi', () => {
+    const state = { ...makeInitialStateBase(hand, [], [win], []),
+      roundWind: 'east' as const, playerWind: 'south' as const,
+      isRiichi: true, isIppatsu: false };
+    const expectedResult = scoreHand({ ...state, phase: 'win' as const,
+      playerHand: hand, winTile: win, winType: 'tsumo' as const,
+      playerDrawnTile: null });
+    const expected = expectedResult?.valid && expectedResult.handInterpretations.length
+      ? Math.max(...expectedResult.handInterpretations.map(h => h.totalWinnings)) : null;
+    const actual = evaluateCandidateWins(state).find(r =>
+      r.opportunity.wallIndex === 0 && r.opportunity.type === 'tsumo');
+    expect(expected).not.toBeNull();
+    expect(actual?.score).toBe(expected);
+  });
+
   it('never awards less total winnings for tsumo than ron under identical flags', () => {
     const state = { ...makeInitialStateBase(hand, [], [], []),
       roundWind: 'east' as const, playerWind: 'south' as const };
