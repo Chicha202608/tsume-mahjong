@@ -25,6 +25,7 @@ export interface State {
   missedRonAfterRiichi: boolean;
   roundWind: Wind;
   playerWind: Wind;
+  cpuWind: Wind;
   winTile: Tile | null;
   isIppatsu: boolean;
 }
@@ -35,12 +36,19 @@ function randomWind(): Wind {
   return winds[Math.floor(Math.random() * winds.length)];
 }
 
+/** Four-seat order, with the CPU uniformly chosen from the other three winds. */
+export function isPlayerUpwind(playerWind: Wind, cpuWind: Wind): boolean {
+  return winds.indexOf(playerWind) < winds.indexOf(cpuWind);
+}
+
 export function makeInitialState(): State {
   const { playerHand, cpuHand, wall, wanpai } = initGame();
   return makeInitialStateBase(playerHand, cpuHand, wall, wanpai);
 }
 
 export function makeInitialStateBase(playerHand: Tile[], cpuHand: Tile[], wall: Tile[], wanpai: Tile[]): State {
+  const playerWind = randomWind();
+  const cpuWind = winds.filter(w => w !== playerWind)[Math.floor(Math.random() * 3)];
   return {
     playerHand, playerDrawnTile: null,
     cpuHand, wall,
@@ -49,14 +57,15 @@ export function makeInitialStateBase(playerHand: Tile[], cpuHand: Tile[], wall: 
     wallDrawnCount: 0,
     playerDiscards: [], cpuDiscards: [],
     playerFuro: [], cpuFuro: [],
-    phase: 'playerDraw', turnCount: 0,
+    phase: isPlayerUpwind(playerWind, cpuWind) ? 'playerDraw' : 'cpuTurn', turnCount: 0,
     lastCpuDiscard: null, nakiOptions: [], ronAvailable: false, winType: null,
     doraCount: 1,
     isRiichi: false,
     tsumoAvailable: false,
     missedRonAfterRiichi: false,
     roundWind: randomWind(),
-    playerWind: randomWind(),
+    playerWind,
+    cpuWind,
     winTile: null,
     isIppatsu: false,
   };
