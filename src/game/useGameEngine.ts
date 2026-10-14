@@ -43,6 +43,7 @@ const MATTACONFIRM_MESSAGE = 'この局面まで戻って打ち直しますか�
 
 export interface GameEngine {
   state: State;
+  initialState: State;
   isViewingPast: boolean;
   canUndo: boolean;
   canStepForward: boolean;
@@ -416,6 +417,7 @@ export function useGameEngine(): GameEngine {
 
   return {
     state,
+    initialState: history[0],
     isViewingPast,
     canUndo,
     canStepForward,

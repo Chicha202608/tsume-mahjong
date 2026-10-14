@@ -9,9 +9,11 @@ interface Props {
   onOk: () => void;
   isWin?: boolean;
   scoreResult?: HandAnalysis | null;
+  solverSummary?: string;
+  onShowSolver?: () => void;
 }
 
-export default function GameOverOverlay({ title, message, onRestart, onOk, isWin, scoreResult }: Props) {
+export default function GameOverOverlay({ title, message, onRestart, onOk, isWin, scoreResult, solverSummary, onShowSolver }: Props) {
   const hasScore = isWin && scoreResult && scoreResult.valid && scoreResult.handInterpretations.length > 0;
   const scoreError = isWin && scoreResult && (!scoreResult.valid || scoreResult.handInterpretations.length === 0);
 
@@ -31,13 +33,15 @@ export default function GameOverOverlay({ title, message, onRestart, onOk, isWin
           </div>
         )}
 
-        <div className="flex gap-3 mt-2">
+        {solverSummary && <p className="text-yellow-200 font-bold text-center">{solverSummary}</p>}
+        <div className="flex flex-wrap justify-center gap-3 mt-2">
           <button
             onClick={onOk}
             className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gray-600 hover:bg-gray-500 text-white font-bold text-lg transition-colors"
           >
             OK
           </button>
+          {onShowSolver && <button onClick={onShowSolver} className="px-6 py-3 rounded-xl bg-amber-700 hover:bg-amber-600 text-white font-bold text-lg">AIの手順</button>}
           <button
             onClick={onRestart}
             className="flex items-center gap-2 px-6 py-3 rounded-xl bg-green-700 hover:bg-green-600 text-white font-bold text-lg transition-colors"

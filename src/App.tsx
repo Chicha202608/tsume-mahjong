@@ -14,13 +14,19 @@ import PlayerDiscards from '@/components/PlayerDiscards';
 import NakiRonButtons from '@/components/NakiRonButtons';
 import HandSection from '@/components/HandSection';
 import WallModal from '@/components/WallModal';
+import SolverReplayModal from '@/components/SolverReplayModal';
+import type { SolverResult } from '@/game/solver';
 
 export default function App() {
   const [showWall, setShowWall] = useState(false);
   const [showScoreModal, setShowScoreModal] = useState(false);
+  const [showSolverReplay, setShowSolverReplay] = useState(false);
+  const [solverResult, setSolverResult] = useState<SolverResult | null>(null);
+  const [solverBusy, setSolverBusy] = useState(false);
   const engine = useGameEngine();
   const {
     state,
+    initialState,
     isViewingPast,
     canUndo,
     canStepForward,
@@ -76,6 +82,43 @@ export default function App() {
     prevHistoryIndexRef.current = historyIndex;
   }, [historyIndex, isValidWin]);
 
+  useEffect(() => {
+    // Start as soon as the initial deal exists. Restart only when the deal changes.
+    // Searching must not depend on the current phase or history navigation.
+    setSolverResult(null);
+    setSolverBusy(true);
+    const worker = new Worker(new URL('./game/solver.worker.ts', import.meta.url), { type: 'module' });
+    worker.onmessage = (event: MessageEvent<{ result?: SolverResult; error?: string; preliminary?: boolean }>) => {
+      setSolverResult(event.data.result ?? null);
+      if (!event.data.preliminary) {
+        setSolverBusy(false);
+        worker.terminate();
+      }
+    };
+    worker.onerror = () => {
+      setSolverResult(null);
+      setSolverBusy(false);
+      worker.terminate();
+    };
+    worker.postMessage(initialState);
+    return () => worker.terminate();
+  }, [initialState]);
+
+  const solverSummary = !solverResult && solverBusy ? '探索中…' : !solverResult ? '探索結果を取得できませんでした'
+    : solverResult.outcome === 'win' && solverResult.bestScore !== null
+      ? `AIの得点：${solverResult.bestScore.toLocaleString()}点${solverBusy ? '・探索継続中' : ''}`
+    : !solverResult.complete || !solverResult.supported ? 'AI：ノーテン'
+    : solverResult.outcome === 'tenpai' ? '探索結果：テンパイ'
+    : '探索結果：ノーテン';
+
+  const playerScore = scoreResult?.handInterpretations.length
+    ? Math.max(...scoreResult.handInterpretations.map(hand => hand.totalWinnings)) : null;
+  const scoreDifference = solverResult?.outcome === 'win'
+    && solverResult.bestScore !== null && playerScore !== null
+    ? playerScore - solverResult.bestScore : null;
+  const comparisonText = scoreDifference === null ? solverSummary
+    : `${solverSummary} / ${scoreDifference > 0 ? '探索結果を上回りました：+' : scoreDifference < 0 ? 'AIの得点との差：' : 'AIと同点：'}${scoreDifference.toLocaleString()}点`;
+
   function handleDismissWin() {
     setShowScoreModal(false);
     dismissGameOver();
@@ -83,6 +126,8 @@ export default function App() {
 
   function handleRestart() {
     setShowScoreModal(false);
+    setShowSolverReplay(false);
+    setSolverResult(null);
     restart();
   }
 
@@ -101,7 +146,19 @@ export default function App() {
   return (
     <div className="h-dvh w-full bg-black flex items-center justify-center overflow-hidden">
     <div style={{ width: DESIGN_WIDTH * scale, height: DESIGN_HEIGHT * scale }}>
-    <div className="bg-[#1a2e1a] flex flex-col overflow-hidden" style={{ width: DESIGN_WIDTH, height: DESIGN_HEIGHT, transform: `scale(${scale})`, transformOrigin: 'top left', fontFamily: "'Segoe UI', system-ui', sans-serif" }}>
+    <div className="bg-[#1a2e1a] flex flex-col overflow-hidden" onDoubleClickCapture={(event) => {
+      if (isViewingPast || pendingAction || showWall || showScoreModal || showSolverReplay) return;
+      const target = event.target as HTMLElement;
+      // Tile faces and buttons must retain their normal click behavior.
+      if (target.closest('button, input, select, textarea, [role="button"], [data-tile-card]')) return;
+      if (phase === 'naki') {
+        event.preventDefault();
+        passNaki();
+      } else if (phase === 'playerDiscard' && playerDrawnTile && !isRiichi) {
+        event.preventDefault();
+        playerDiscard(playerDrawnTile);
+      }
+    }} style={{ width: DESIGN_WIDTH, height: DESIGN_HEIGHT, transform: `scale(${scale})`, transformOrigin: 'top left', fontFamily: "'Segoe UI', system-ui', sans-serif" }}>
       <Header
         turnCount={turnCount}
         maxDraws={MAX_DRAWS}
@@ -215,6 +272,8 @@ export default function App() {
           message={`ツモ${MAX_DRAWS}回に達しました`}
           onRestart={handleRestart}
           onOk={handleDismissWin}
+          solverSummary={solverSummary ?? undefined}
+          onShowSolver={solverResult?.supported && (solverResult.complete || solverResult.line.length > 0) ? () => setShowSolverReplay(true) : undefined}
         />
       )}
 
@@ -227,7 +286,12 @@ export default function App() {
           onOk={handleDismissWin}
           isWin
           scoreResult={scoreResult}
+          solverSummary={comparisonText ?? undefined}
+          onShowSolver={solverResult?.supported && solverResult.line.length > 0 ? () => setShowSolverReplay(true) : undefined}
         />
+      )}
+      {showSolverReplay && solverResult?.supported && (solverResult.complete || solverResult.line.length > 0) && (
+        <SolverReplayModal initial={initialState} result={solverResult} onClose={() => setShowSolverReplay(false)} />
       )}
     </div>
     </div>
