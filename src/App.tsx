@@ -102,6 +102,14 @@ export default function App() {
     : solverResult.outcome === 'tenpai' ? '探索結果：テンパイ'
     : '探索結果：ノーテン';
 
+  const playerScore = scoreResult?.handInterpretations.length
+    ? Math.max(...scoreResult.handInterpretations.map(hand => hand.totalWinnings)) : null;
+  const scoreDifference = solverResult?.complete && solverResult.outcome === 'win'
+    && solverResult.bestScore !== null && playerScore !== null
+    ? playerScore - solverResult.bestScore : null;
+  const comparisonText = scoreDifference === null ? solverSummary
+    : `${solverSummary} / ${scoreDifference > 0 ? '探索結果を上回りました：+' : scoreDifference < 0 ? '探索結果との差：' : '探索結果と同点：'}${scoreDifference.toLocaleString()}点`;
+
   function handleDismissWin() {
     setShowScoreModal(false);
     dismissGameOver();
@@ -253,7 +261,7 @@ export default function App() {
           onOk={handleDismissWin}
           isWin
           scoreResult={scoreResult}
-          solverSummary={solverSummary ?? undefined}
+          solverSummary={comparisonText ?? undefined}
           onShowSolver={solverResult?.complete && solverResult.supported ? () => setShowSolverReplay(true) : undefined}
         />
       )}
