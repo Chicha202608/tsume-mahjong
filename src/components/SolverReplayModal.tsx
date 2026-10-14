@@ -59,8 +59,6 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
   const nextDiscard = result.outcome !== 'noten'
     ? frames.slice(index + 1, followingStop + 1).map(frame => frame.action)
       .find(action => action?.type === 'discard') ?? null : null;
-  // A riichi announcement precedes the declaration discard, not follows it.
-  const isRiichiStep = nextDiscard?.type === 'discard' && !!nextDiscard.riichi;
   const highlightedId = nextDiscard?.type === 'discard' ? nextDiscard.tile.id : null;
   const resultText = result.outcome === 'win' ? `AIの得点 ${result.bestScore?.toLocaleString()}点`
     : result.outcome === 'tenpai' ? 'テンパイ' : 'ノーテン（ツモ切り例）';
@@ -74,7 +72,6 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
         </div>
         <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-3">
         <p className="text-green-200 text-sm">手順 {stopPosition + 1} / {stops.length}　{action ? actionLabel[action.type] : '配牌'}</p>
-        <div className="h-10 shrink-0 flex items-center justify-center">{isRiichiStep && <span className="text-center text-xl font-black text-yellow-300 bg-yellow-900/40 rounded-lg py-1 px-6">リーチ</span>}</div>
         <div className="h-[86px] shrink-0 overflow-hidden bg-[#152615] border border-[#2d4a2d] rounded-lg p-3">
           <div className="text-green-400 text-sm mb-2">CPUの捨て牌</div>
           <div className="flex flex-wrap gap-1 min-h-9">
