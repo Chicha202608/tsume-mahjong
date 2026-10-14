@@ -41,7 +41,7 @@ export default function GameOverOverlay({ title, message, onRestart, onOk, isWin
           >
             OK
           </button>
-          {onShowSolver && <button onClick={onShowSolver} className="px-6 py-3 rounded-xl bg-amber-700 hover:bg-amber-600 text-white font-bold text-lg">AIの手順を見る</button>}
+          {onShowSolver && <button onClick={onShowSolver} className="px-6 py-3 rounded-xl bg-amber-700 hover:bg-amber-600 text-white font-bold text-lg">AIの手順</button>}
           <button
             onClick={onRestart}
             className="flex items-center gap-2 px-6 py-3 rounded-xl bg-green-700 hover:bg-green-600 text-white font-bold text-lg transition-colors"
