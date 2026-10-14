@@ -339,20 +339,31 @@ export function findAnkanOptions(hand: Tile[], drawnTile: Tile | null): NakiOpti
 }
 
 
-/** Restrict riichi-time concealed kans to those which preserve the winning waits. */
 export function findLegalAnkanOptions(
-  hand: Tile[], drawnTile: Tile | null, furoList: Furo[], afterRiichi: boolean,
+  hand: Tile[],
+  drawnTile: Tile | null,
+  furoList: Furo[],
+  isRiichi: boolean,
 ): NakiOption[] {
-  const options = findAnkanOptions(hand, drawnTile);
-  if (!afterRiichi) return options;
-  const originalWaits = getWaits(hand, furoList).map(tileKey).sort().join(',');
-  return options.filter(option => {
-    const ids = new Set(option.tiles.map(t => t.id));
-    const remainder = [...hand, ...(drawnTile ? [drawnTile] : [])].filter(t => !ids.has(t.id));
-    const waits = getWaits(remainder, [...furoList, {
-      type: 'ankan' as const, tiles: option.tiles, calledTile: option.tiles[0],
-    }]).map(tileKey).sort().join(',');
-    return originalWaits === waits;
+  const choices = findAnkanOptions(hand, drawnTile);
+  if (!isRiichi) return choices;
+  if (!drawnTile) return [];
+
+  const before = getWaits(hand, furoList)
+    .map(tileKey).sort().join('|');
+
+  return choices.filter(option => {
+    if (!option.tiles.some(t => t.id === drawnTile.id)) return false;
+    const kanIds = new Set(option.tiles.map(t => t.id));
+    const remaining = hand.filter(t => !kanIds.has(t.id));
+    const furo: Furo = {
+      type: 'ankan',
+      tiles: option.tiles,
+      calledTile: option.tiles[0],
+    };
+    const after = getWaits(remaining, [...furoList, furo])
+      .map(tileKey).sort().join('|');
+    return before === after;
   });
 }
 
