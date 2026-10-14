@@ -27,6 +27,7 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
   const dora = getDoraTileKeys(state.wanpai, state.doraCount);
   const isDora = (tile: typeof state.playerHand[number]) => dora.has(`${tile.suit}-${tile.value}`);
   const nextDiscard = result.outcome !== 'noten' ? frames[index + 1]?.action : null;
+  const isRiichiStep = action?.type === 'discard' && action.riichi;
   const highlightedId = nextDiscard?.type === 'discard' ? nextDiscard.tile.id : null;
   const resultText = result.outcome === 'win' ? `探索得点 ${result.bestScore?.toLocaleString()}点`
     : result.outcome === 'tenpai' ? 'テンパイ' : 'ノーテン（ツモ切り例）';
@@ -38,7 +39,8 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
           <h2 className="font-bold text-xl">探索手順 — {resultText}</h2>
           <button onClick={onClose} className="rounded-lg bg-gray-600 hover:bg-gray-500 px-4 py-2 font-bold">閉じる</button>
         </div>
-        <p className="text-green-200 text-sm">手順 {index} / {frames.length - 1}　{action ? actionLabel[action.type] : '配牌'}{action?.type === 'discard' && action.riichi ? '（リーチ）' : ''}</p>
+        <p className="text-green-200 text-sm">手順 {index} / {frames.length - 1}　{action ? actionLabel[action.type] : '配牌'}{action?.type === 'discard' && action.riichi ? '【ここでリーチ宣言】' : ''}</p>
+        {isRiichiStep && <p className="text-center text-xl font-black text-yellow-300 bg-yellow-900/40 rounded-lg py-2">リーチ宣言！</p>}
         <div className="bg-[#152615] border border-[#2d4a2d] rounded-lg p-3">
           <div className="text-green-400 text-sm mb-2">CPUの捨て牌</div>
           <div className="flex flex-wrap gap-1 min-h-9">
