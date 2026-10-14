@@ -121,6 +121,8 @@ export function buildHandInput(state: State): HandInput | null {
     uradoraIndicators,
     isRiichi: state.isRiichi,
     isIppatsu: state.isIppatsu,
+    isHaitei: state.winType === 'tsumo' && state.wall.length === 0 && state.fullWall.length > 0,
+    isHoutei: state.winType === 'ron' && state.wall.length === 0 && state.fullWall.length > 0,
   });
 
   return {
@@ -149,6 +151,8 @@ export function canRonWithYaku(state: State, discardTile: Tile): boolean {
     winTile: discardTile,
     playerDrawnTile: null,
     lastCpuDiscard: discardTile,
+    // This helper runs before applyCpuTurn consumes the CPU's wall tile.
+    wall: state.wall.slice(1),
   };
   try {
     const result = scoreHand(winState);
@@ -167,6 +171,8 @@ export function canTsumoWithYaku(state: State, drawTile: Tile): boolean {
     winType: 'tsumo' as const,
     winTile: drawTile,
     playerDrawnTile: drawTile,
+    // This helper runs before applyPlayerDraw consumes the winning tile.
+    wall: state.wall.slice(1),
   };
   try {
     const result = scoreHand(winState);
