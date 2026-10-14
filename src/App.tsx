@@ -88,10 +88,12 @@ export default function App() {
     setSolverResult(null);
     setSolverBusy(true);
     const worker = new Worker(new URL('./game/solver.worker.ts', import.meta.url), { type: 'module' });
-    worker.onmessage = (event: MessageEvent<{ result?: SolverResult; error?: string }>) => {
+    worker.onmessage = (event: MessageEvent<{ result?: SolverResult; error?: string; preliminary?: boolean }>) => {
       setSolverResult(event.data.result ?? null);
-      setSolverBusy(false);
-      worker.terminate();
+      if (!event.data.preliminary) {
+        setSolverBusy(false);
+        worker.terminate();
+      }
     };
     worker.onerror = () => {
       setSolverResult(null);
@@ -102,15 +104,16 @@ export default function App() {
     return () => worker.terminate();
   }, [initialState]);
 
-  const solverSummary = solverBusy ? '探索中…（最大15秒）' : !solverResult ? '探索結果を取得できませんでした'
+  const solverSummary = !solverResult && solverBusy ? '探索中…' : !solverResult ? '探索結果を取得できませんでした'
+    : solverResult.outcome === 'win' && solverResult.bestScore !== null
+      ? `${solverResult.complete ? '探索結果' : '発見済み得点（最高点未確定）'}：${solverResult.bestScore.toLocaleString()}点${solverBusy ? '・探索継続中' : ''}`
     : !solverResult.complete || !solverResult.supported ? '探索未完了（得点比較不可）'
-    : solverResult.outcome === 'win' ? `探索結果（鳴き・カンなし）：${solverResult.bestScore?.toLocaleString()}点`
     : solverResult.outcome === 'tenpai' ? '探索結果：テンパイ'
     : '探索結果：ノーテン';
 
   const playerScore = scoreResult?.handInterpretations.length
     ? Math.max(...scoreResult.handInterpretations.map(hand => hand.totalWinnings)) : null;
-  const scoreDifference = solverResult?.complete && solverResult.outcome === 'win'
+  const scoreDifference = solverResult?.outcome === 'win'
     && solverResult.bestScore !== null && playerScore !== null
     ? playerScore - solverResult.bestScore : null;
   const comparisonText = scoreDifference === null ? solverSummary
@@ -254,7 +257,7 @@ export default function App() {
           onRestart={handleRestart}
           onOk={handleDismissWin}
           solverSummary={solverSummary ?? undefined}
-          onShowSolver={solverResult?.complete && solverResult.supported ? () => setShowSolverReplay(true) : undefined}
+          onShowSolver={solverResult?.supported && (solverResult.complete || solverResult.line.length > 0) ? () => setShowSolverReplay(true) : undefined}
         />
       )}
 
@@ -271,7 +274,7 @@ export default function App() {
           onShowSolver={solverResult?.complete && solverResult.supported ? () => setShowSolverReplay(true) : undefined}
         />
       )}
-      {showSolverReplay && solverResult?.complete && solverResult.supported && (
+      {showSolverReplay && solverResult?.supported && (solverResult.complete || solverResult.line.length > 0) && (
         <SolverReplayModal initial={initialState} result={solverResult} onClose={() => setShowSolverReplay(false)} />
       )}
     </div>
