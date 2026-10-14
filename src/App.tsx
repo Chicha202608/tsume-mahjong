@@ -271,7 +271,7 @@ export default function App() {
           isWin
           scoreResult={scoreResult}
           solverSummary={comparisonText ?? undefined}
-          onShowSolver={solverResult?.complete && solverResult.supported ? () => setShowSolverReplay(true) : undefined}
+          onShowSolver={solverResult?.supported && solverResult.line.length > 0 ? () => setShowSolverReplay(true) : undefined}
         />
       )}
       {showSolverReplay && solverResult?.supported && (solverResult.complete || solverResult.line.length > 0) && (
