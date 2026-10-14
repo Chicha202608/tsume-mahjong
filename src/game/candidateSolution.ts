@@ -97,7 +97,7 @@ function reconstruct(initial: State, candidate: CandidateReplay): SolverAction[]
       if (!tile) return null;
       const next = applyPlayerDiscard(state, tile);
       if (!next) return null;
-      line.push({ type: 'discard', tile });
+      line.push({ type: 'discard', tile, riichi: candidate.riichi && !initial.isRiichi && discardIndex === candidate.discards.length });
       state = next;
     } else return null;
   }
