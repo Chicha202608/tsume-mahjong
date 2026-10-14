@@ -82,19 +82,16 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
             {state.playerDiscards.map(tile => <TileCard key={tile.id} tile={tile} size="xs" dora={isDora(tile)} />)}
           </div>
         </div>
+        <div className="h-20 shrink-0 overflow-y-auto">
         {state.phase === 'naki' && state.lastCpuDiscard && (
-          <div className="shrink-0 rounded-lg border border-green-700 overflow-hidden">
+          <div className="rounded-lg border border-green-700 overflow-hidden">
             <NakiRonButtons phase={state.phase} lastCpuDiscard={state.lastCpuDiscard}
               ronAvailable={state.ronAvailable} nakiOptions={state.nakiOptions}
               readOnly replayChoice={replayChoice}
               onRon={() => {}} onNaki={() => {}} onDeclareKan={() => {}} onPassNaki={() => {}} />
-            <p className="text-center text-yellow-200 text-sm px-3 py-2" role="status">
-              {replayChoice === 'pass' ? 'AIはキャンセルを選択しました（鳴き・ロンを見送り）。'
-                : replayChoice === 'ron' ? 'AIはロンを選択しました。' : 'AIの選択肢（閲覧専用）'}
-              {'「進む」で手順を続けられます。'}
-            </p>
           </div>
         )}
+        </div>
         <div className="flex-1 min-h-[130px] bg-[#152615] rounded-lg p-3">
           <div className="text-green-400 text-sm mb-2">手牌　{highlightedId ? '（黄色枠が次に切る牌）' : ''}</div>
           <div className="flex flex-nowrap items-end justify-start gap-1 mx-auto w-[850px] min-h-[90px]">
