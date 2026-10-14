@@ -28,7 +28,7 @@ export default function DoraIndicator({ wanpai, doraCount, ankanOptions, kakanOp
   return (
     <div className="flex items-center gap-2 px-3 py-1 bg-[#0a1a0a] border-b border-[#2d4a2d]">
       <span className="text-red-400 text-[10px] font-bold tracking-wider shrink-0">ドラ</span>
-      <div className="flex flex-col gap-0.5 shrink-0">
+      <div className="flex flex-col gap-1 shrink-0">
         <div className="flex gap-0.5">
           {Array.from({ length: 5 }).map((_, i) => {
             const isRevealed = i < doraCount;
@@ -42,7 +42,7 @@ export default function DoraIndicator({ wanpai, doraCount, ankanOptions, kakanOp
             );
           })}
         </div>
-        <div className="flex gap-3 text-[#8a9a8a] text-[10px] font-bold tracking-wider shrink-0">
+        <div className="flex gap-4 text-[#d1e5d1] text-[20px] leading-6 font-bold tracking-wide shrink-0">
           <span>場風：{windLabels[roundWind]}</span>
           <span>自風：{windLabels[playerWind]}</span>
         </div>
