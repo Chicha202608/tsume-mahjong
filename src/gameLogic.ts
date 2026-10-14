@@ -391,6 +391,7 @@ export function initGame() {
   const playerHand = sortHand(deck.slice(0, 13));
   const cpuHand = sortHand(deck.slice(13, 26));
   const wanpai = deck.slice(26, 40);
-  const wall = deck.slice(40);
+  // Two players draw at most 18 tiles each: 36 tiles in the live wall.
+  const wall = deck.slice(40, 40 + 36);
   return { playerHand, cpuHand, wall, wanpai };
 }
