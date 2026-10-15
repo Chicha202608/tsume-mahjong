@@ -21,6 +21,7 @@
   font-synthesis: none;
   font-size: min(2.4375rem, calc(94cqi / var(--score-tier-length, 2)));
   line-height: 1.3;
+  transform: translateY(0.08em);
   -webkit-text-stroke: 0.45px currentColor;
   text-shadow: 0 2px 3px rgb(0 0 0 / 70%);
 }
