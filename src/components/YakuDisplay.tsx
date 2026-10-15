@@ -1,4 +1,5 @@
 import type { HandAnalysis } from 'riichi-score';
+import type { CSSProperties } from 'react';
 
 interface RSYaku {
   name: string;
@@ -149,8 +150,8 @@ export default function YakuDisplay({ result }: Props) {
 
       {/* Summary: tier, fu, han, points */}
       <div className="grid grid-cols-[1.4fr_0.65fr_0.65fr_1.4fr] items-center gap-1 bg-black/30 rounded-xl p-3 w-full">
-        <div className="flex min-w-0 flex-col items-center">
-          <span className="text-red-500 text-3xl sm:text-4xl score-tier-brush whitespace-nowrap">{tierLabel ?? ''}</span>
+        <div className="score-tier-slot flex min-w-0 flex-col items-center">
+          <span className="text-red-500 score-tier-brush whitespace-nowrap" style={{ '--score-tier-length': tierLabel?.length || 2 } as CSSProperties}>{tierLabel ?? ''}</span>
         </div>
         <div className="flex min-w-0 flex-col items-center">
           <span className="text-white text-[10px] font-bold tracking-wider">符数</span>

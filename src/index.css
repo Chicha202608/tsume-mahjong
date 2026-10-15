@@ -18,10 +18,25 @@
   font-display: swap;
 }
 
+.score-tier-slot {
+  container-type: inline-size;
+  width: 100%;
+}
+
 .score-tier-brush {
   font-family: 'Kouzan Score', serif;
   font-weight: 400;
   font-synthesis: none;
+  font-size: min(2.4375rem, calc(94cqi / var(--score-tier-length, 2)));
+  line-height: 1.3;
+  -webkit-text-stroke: 0.45px currentColor;
+  text-shadow: 0 2px 3px rgb(0 0 0 / 70%);
+}
+
+@media (min-width: 640px) {
+  .score-tier-brush {
+    font-size: min(2.925rem, calc(94cqi / var(--score-tier-length, 2)));
+  }
 }
 
 .yaku-brush {
