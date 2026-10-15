@@ -1,4 +1,5 @@
 import type { HandAnalysis } from 'riichi-score';
+import type { CSSProperties } from 'react';
 
 interface RSYaku {
   name: string;
@@ -123,46 +124,46 @@ export default function YakuDisplay({ result }: Props) {
       <div className="flex flex-col gap-1.5 bg-black/30 rounded-xl p-4">
         {displayYaku.map((yaku, i) => (
           <div key={i} className="flex items-center justify-between text-sm">
-            <span className="text-white font-semibold">{yakuLabel(yaku)}</span>
+            <span className="text-white yaku-brush">{yakuLabel(yaku)}</span>
             <span className="text-white font-bold">{yakuHanLabel(yaku)}</span>
           </div>
         ))}
         {best.dora > 0 && (
           <div className="flex items-center justify-between text-sm">
-            <span className="text-white font-semibold">ドラ</span>
+            <span className="text-white yaku-brush">ドラ</span>
             <span className="text-white font-bold">{best.dora}飜</span>
           </div>
         )}
         {best.akadora > 0 && (
           <div className="flex items-center justify-between text-sm">
-            <span className="text-white font-semibold">赤ドラ</span>
+            <span className="text-white yaku-brush">赤ドラ</span>
             <span className="text-white font-bold">{best.akadora}飜</span>
           </div>
         )}
         {best.uradora > 0 && (
           <div className="flex items-center justify-between text-sm">
-            <span className="text-white font-semibold">裏ドラ</span>
+            <span className="text-white yaku-brush">裏ドラ</span>
             <span className="text-white font-bold">{best.uradora}飜</span>
           </div>
         )}
       </div>
 
       {/* Summary: tier, fu, han, points */}
-      <div className="grid grid-cols-[1.4fr_0.65fr_0.65fr_1.4fr] items-center gap-1 bg-black/30 rounded-xl p-3 w-full">
-        <div className="flex min-w-0 flex-col items-center">
-          <span className="text-red-500 text-3xl sm:text-4xl font-[1000] whitespace-nowrap" style={{ WebkitTextStroke: '0.8px currentColor', textShadow: '0 0 1px currentColor, 0 0 2px currentColor' }}>{tierLabel ?? ''}</span>
+      <div className="grid grid-cols-[minmax(0,2fr)_2rem_2rem_minmax(0,1.4fr)] grid-rows-[auto_auto] items-baseline gap-x-1 gap-y-1 bg-black/30 rounded-xl p-3 w-full">
+        <div className="score-tier-slot row-span-2 self-center flex min-w-0 flex-col items-center">
+          <span className="text-red-500 score-tier-text whitespace-nowrap" style={{ '--score-tier-length': tierLabel?.length || 2 } as CSSProperties}>{tierLabel ?? ''}</span>
         </div>
-        <div className="flex min-w-0 flex-col items-center">
-          <span className="text-white text-[10px] font-bold tracking-wider">符数</span>
-          <span className="text-white text-lg font-black tabular-nums">{best.fu}</span>
+        <div className="contents">
+          <span className="col-start-2 row-start-1 text-center text-white text-[10px] font-bold tracking-wider">符数</span>
+          <span className="col-start-2 row-start-2 text-center text-white text-lg leading-none font-black tabular-nums">{best.fu}</span>
         </div>
-        <div className="flex min-w-0 flex-col items-center">
-          <span className="text-white text-[10px] font-bold tracking-wider">飜数</span>
-          <span className="text-white text-lg font-black tabular-nums">{best.han}</span>
+        <div className="contents">
+          <span className="col-start-3 row-start-1 text-center text-white text-[10px] font-bold tracking-wider">飜数</span>
+          <span className="col-start-3 row-start-2 text-center text-white text-lg leading-none font-black tabular-nums">{best.han}</span>
         </div>
-        <div className="flex min-w-0 flex-col items-center">
-          <span className="text-white text-[10px] font-bold tracking-wider">点数</span>
-          <span className="text-white text-3xl sm:text-4xl font-black tabular-nums whitespace-nowrap">{best.totalWinnings.toLocaleString()}</span>
+        <div className="contents">
+          <span className="col-start-4 row-start-1 text-center text-white text-[10px] font-bold tracking-wider">点数</span>
+          <span className="col-start-4 row-start-2 min-w-0 text-center text-white text-3xl sm:text-4xl leading-none font-black tabular-nums whitespace-nowrap">{best.totalWinnings.toLocaleString()}</span>
         </div>
       </div>
     </div>
