@@ -10,7 +10,9 @@ When adding a new label, regenerate the relevant subset to include its glyphs.
 - Download: https://opentype.jp/bin/KouzanMouhituFont.zip
 - The distributor permits free use, commercial use without restrictions, logo
   use and redistribution in publications/CDs. Original font is provided without warranty.
-- Used only for score tiers (満貫, 跳満, 倍満, 三倍満, 役満 and multiple yakuman).
+- Retained from the earlier score-tier comparison; no longer loaded by the UI.
+- Score tiers now use the system-installed Meiryo Bold, with Yu Gothic and
+  sans-serif fallbacks. No Microsoft font files are redistributed.
 
 ## Yuji Yaku
 
