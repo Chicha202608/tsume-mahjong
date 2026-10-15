@@ -149,7 +149,7 @@ export default function YakuDisplay({ result }: Props) {
       </div>
 
       {/* Summary: tier, fu, han, points */}
-      <div className="grid grid-cols-[1.4fr_0.65fr_0.65fr_1.4fr] items-center gap-1 bg-black/30 rounded-xl p-3 w-full">
+      <div className="grid grid-cols-[minmax(0,2fr)_2rem_2rem_minmax(0,1.4fr)] items-center gap-1 bg-black/30 rounded-xl p-3 w-full">
         <div className="score-tier-slot flex min-w-0 flex-col items-center">
           <span className="text-red-500 score-tier-brush whitespace-nowrap" style={{ '--score-tier-length': tierLabel?.length || 2 } as CSSProperties}>{tierLabel ?? ''}</span>
         </div>
