@@ -1,9 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Tile, Furo } from '@/types';
+import { Tile } from '@/types';
 import {
-  createDeck,
-  shuffle,
-  sortHand,
   findLegalAnkanOptions,
   findKakanOptions,
   isMenzen as isMenzenLogic,
@@ -12,8 +9,8 @@ import {
   getDoraTileKeys,
   NakiOption,
 } from '@/gameLogic';
-import { State, makeInitialState, makeInitialStateBase } from '@/game/gameState';
-import { makeRiichiAnkanTestState, makeOpenIttsuRonTestState, makeOpenIttsuTsumoTestState } from '@/game/testScenarios';
+import { State, makeInitialState } from '@/game/gameState';
+import { makeKanTestState, makeRiichiAnkanTestState, makeOpenIttsuRonTestState, makeOpenIttsuTsumoTestState } from '@/game/testScenarios';
 import {
   MAX_DRAWS,
   applyPlayerDraw,
@@ -124,48 +121,7 @@ export function useGameEngine(): GameEngine {
       return;
     }
 
-    const deck = shuffle(createDeck());
-
-    const suits = ['man', 'pin', 'sou', 'wind', 'dragon'] as const;
-    const suit = suits[Math.floor(Math.random() * suits.length)];
-    const maxVal = suit === 'wind' ? 4 : suit === 'dragon' ? 3 : 9;
-    const value = Math.floor(Math.random() * maxVal) + 1;
-
-    const tileATiles = deck.filter(t => t.suit === suit && t.value === value);
-    const remaining = deck.filter(t => !(t.suit === suit && t.value === value));
-
-    const baseHand = remaining.slice(0, 10);
-    const cpuHand = sortHand(remaining.slice(10, 23));
-    const wanpai = remaining.slice(23, 37);
-    const wallTiles = remaining.slice(37);
-
-    let newState: State;
-
-    if (mode === 'ankan') {
-      const hand = sortHand([...baseHand, ...tileATiles.slice(0, 3)]);
-      const wall = [tileATiles[3], ...wallTiles];
-      newState = {
-        ...makeInitialStateBase(hand, cpuHand, wall, wanpai),
-      };
-    } else if (mode === 'kakan') {
-      const pungFuro: Furo = {
-        tiles: tileATiles.slice(0, 3),
-        type: 'pung',
-        calledTile: tileATiles[0],
-      };
-      const hand = sortHand(baseHand);
-      const wall = [tileATiles[3], ...wallTiles];
-      newState = {
-        ...makeInitialStateBase(hand, cpuHand, wall, wanpai),
-        playerFuro: [pungFuro],
-      };
-    } else {
-      const hand = sortHand([...baseHand, ...tileATiles.slice(0, 3)]);
-      const wall = [wallTiles[0], tileATiles[3], ...wallTiles.slice(1)];
-      newState = {
-        ...makeInitialStateBase(hand, cpuHand, wall, wanpai),
-      };
-    }
+    const newState = makeKanTestState(mode);
 
     setHistory([newState]);
     setHistoryIndex(0);

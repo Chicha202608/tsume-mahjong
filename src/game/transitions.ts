@@ -158,7 +158,8 @@ export function applyDeclareKan(cur: State, option: NakiOption): State | null {
       newHand = sortHand(cur.playerHand.filter(t => t.id !== kakanTile.id));
     }
   } else if (isAnkan) {
-    newHand = sortHand(cur.playerHand.filter(t => !tilesToRemove.has(t.id)));
+    const concealed = [...cur.playerHand, ...(cur.playerDrawnTile ? [cur.playerDrawnTile] : [])];
+    newHand = sortHand(concealed.filter(t => !tilesToRemove.has(t.id)));
     const newFuro: Furo = {
       tiles: option.tiles,
       type: 'ankan',
