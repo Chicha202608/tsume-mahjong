@@ -149,21 +149,21 @@ export default function YakuDisplay({ result }: Props) {
       </div>
 
       {/* Summary: tier, fu, han, points */}
-      <div className="grid grid-cols-[minmax(0,2fr)_2rem_2rem_minmax(0,1.4fr)] items-center gap-1 bg-black/30 rounded-xl p-3 w-full">
-        <div className="score-tier-slot flex min-w-0 flex-col items-center">
+      <div className="grid grid-cols-[minmax(0,2fr)_2rem_2rem_minmax(0,1.4fr)] grid-rows-[auto_auto] items-baseline gap-x-1 gap-y-1 bg-black/30 rounded-xl p-3 w-full">
+        <div className="score-tier-slot row-span-2 self-center flex min-w-0 flex-col items-center">
           <span className="text-red-500 score-tier-text whitespace-nowrap" style={{ '--score-tier-length': tierLabel?.length || 2 } as CSSProperties}>{tierLabel ?? ''}</span>
         </div>
-        <div className="flex min-w-0 flex-col items-center">
-          <span className="text-white text-[10px] font-bold tracking-wider">符数</span>
-          <span className="text-white text-lg font-black tabular-nums">{best.fu}</span>
+        <div className="contents">
+          <span className="col-start-2 row-start-1 text-center text-white text-[10px] font-bold tracking-wider">符数</span>
+          <span className="col-start-2 row-start-2 text-center text-white text-lg leading-none font-black tabular-nums">{best.fu}</span>
         </div>
-        <div className="flex min-w-0 flex-col items-center">
-          <span className="text-white text-[10px] font-bold tracking-wider">飜数</span>
-          <span className="text-white text-lg font-black tabular-nums">{best.han}</span>
+        <div className="contents">
+          <span className="col-start-3 row-start-1 text-center text-white text-[10px] font-bold tracking-wider">飜数</span>
+          <span className="col-start-3 row-start-2 text-center text-white text-lg leading-none font-black tabular-nums">{best.han}</span>
         </div>
-        <div className="flex min-w-0 flex-col items-center">
-          <span className="text-white text-[10px] font-bold tracking-wider">点数</span>
-          <span className="text-white text-3xl sm:text-4xl font-black tabular-nums whitespace-nowrap">{best.totalWinnings.toLocaleString()}</span>
+        <div className="contents">
+          <span className="col-start-4 row-start-1 text-center text-white text-[10px] font-bold tracking-wider">点数</span>
+          <span className="col-start-4 row-start-2 min-w-0 text-center text-white text-3xl sm:text-4xl leading-none font-black tabular-nums whitespace-nowrap">{best.totalWinnings.toLocaleString()}</span>
         </div>
       </div>
     </div>
