@@ -7,7 +7,7 @@ import type { SolverResult } from '@/game/solver';
  * chronological wins and compare their scores. Do not run the older
  * all-discard-branches DP after this search.
  *
- * Candidate enumeration covers standard hands and seven pairs, and its replay
+ * Candidate enumeration covers standard hands, seven pairs and kokushi, and its replay
  * selects a deterministic discard order per target. Therefore a found
  * score is a lower bound, not a mathematically certified maximum.
  */

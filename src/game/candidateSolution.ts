@@ -10,7 +10,7 @@ import {
 /**
  * Candidate-first search. This is a feasible *lower bound*, not a proof of the
  * global maximum: candidateReplay uses one deterministic discard order per
- * target and searches standard four-meld-and-pair and seven-pairs waits.
+ * target and searches standard four-meld-and-pair, seven-pairs and kokushi waits.
  */
 export function findCandidateSolution(initial: State): SolverResult | null {
   if (initial.playerFuro.length || initial.playerDrawnTile ||
@@ -97,8 +97,11 @@ function reconstruct(initial: State, candidate: CandidateReplay): SolverAction[]
       if (!tile) return null;
       const next = applyPlayerDiscard(state, tile);
       if (!next) return null;
-      line.push({ type: 'discard', tile, riichi: candidate.riichi && !initial.isRiichi && discardIndex === candidate.discards.length });
-      state = next;
+      const declareRiichi = candidate.riichi && !initial.isRiichi && discardIndex === candidate.discards.length;
+      line.push({ type: 'discard', tile, riichi: declareRiichi });
+      // Subsequent CPU turns must use the declared riichi state, so they
+      // offer ron only and do not insert obsolete call/pass steps.
+      state = declareRiichi ? { ...next, isRiichi: true, isIppatsu: true } : next;
     } else return null;
   }
   return null;

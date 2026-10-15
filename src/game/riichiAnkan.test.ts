@@ -31,6 +31,33 @@ describe('riichi ankan debug setup', () => {
 });
 
 describe('riichi concealed-kan availability', () => {
+  it.each([3, 6])('preserves all tiles when declaring 6666p with a drawn %ip', (drawValue) => {
+    const allTiles = [
+      ...[2, 2, 2, 3, 4, 4, 6, 6, 6, 6].map(value => t('pin', value)),
+      ...[1, 3, 7, 8].map(value => t('sou', value)),
+    ];
+    const drawn = allTiles.find(tile => tile.suit === 'pin' && tile.value === drawValue)!;
+    const hand = allTiles.filter(tile => tile.id !== drawn.id);
+    const rinshan = t('sou', 9);
+    const state = {
+      ...makeInitialStateBase(hand, [], [t('wind', 2)], [
+        rinshan, ...Array.from({ length: 13 }, () => t('wind', 1)),
+      ]),
+      phase: 'playerDiscard' as const,
+      playerDrawnTile: drawn,
+    };
+    const option = findLegalAnkanOptions(hand, drawn, [], false)[0];
+    const after = applyDeclareKan(state, option)!;
+    expect(after.playerHand).toHaveLength(10);
+    expect(after.playerDrawnTile).toEqual(rinshan);
+    expect(after.playerFuro[0].tiles).toHaveLength(4);
+    const retained = [...after.playerHand, ...after.playerFuro[0].tiles];
+    expect(retained.map(tile => tile.id).sort()).toEqual(allTiles.map(tile => tile.id).sort());
+    expect(after.playerHand.some(tile => tile.suit === 'pin' && tile.value === 3)).toBe(true);
+    const discarded = applyPlayerDiscard(after, rinshan)!;
+    expect(discarded.playerHand).toHaveLength(10);
+  });
+
   it('offers a kan of the drawn fourth tile when the waits remain the same', () => {
     // Three concealed 1m, sequences 234p/345s/678s and a 5p single wait.
     const hand = [

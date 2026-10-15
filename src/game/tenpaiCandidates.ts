@@ -2,7 +2,7 @@ import type { Tile } from '@/types';
 import type { State } from '@/game/gameState';
 
 /**
- * Standard-hand and seven-pairs tenpai candidates from initial 13 tiles and future player
+ * Standard-hand, seven-pairs and kokushi tenpai candidates from initial 13 tiles and future player
  * draws. This is a candidate generator, not yet a score optimizer.
  * CPU discards cannot contribute to a tenpai hand.
  */
@@ -165,6 +165,16 @@ export function enumerateTenpaiCandidates(state: State): TenpaiCandidate[] {
     }
   };
   buildPairs(6, 0);
+  // Kokushi: thirteen distinct terminals/honors, or twelve distinct faces
+  // with a pair and one missing face. Only own draws may supply target tiles.
+  const orphans = [0, 8, 9, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33];
+  select(orphans, () => emit(orphans));
+  for (const missing of orphans) {
+    for (const pair of orphans) {
+      if (pair === missing) continue;
+      select([...orphans.filter(i => i !== missing), pair], () => emit([missing]));
+    }
+  }
   return [...found.values()].sort((a,b) =>
     a.earliestPlayerDraw - b.earliestPlayerDraw ||
     a.counts.join(',').localeCompare(b.counts.join(',')));

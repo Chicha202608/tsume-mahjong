@@ -1,6 +1,6 @@
-import { createDeck, sortHand } from '@/gameLogic';
+import { createDeck, shuffle, sortHand } from '@/gameLogic';
 import { makeInitialStateBase, type State } from '@/game/gameState';
-import type { Tile } from '@/types';
+import type { Tile, Furo } from '@/types';
 
 /** Deterministic UI test: riichi, three 1m in hand, fourth 1m next draw.
  * The original 5p tanki wait survives the concealed kan.
@@ -22,7 +22,7 @@ export function makeRiichiAnkanTestState(): State {
   const nextDraw = take('man', 1);
   const cpuHand = sortHand(deck.splice(0, 13));
   const wanpai = deck.splice(0, 14);
-  const wall = [nextDraw, ...deck];
+  const wall = [nextDraw, ...deck.slice(0, 25)];
 
   return {
     ...makeInitialStateBase(hand, cpuHand, wall, wanpai),
@@ -57,7 +57,7 @@ export function makeOpenIttsuRonTestState(): State {
   const winningTile = take('pin', 4);
   const cpuHand = sortHand(deck.splice(0, 13));
   const wanpai = deck.splice(0, 14);
-  const wall = [winningTile, ...deck.splice(0, 35)];
+  const wall = [winningTile, ...deck.splice(0, 25)];
   return {
     ...makeInitialStateBase(hand, cpuHand, wall, wanpai),
     playerFuro: [{ type: 'chii', tiles: run123, calledTile: run123[2] }],
@@ -74,4 +74,52 @@ export function makeOpenIttsuRonTestState(): State {
 export function makeOpenIttsuTsumoTestState(): State {
   const state = makeOpenIttsuRonTestState();
   return { ...state, phase: 'playerDraw' };
+}
+
+/** A bounded 36-tile live wall for the kan preparation buttons. */
+export function makeKanTestState(mode: 'ankan' | 'kakan' | 'daiminkan'): State {
+  const deck = shuffle(createDeck());
+
+  const suits = ['man', 'pin', 'sou', 'wind', 'dragon'] as const;
+  const suit = suits[Math.floor(Math.random() * suits.length)];
+  const maxVal = suit === 'wind' ? 4 : suit === 'dragon' ? 3 : 9;
+  const value = Math.floor(Math.random() * maxVal) + 1;
+
+  const tileATiles = deck.filter(t => t.suit === suit && t.value === value);
+  const remaining = deck.filter(t => !(t.suit === suit && t.value === value));
+
+  const baseHand = remaining.slice(0, 10);
+  const cpuHand = sortHand(remaining.slice(10, 23));
+  const wanpai = remaining.slice(23, 37);
+  const wallTiles = remaining.slice(37, 37 + 35);
+
+  let newState: State;
+
+  if (mode === 'ankan') {
+    const hand = sortHand([...baseHand, ...tileATiles.slice(0, 3)]);
+    const wall = [tileATiles[3], ...wallTiles];
+    newState = {
+      ...makeInitialStateBase(hand, cpuHand, wall, wanpai),
+    };
+  } else if (mode === 'kakan') {
+    const pungFuro: Furo = {
+      tiles: tileATiles.slice(0, 3),
+      type: 'pung',
+      calledTile: tileATiles[0],
+    };
+    const hand = sortHand(baseHand);
+    const wall = [tileATiles[3], ...wallTiles];
+    newState = {
+      ...makeInitialStateBase(hand, cpuHand, wall, wanpai),
+      playerFuro: [pungFuro],
+    };
+  } else {
+    const hand = sortHand([...baseHand, ...tileATiles.slice(0, 3)]);
+    const wall = [wallTiles[0], tileATiles[3], ...wallTiles.slice(1)];
+    newState = {
+      ...makeInitialStateBase(hand, cpuHand, wall, wanpai),
+    };
+  }
+
+  return newState;
 }
