@@ -1,5 +1,6 @@
 import type { Tile } from '@/types';
 import type { State } from '@/game/gameState';
+import { sortHand } from '@/gameLogic';
 import { scoreHand } from '@/game/scoreAdapter';
 import { drawStride, playerDrawOffset } from '@/game/seatFlow';
 import { enumerateTenpaiCandidates, findCandidateWinOpportunities, type CandidateWinOpportunity } from '@/game/tenpaiCandidates';
@@ -58,13 +59,14 @@ export function replayCandidateOpportunity(
     for (const tile of available) counts[face(tile)]++;
     // Never throw away a needed copy. If several surplus tiles exist, prefer
     // one that does not share a face with any eventual winning wait.
-    const extra = available.filter(tile => counts[face(tile)] > target[face(tile)]);
+    const extra = [...available].reverse().filter(tile => counts[face(tile)] > target[face(tile)]);
     if (!extra.length) return null;
     const discard = extra.find(tile => !tile.isRed && !opportunity.candidate.waits.includes(face(tile))) ??
       extra.find(tile => !tile.isRed) ?? extra[0];
     discards.push(discard);
     available.splice(available.findIndex(tile => tile.id === discard.id), 1);
-    hand.splice(0, hand.length, ...available);
+    // Match the displayed hand after each discard, including newly kept draws.
+    hand.splice(0, hand.length, ...sortHand(available));
   }
   const actual = Array<number>(34).fill(0);
   for (const tile of hand) actual[face(tile)]++;

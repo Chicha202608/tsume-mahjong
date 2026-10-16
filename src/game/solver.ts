@@ -143,9 +143,11 @@ function completedMeldFaces(tiles: Tile[]): Set<string> {
   return protectedFaces;
 }
 
-function uniqueTiles(tiles: Tile[]): Tile[] {
+function discardTilesRightToLeft(tiles: Tile[]): Tile[] {
   const seen = new Set<string>();
-  return tiles.filter((tile) => {
+  // Visit the displayed rightmost tile first; exact ties keep the first route.
+  // Reverse a copy so both search and replay preserve the original hand order.
+  return [...tiles].reverse().filter((tile) => {
     const key = tileKey(tile);
     if (seen.has(key)) return false;
     seen.add(key);
@@ -376,8 +378,8 @@ function materializeStep(state: State, descriptor: StepDescriptor): StepAction |
       return { type: 'cpu-turn' };
     case 'discard': {
       const candidates = state.phase === 'playerNakiDiscard'
-        ? uniqueTiles(state.playerHand)
-        : uniqueTiles([
+        ? discardTilesRightToLeft(state.playerHand)
+        : discardTilesRightToLeft([
             ...state.playerHand,
             ...(state.playerDrawnTile ? [state.playerDrawnTile] : []),
           ]);
@@ -741,7 +743,7 @@ export function searchBestWin(
           break;
         }
 
-        const allDiscardChoices = uniqueTiles([
+        const allDiscardChoices = discardTilesRightToLeft([
           ...state.playerHand,
           ...(state.playerDrawnTile ? [state.playerDrawnTile] : []),
         ]);
@@ -760,7 +762,7 @@ export function searchBestWin(
       }
 
       case 'playerNakiDiscard': {
-        for (const tile of uniqueTiles(state.playerHand)) {
+        for (const tile of discardTilesRightToLeft(state.playerHand)) {
           consider({ type: 'discard', tile }, applyPlayerNakiDiscard(state, tile));
           if (!complete) break;
         }
