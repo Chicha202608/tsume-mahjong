@@ -55,6 +55,16 @@ export function findPrevStopIndex(history: State[], fromIndex: number): number {
   return Math.max(0, idx);
 }
 
+/** A riichi undo cancels the declaration and returns to choosing its discard. */
+export function findMattaIndex(history: State[], fromIndex: number): number {
+  if (history[fromIndex]?.isRiichi) {
+    for (let idx = fromIndex - 1; idx >= 0; idx--) {
+      if (history[idx].phase === 'riichiSelect') return idx;
+    }
+  }
+  return findPrevStopIndex(history, fromIndex);
+}
+
 export function findNextStopIndex(history: State[], fromIndex: number): number {
   const max = history.length - 1;
   if (fromIndex >= max) return max;
