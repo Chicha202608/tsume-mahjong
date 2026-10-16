@@ -73,8 +73,8 @@ function yakuLabel(yaku: RSYaku): string {
   return YAKU_JP[yaku.name] ?? yaku.name;
 }
 
-function yakuHanLabel(yaku: RSYaku): string {
-  if (yaku.limit) return yaku.limit;
+function yakuHanLabel(yaku: RSYaku): string | null {
+  if (yaku.limit) return null;
   return `${yaku.han}飜`;
 }
 
