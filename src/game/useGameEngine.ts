@@ -32,6 +32,7 @@ import {
   actionMatchesNext,
   commitNewState,
   findPrevStopIndex,
+  findMattaIndex,
   findNextStopIndex,
   riichiDiscardMatchesNext,
 } from '@/game/history';
@@ -295,21 +296,25 @@ export function useGameEngine(): GameEngine {
 
   const matta = useCallback(() => {
     if (historyIndex === 0) return;
+    const idx = findMattaIndex(history, historyIndex);
+    const rewind = (target: number) => {
+      clearTimer();
+      setHistory(prev => prev.slice(0, target + 1));
+      setHistoryIndex(target);
+      setDismissedIndex(-1);
+    };
     if (isViewingPast) {
+      const target = history[historyIndex].isRiichi && history[idx]?.phase === 'riichiSelect' ? idx : historyIndex;
       setPendingAction({
-        message: MATTACONFIRM_MESSAGE,
-        action: () => {
-          setHistory(prev => prev.slice(0, historyIndex + 1));
-          setDismissedIndex(-1);
-        },
+        message: history[target]?.phase === 'riichiSelect'
+          ? 'リーチ宣言牌の選択まで戻って打ち直しますか？（これ以降の牌譜は消去されます）'
+          : MATTACONFIRM_MESSAGE,
+        action: () => rewind(target),
       });
       return;
     }
-    const idx = findPrevStopIndex(history, historyIndex);
-    setHistory(prev => prev.slice(0, idx + 1));
-    setHistoryIndex(idx);
-    setDismissedIndex(-1);
-  }, [historyIndex, history, isViewingPast]);
+    rewind(idx);
+  }, [historyIndex, history, isViewingPast, clearTimer]);
 
   const stepBack = useCallback(() => {
     if (historyIndex <= 0) return;

@@ -125,7 +125,7 @@ export default function App() {
   const scoreDifference = solverResult && solverResult.bestScore !== null && playerScore !== null
     ? playerScore - solverResult.bestScore : null;
   const comparisonText = scoreDifference === null ? solverSummary
-    : scoreDifference === 0 ? `${solverSummary} / AIとの点差：0点（同点）`
+    : scoreDifference === 0 ? `${solverSummary} / AIとの点差：0点`
     : `${solverSummary} / AIとの点差：${scoreDifference > 0 ? '+' : ''}${scoreDifference.toLocaleString()}点`;
 
   function handleDismissWin() {
