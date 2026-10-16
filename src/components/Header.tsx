@@ -1,6 +1,12 @@
-import { RefreshCw, Bug } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
+import DebugButtons from '@/components/DebugButtons';
+import type { TestMode } from '@/game/testScenarios';
+import type { GameMode } from '@/game/gameState';
 
 interface Props {
+  mode: GameMode;
+  onMode: (mode: GameMode) => void;
+  onAI: () => void;
   turnCount: number;
   maxDraws: number;
   wallCount: number;
@@ -8,10 +14,27 @@ interface Props {
   historyIndex: number;
   historyLength: number;
   onRestart: () => void;
-  onSetupTest: (mode: 'ankan' | 'kakan' | 'daiminkan' | 'riichi-ankan' | 'open-ittsu-ron' | 'open-ittsu-tsumo') => void;
+  onSetupTest: (mode: TestMode) => void;
 }
 
-export default function Header({ turnCount, maxDraws, wallCount, isViewingPast, historyIndex, historyLength, onRestart, onSetupTest }: Props) {
+export default function Header({ mode, onMode, onAI, turnCount, maxDraws, wallCount, isViewingPast, historyIndex, historyLength, onRestart, onSetupTest }: Props) {
+  if (mode === 'four') return <header className="contents">
+    <nav aria-label="対局メニュー" className="absolute left-2 top-3 bottom-3 w-[148px] rounded-xl border border-emerald-900 bg-[#0f1f0f] p-3 flex flex-col gap-5 text-white">
+      <h1 className="font-bold text-xl text-center py-2">詰め麻雀</h1>
+      <div aria-label="対局モード" className="flex flex-col gap-2">
+        {(['two', 'four'] as const).map(value => <button key={value} aria-pressed={mode === value}
+          onClick={() => onMode(value)} className={`h-11 rounded-lg text-sm ${mode === value ? 'bg-amber-500 text-black font-bold' : 'border border-emerald-700 text-emerald-100 hover:bg-emerald-900'}`}>
+          {value === 'two' ? '二人' : '四人'}
+        </button>)}
+      </div>
+      {isViewingPast && <p className="mt-auto text-center text-sm text-amber-300">牌譜 {historyIndex + 1}/{historyLength}</p>}
+    </nav>
+    <nav aria-label="検討メニュー" className="absolute right-2 top-3 bottom-3 w-[148px] rounded-xl border border-emerald-900 bg-[#0f1f0f] p-3 flex flex-col gap-3 text-white">
+      <button onClick={onAI} className="h-11 rounded-lg border border-emerald-700 hover:bg-emerald-900">AI</button>
+      <button onClick={onRestart} className="h-11 flex items-center justify-center gap-2 rounded-lg bg-green-700 hover:bg-green-600"><RefreshCw size={16} />新局</button>
+      <div className="mt-auto pt-4 border-t border-emerald-900"><DebugButtons vertical onSetupTest={onSetupTest} /></div>
+    </nav>
+  </header>;
   return (
     <header className="flex items-center justify-between px-6 py-3 bg-[#0f1f0f] border-b border-[#2d4a2d]">
       <div className="flex items-center gap-3">
@@ -19,48 +42,14 @@ export default function Header({ turnCount, maxDraws, wallCount, isViewingPast, 
           <span className="text-white font-black text-sm">麻</span>
         </div>
         <h1 className="text-white font-bold text-xl tracking-wide">詰め麻雀</h1>
-        <div className="flex items-center gap-1.5 ml-2">
-          <span className="text-gray-500 text-xs font-semibold flex items-center gap-1">
-            <Bug size={12} />
-            テスト:
-          </span>
-          <button
-            onClick={() => onSetupTest('ankan')}
-            className="px-2 py-0.5 rounded-md bg-gray-800 hover:bg-gray-700 active:scale-95 text-gray-300 text-xs font-medium transition-all"
-          >
-            暗カン準備
-          </button>
-          <button
-            onClick={() => onSetupTest('riichi-ankan')}
-            className="px-2 py-0.5 rounded-md bg-gray-800 hover:bg-gray-700 active:scale-95 text-gray-300 text-xs font-medium transition-all"
-          >
-            立直暗カン準備
-          </button>
-          <button
-            onClick={() => onSetupTest('open-ittsu-ron')}
-            className="px-2 py-0.5 rounded-md bg-gray-800 hover:bg-gray-700 active:scale-95 text-gray-300 text-xs font-medium transition-all"
-          >
-            一通ロン準備
-          </button>
-          <button
-            onClick={() => onSetupTest('open-ittsu-tsumo')}
-            className="px-2 py-0.5 rounded-md bg-gray-800 hover:bg-gray-700 active:scale-95 text-gray-300 text-xs font-medium transition-all"
-          >
-            一通ツモ準備
-          </button>
-          <button
-            onClick={() => onSetupTest('kakan')}
-            className="px-2 py-0.5 rounded-md bg-gray-800 hover:bg-gray-700 active:scale-95 text-gray-300 text-xs font-medium transition-all"
-          >
-            加槓準備
-          </button>
-          <button
-            onClick={() => onSetupTest('daiminkan')}
-            className="px-2 py-0.5 rounded-md bg-gray-800 hover:bg-gray-700 active:scale-95 text-gray-300 text-xs font-medium transition-all"
-          >
-            大明槓準備
-          </button>
+        <div aria-label="対局モード" className="flex rounded-lg border border-emerald-700 overflow-hidden">
+          {(['two', 'four'] as const).map(value => <button key={value} aria-pressed={mode === value}
+            onClick={() => onMode(value)} className={`px-5 py-1.5 text-sm ${mode === value ? 'bg-amber-500 text-black font-bold' : 'text-emerald-100 hover:bg-emerald-900'}`}>
+            {value === 'two' ? '二人' : '四人'}
+          </button>)}
         </div>
+        <button onClick={onAI} className="px-4 py-1.5 rounded-lg border border-emerald-700 text-white text-sm hover:bg-emerald-900">AI</button>
+        <DebugButtons onSetupTest={onSetupTest} />
       </div>
       <div className="flex items-center gap-3 text-sm text-green-300">
         {isViewingPast && (
@@ -68,8 +57,8 @@ export default function Header({ turnCount, maxDraws, wallCount, isViewingPast, 
             牌譜 {historyIndex + 1}/{historyLength}
           </span>
         )}
-        <span>巡目 <span className="text-white font-bold">{turnCount}</span>/{maxDraws}</span>
-        <span>山 <span className="text-white font-bold">{wallCount}</span>枚</span>
+        {mode === 'two' && <><span>巡目 <span className="text-white font-bold">{turnCount}</span>/{maxDraws}</span>
+        <span>山 <span className="text-white font-bold">{wallCount}</span>枚</span></>}
         <button
           onClick={onRestart}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-green-700 hover:bg-green-600 text-white text-sm font-medium transition-colors"

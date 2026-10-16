@@ -1,4 +1,5 @@
-import type { Tile } from '@/types';
+import type { Tile, Wind } from '@/types';
+import { isPlayerWallIndex, wallSeatAt } from '@/game/seatFlow';
 import type { State } from '@/game/gameState';
 
 /**
@@ -21,8 +22,8 @@ function indexOf(tile: Tile): number {
   return base + tile.value - 1;
 }
 
-function isStandardWin(counts: number[]): boolean {
-  if (counts.reduce((a, b) => a + b, 0) !== 14) return false;
+function isStandardWin(counts: number[], numFuro = 0): boolean {
+  if (counts.reduce((a, b) => a + b, 0) !== 14 - 3 * numFuro) return false;
   const melds = (n: number): boolean => {
     if (!n) return counts.every(x => x === 0);
     const i = counts.findIndex(x => x > 0);
@@ -44,19 +45,19 @@ function isStandardWin(counts: number[]): boolean {
   for (let i = 0; i < 34; i++) {
     if (counts[i] < 2) continue;
     counts[i] -= 2;
-    const ok = melds(4);
+    const ok = melds(4 - numFuro);
     counts[i] += 2;
     if (ok) return true;
   }
   return false;
 }
 
-function waitsFor(counts: number[]): number[] {
+function waitsFor(counts: number[], numFuro = 0): number[] {
   const waits: number[] = [];
   for (let i = 0; i < 34; i++) {
     if (counts[i] >= 4) continue;
     counts[i]++;
-    const ok = isStandardWin(counts);
+    const ok = isStandardWin(counts, numFuro);
     counts[i]--;
     if (ok) waits.push(i);
   }
@@ -64,12 +65,12 @@ function waitsFor(counts: number[]): number[] {
 }
 
 export function enumerateTenpaiCandidates(state: State): TenpaiCandidate[] {
-  if (state.playerFuro.length) return [];
+  if (state.playerFuro.some(f => f.type !== 'ankan')) return [];
+  const numFuro = state.playerFuro.length;
   const fixed = [...state.playerHand, ...(state.playerDrawnTile ? [state.playerDrawnTile] : [])];
   // A wall draw is consumed by the player only when the current turn points
   // to the player; thereafter players alternate (no calls/kan).
-  const playerFirst = state.phase === 'playerDraw' || state.phase === 'naki';
-  const draws = state.wall.filter((_, i) => (i % 2 === 0) === playerFirst);
+  const draws = state.wall.filter((_, i) => isPlayerWallIndex(state, i));
   const available = Array<number>(34).fill(0);
   for (const tile of [...fixed, ...draws]) available[indexOf(tile)]++;
   const counts = Array<number>(34).fill(0);
@@ -106,7 +107,8 @@ export function enumerateTenpaiCandidates(state: State): TenpaiCandidate[] {
       }
     }
     if (!meets()) return;
-    const waits = knownWaits ?? waitsFor(counts);
+    const waits = (knownWaits ?? waitsFor(counts, numFuro)).filter(i =>
+      counts[i] + state.playerFuro.flatMap(f => f.tiles).filter(t => indexOf(t) === i).length < 4);
     if (!waits.length) return;
     found.set(key, { counts: [...counts], earliestPlayerDraw: earliest, waits });
   };
@@ -131,11 +133,11 @@ export function enumerateTenpaiCandidates(state: State): TenpaiCandidate[] {
     }
   };
   // Four melds + singleton (tanki).
-  buildMelds(4, 0, () => {
+  buildMelds(4 - numFuro, 0, () => {
     for (let i = 0; i < 34; i++) select([i], () => emit());
   });
   // Three melds + pair + taatsu (including shanpon).
-  buildMelds(3, 0, () => {
+  if (numFuro < 4) buildMelds(3 - numFuro, 0, () => {
     for (let head = 0; head < 34; head++) select([head, head], () => {
       for (let i = 0; i < 34; i++) {
         select([i,i], () => emit());
@@ -164,12 +166,12 @@ export function enumerateTenpaiCandidates(state: State): TenpaiCandidate[] {
       select([i, i], () => buildPairs(remaining - 1, p + 1));
     }
   };
-  buildPairs(6, 0);
+  if (!numFuro) buildPairs(6, 0);
   // Kokushi: thirteen distinct terminals/honors, or twelve distinct faces
   // with a pair and one missing face. Only own draws may supply target tiles.
   const orphans = [0, 8, 9, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33];
-  select(orphans, () => emit(orphans));
-  for (const missing of orphans) {
+  if (!numFuro) select(orphans, () => emit(orphans));
+  if (!numFuro) for (const missing of orphans) {
     for (const pair of orphans) {
       if (pair === missing) continue;
       select([...orphans.filter(i => i !== missing), pair], () => emit([missing]));
@@ -182,6 +184,7 @@ export function enumerateTenpaiCandidates(state: State): TenpaiCandidate[] {
 
 /** A chronological win opportunity for an already enumerated tenpai shape. */
 export interface CandidateWinOpportunity {
+  sourceWind?: Wind;
   candidate: TenpaiCandidate;
   type: 'tsumo' | 'ron';
   /** Index of the winning tile in the remaining wall. */
@@ -201,12 +204,11 @@ export function findCandidateWinOpportunities(
   candidates: TenpaiCandidate[],
 ): CandidateWinOpportunity[] {
   if (state.playerFuro.length || !['playerDraw', 'cpuTurn'].includes(state.phase)) return [];
-  const playerFirst = state.phase === 'playerDraw';
   const held = Array<number>(34).fill(0);
   for (const tile of state.playerHand) held[indexOf(tile)]++;
   const opportunities: CandidateWinOpportunity[] = [];
   for (let wallIndex = 0; wallIndex < state.wall.length; wallIndex++) {
-    const ownDraw = (wallIndex % 2 === 0) === playerFirst;
+    const ownDraw = isPlayerWallIndex(state, wallIndex);
     // At this point, held contains the starting hand and all PRECEDING
     // own draws, not the current winning tile.
     const winFace = indexOf(state.wall[wallIndex]);
@@ -216,6 +218,7 @@ export function findCandidateWinOpportunities(
       opportunities.push({
         candidate, type: ownDraw ? 'tsumo' : 'ron', wallIndex,
         winningFace: winFace,
+        ...(state.mode === 'four' && !ownDraw ? { sourceWind: wallSeatAt(state, wallIndex) } : {}),
       });
     }
     if (ownDraw) held[winFace]++;

@@ -9,10 +9,11 @@ import {
   getDoraTileKeys,
   NakiOption,
 } from '@/gameLogic';
-import { State, makeInitialState } from '@/game/gameState';
-import { makeKanTestState, makeRiichiAnkanTestState, makeOpenIttsuRonTestState, makeOpenIttsuTsumoTestState } from '@/game/testScenarios';
+import { State, makeInitialState, type GameMode } from '@/game/gameState';
+import { hasFuturePlayerDraw } from '@/game/seatFlow';
+import { asFourPlayerTestState } from '@/game/testScenarios';
+import { makeKanTestState, makeRiichiAnkanTestState, makeOpenIttsuRonTestState, makeOpenIttsuTsumoTestState, makeTwoAnkanTestState, type TestMode } from '@/game/testScenarios';
 import {
-  MAX_DRAWS,
   applyPlayerDraw,
   applyPlayerDiscard,
   applyCpuTurn,
@@ -58,7 +59,8 @@ export interface GameEngine {
   riichiValidTiles: Set<string>;
   isDora: (t: Tile) => boolean;
   restart: () => void;
-  setupTestState: (mode: 'ankan' | 'kakan' | 'daiminkan' | 'riichi-ankan' | 'open-ittsu-ron' | 'open-ittsu-tsumo') => void;
+  setMode: (mode: GameMode) => void;
+  setupTestState: (mode: TestMode) => void;
   playerDiscard: (tile: Tile) => void;
   playerNakiDiscard: (tile: Tile) => void;
   riichiDiscard: (tile: Tile) => void;
@@ -95,27 +97,42 @@ export function useGameEngine(): GameEngine {
 
   const restart = useCallback(() => {
     clearTimer();
-    setHistory([makeInitialState()]);
+    setHistory([makeInitialState(state.mode)]);
+    setHistoryIndex(0);
+    setDismissedIndex(-1);
+  }, [clearTimer, state.mode]);
+
+  const setMode = useCallback((mode: GameMode) => {
+    clearTimer();
+    setPendingAction(null);
+    setHistory([makeInitialState(mode)]);
     setHistoryIndex(0);
     setDismissedIndex(-1);
   }, [clearTimer]);
 
-  const setupTestState = useCallback((mode: 'ankan' | 'kakan' | 'daiminkan' | 'riichi-ankan' | 'open-ittsu-ron' | 'open-ittsu-tsumo') => {
+  const setupTestState = useCallback((mode: TestMode) => {
     clearTimer();
+    const prepare = (test: State) => state.mode === 'four' ? asFourPlayerTestState(test) : test;
+    if (mode === 'two-ankan' || mode === 'chained-ankan') {
+      setHistory([prepare(makeTwoAnkanTestState(mode === 'chained-ankan'))]);
+      setHistoryIndex(0);
+      setDismissedIndex(-1);
+      return;
+    }
     if (mode === 'riichi-ankan') {
-      setHistory([makeRiichiAnkanTestState()]);
+      setHistory([prepare(makeRiichiAnkanTestState())]);
       setHistoryIndex(0);
       setDismissedIndex(-1);
       return;
     }
     if (mode === 'open-ittsu-ron') {
-      setHistory([makeOpenIttsuRonTestState()]);
+      setHistory([prepare(makeOpenIttsuRonTestState())]);
       setHistoryIndex(0);
       setDismissedIndex(-1);
       return;
     }
     if (mode === 'open-ittsu-tsumo') {
-      setHistory([makeOpenIttsuTsumoTestState()]);
+      setHistory([prepare(makeOpenIttsuTsumoTestState())]);
       setHistoryIndex(0);
       setDismissedIndex(-1);
       return;
@@ -123,10 +140,10 @@ export function useGameEngine(): GameEngine {
 
     const newState = makeKanTestState(mode);
 
-    setHistory([newState]);
+    setHistory([prepare(newState)]);
     setHistoryIndex(0);
     setDismissedIndex(-1);
-  }, [clearTimer]);
+  }, [clearTimer, state.mode]);
 
   // --- Internal callbacks (not exposed to UI) ---
 
@@ -334,7 +351,7 @@ export function useGameEngine(): GameEngine {
       return;
     }
     if (state.phase === 'cpuTurn' && state.wall.length > 0) {
-      timeoutRef.current = setTimeout(() => cpuTurn(), 700);
+      timeoutRef.current = setTimeout(() => cpuTurn(), state.mode === 'four' ? 400 : 700);
       return () => { clearTimer(); };
     }
     if (state.phase === 'playerDraw' && state.wall.length > 0) {
@@ -346,7 +363,7 @@ export function useGameEngine(): GameEngine {
       timeoutRef.current = setTimeout(() => playerDiscard(state.playerDrawnTile!), 700);
       return () => { clearTimer(); };
     }
-  }, [state.phase, state.wall.length, state.isRiichi, state.playerDrawnTile, state.tsumoAvailable, state.playerHand, state.playerFuro, cpuTurn, playerDraw, playerDiscard, isViewingPast, historyIndex, history.length, clearTimer]);
+  }, [state, cpuTurn, playerDraw, playerDiscard, isViewingPast, historyIndex, history.length, clearTimer]);
 
   // --- Derived values ---
 
@@ -362,11 +379,13 @@ export function useGameEngine(): GameEngine {
   } = state;
 
   const canTsumo = tsumoAvailable;
-  const ankanOptions = findLegalAnkanOptions(playerHand, playerDrawnTile, playerFuro, isRiichi);
-  const kakanOptions = !isRiichi && playerDrawnTile ? findKakanOptions(playerHand, playerDrawnTile, playerFuro) : [];
+  const kanAllowed = state.wall.length > 0 && doraCount < 5 && wanpai.length >= 14;
+  const ankanOptions = kanAllowed ? findLegalAnkanOptions(playerHand, playerDrawnTile, playerFuro, isRiichi) : [];
+  const kakanOptions = kanAllowed && !isRiichi && playerDrawnTile ? findKakanOptions(playerHand, playerDrawnTile, playerFuro) : [];
 
   const isMenzen = isMenzenLogic(playerFuro);
-  const canRiichi = !isRiichi && isMenzen && phase === 'playerDiscard' && !!playerDrawnTile && canRiichiLogic(playerHand, playerDrawnTile!, playerFuro);
+  const canRiichi = !isRiichi && isMenzen && phase === 'playerDiscard' && !!playerDrawnTile &&
+    (state.mode !== 'four' || hasFuturePlayerDraw(state)) && canRiichiLogic(playerHand, playerDrawnTile!, playerFuro);
   const riichiValidTiles = phase === 'riichiSelect' && playerDrawnTile ? validRiichiDiscards(playerHand, playerDrawnTile, playerFuro) : new Set<string>();
   const doraKeys = getDoraTileKeys(wanpai, doraCount);
   const isDora = (t: Tile) => doraKeys.has(`${t.suit}-${t.value}`);
@@ -391,6 +410,7 @@ export function useGameEngine(): GameEngine {
     riichiValidTiles,
     isDora,
     restart,
+    setMode,
     setupTestState,
     playerDiscard,
     playerNakiDiscard,

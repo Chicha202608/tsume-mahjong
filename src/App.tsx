@@ -1,12 +1,11 @@
+import { drawSettlement } from '@/game/drawSettlement';
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { Tile } from '@/types';
 import { MAX_DRAWS } from '@/game/transitions';
 import { useGameEngine } from '@/game/useGameEngine';
 import { scoreHand } from '@/game/scoreAdapter';
 import StatusBar from '@/components/StatusBar';
 import GameOverOverlay from '@/components/GameOverOverlay';
 import ConfirmPopup from '@/components/ConfirmPopup';
-import HistoryControls from '@/components/HistoryControls';
 import Header from '@/components/Header';
 import DoraIndicator from '@/components/DoraIndicator';
 import CpuSection from '@/components/CpuSection';
@@ -15,9 +14,12 @@ import NakiRonButtons from '@/components/NakiRonButtons';
 import HandSection from '@/components/HandSection';
 import WallModal from '@/components/WallModal';
 import SolverReplayModal from '@/components/SolverReplayModal';
+import FourPlayerTable from '@/components/FourPlayerTable';
+import AIAnalysisModal from '@/components/AIAnalysisModal';
 import type { SolverResult } from '@/game/solver';
 
 export default function App() {
+  const [showAI, setShowAI] = useState(false);
   const [showWall, setShowWall] = useState(false);
   const [showScoreModal, setShowScoreModal] = useState(false);
   const [showSolverReplay, setShowSolverReplay] = useState(false);
@@ -44,6 +46,7 @@ export default function App() {
     riichiValidTiles,
     isDora,
     restart,
+    setMode,
     setupTestState,
     playerDiscard,
     playerNakiDiscard,
@@ -85,6 +88,10 @@ export default function App() {
   useEffect(() => {
     // Start as soon as the initial deal exists. Restart only when the deal changes.
     // Searching must not depend on the current phase or history navigation.
+    setShowAI(false);
+    setShowWall(false);
+    setShowScoreModal(false);
+    setShowSolverReplay(false);
     setSolverResult(null);
     setSolverBusy(true);
     const worker = new Worker(new URL('./game/solver.worker.ts', import.meta.url), { type: 'module' });
@@ -107,17 +114,18 @@ export default function App() {
   const solverSummary = !solverResult && solverBusy ? '探索中…' : !solverResult ? '探索結果を取得できませんでした'
     : solverResult.outcome === 'win' && solverResult.bestScore !== null
       ? `AIの得点：${solverResult.bestScore.toLocaleString()}点${solverBusy ? '・探索継続中' : ''}`
+    : solverResult.outcome === 'tenpai' ? `AIの得点：${solverResult.bestScore?.toLocaleString()}点（テンパイ流局）${solverBusy ? '・探索継続中' : ''}`
+    : solverResult.outcome === 'noten' ? 'AIの得点：0点（ノーテン流局）'
     : !solverResult.complete || !solverResult.supported ? 'AI：ノーテン'
-    : solverResult.outcome === 'tenpai' ? '探索結果：テンパイ'
     : '探索結果：ノーテン';
 
-  const playerScore = scoreResult?.handInterpretations.length
+  const settlement = drawSettlement(state);
+  const playerScore = settlement ? settlement.score : scoreResult?.handInterpretations.length
     ? Math.max(...scoreResult.handInterpretations.map(hand => hand.totalWinnings)) : null;
-  const scoreDifference = solverResult?.outcome === 'win'
-    && solverResult.bestScore !== null && playerScore !== null
+  const scoreDifference = solverResult && solverResult.bestScore !== null && playerScore !== null
     ? playerScore - solverResult.bestScore : null;
   const comparisonText = scoreDifference === null ? solverSummary
-    : scoreDifference === 0 ? `${solverSummary} / AIと同点`
+    : scoreDifference === 0 ? `${solverSummary} / AIとの点差：0点（同点）`
     : `${solverSummary} / AIとの点差：${scoreDifference > 0 ? '+' : ''}${scoreDifference.toLocaleString()}点`;
 
   function handleDismissWin() {
@@ -132,12 +140,13 @@ export default function App() {
     restart();
   }
 
-  const DESIGN_WIDTH = 1280;
-  const DESIGN_HEIGHT = 720;
+  const fourPlayer = state.mode === 'four';
+  const DESIGN_WIDTH = fourPlayer ? 1440 : 1280;
+  const DESIGN_HEIGHT = fourPlayer ? 960 : 720;
   const [scale, setScale] = useState(1);
   const updateScale = useCallback(() => {
     setScale(Math.min(window.innerWidth / DESIGN_WIDTH, window.innerHeight / DESIGN_HEIGHT));
-  }, []);
+  }, [DESIGN_WIDTH, DESIGN_HEIGHT]);
   useEffect(() => {
     updateScale();
     window.addEventListener('resize', updateScale);
@@ -147,8 +156,8 @@ export default function App() {
   return (
     <div className="h-dvh w-full bg-black flex items-center justify-center overflow-hidden">
     <div style={{ width: DESIGN_WIDTH * scale, height: DESIGN_HEIGHT * scale }}>
-    <div className="bg-[#1a2e1a] flex flex-col overflow-hidden" onDoubleClickCapture={(event) => {
-      if (isViewingPast || pendingAction || showWall || showScoreModal || showSolverReplay) return;
+    <div className="relative bg-[#1a2e1a] flex flex-col overflow-hidden" onDoubleClickCapture={(event) => {
+      if (isViewingPast || pendingAction || showWall || showScoreModal || showSolverReplay || showAI) return;
       const target = event.target as HTMLElement;
       // Tile faces and buttons must retain their normal click behavior.
       if (target.closest('button, input, select, textarea, [role="button"], [data-tile-card]')) return;
@@ -159,8 +168,9 @@ export default function App() {
         event.preventDefault();
         playerDiscard(playerDrawnTile);
       }
-    }} style={{ width: DESIGN_WIDTH, height: DESIGN_HEIGHT, transform: `scale(${scale})`, transformOrigin: 'top left', fontFamily: "'Segoe UI', system-ui', sans-serif" }}>
+    }} style={{ width: DESIGN_WIDTH, height: DESIGN_HEIGHT, transform: `scale(${scale})`, transformOrigin: 'top left', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
       <Header
+        mode={state.mode ?? 'two'} onMode={setMode} onAI={() => setShowAI(true)}
         turnCount={turnCount}
         maxDraws={MAX_DRAWS}
         wallCount={wall.length}
@@ -171,7 +181,7 @@ export default function App() {
         onSetupTest={setupTestState}
       />
 
-      <DoraIndicator
+      {!fourPlayer && <DoraIndicator
         wanpai={wanpai}
         doraCount={doraCount}
         ankanOptions={ankanOptions}
@@ -182,10 +192,10 @@ export default function App() {
         roundWind={roundWind}
         playerWind={playerWind}
         cpuHand={cpuHand}
-      />
+      />}
 
-      <div className="flex flex-col flex-1 min-h-0 gap-0 overflow-hidden">
-        <div className="flex-1 min-h-0 overflow-y-scroll [scrollbar-gutter:stable]">
+      <div className={fourPlayer ? "flex flex-col flex-1 min-h-0 gap-0 overflow-hidden mx-[168px] my-3 rounded-xl border border-emerald-800 bg-[#073b2d]" : "flex flex-col flex-1 min-h-0 gap-0 overflow-hidden"}>
+        {fourPlayer ? <div className="flex-1 min-h-0"><FourPlayerTable state={state} embedded /></div> : <div className="flex-1 min-h-0 overflow-y-scroll [scrollbar-gutter:stable]">
         <CpuSection
           cpuHand={cpuHand}
           cpuFuro={state.cpuFuro}
@@ -196,11 +206,13 @@ export default function App() {
 
         <PlayerDiscards playerDiscards={playerDiscards} isDora={isDora} />
 
-        </div>
+        </div>}
 
         {/* Keep call and ron controls visible below the scrolling river. */}
-        <div className="shrink-0">
+        <div className={fourPlayer ? "h-14 shrink-0 flex items-center justify-center gap-3" : "shrink-0"}>
+          {fourPlayer && !isViewingPast && phase === 'playerDiscard' && [...ankanOptions, ...kakanOptions].map((option, i) => <button key={i} onClick={() => declareKan(option)} className="rounded-lg bg-purple-700 px-4 py-2 text-white">{option.type === 'ankan' ? '暗槓' : '加槓'} {option.tiles[0].value}{option.tiles[0].suit === 'pin' ? 'p' : option.tiles[0].suit === 'sou' ? 's' : option.tiles[0].suit === 'man' ? 'm' : 'z'}</button>)}
           <NakiRonButtons
+            largeChoices={fourPlayer}
             phase={phase}
             lastCpuDiscard={lastCpuDiscard}
             ronAvailable={ronAvailable}
@@ -213,12 +225,13 @@ export default function App() {
         </div>
 
         {/* Status bar */}
-        <div className="shrink-0 px-4 py-2 bg-[#1a2e1a]">
+        <div className={fourPlayer ? "h-7 shrink-0 px-4 flex items-center justify-center" : "shrink-0 px-4 py-2 bg-[#1a2e1a]"}>
           <StatusBar phase={phase} wallCount={wall.length} isViewingPast={isViewingPast} tsumoAvailable={tsumoAvailable} />
         </div>
 
         <div className="shrink-0">
           <HandSection
+          fourPlayer={fourPlayer}
           playerHand={playerHand}
           playerDrawnTile={playerDrawnTile}
           playerFuro={playerFuro}
@@ -247,6 +260,7 @@ export default function App() {
 
       {showWall && (
         <WallModal
+          state={state}
           wall={wall}
           fullWall={fullWall}
           wallDrawnCount={wallDrawnCount}
@@ -270,10 +284,10 @@ export default function App() {
       {phase === 'exhausted' && !isViewingPast && dismissedIndex !== historyIndex && (
         <GameOverOverlay
           title="流局"
-          message={`ツモ${MAX_DRAWS}回に達しました`}
+          message={settlement?.tenpai ? 'テンパイ流局：3,000点' : 'ノーテン流局：0点'}
           onRestart={handleRestart}
           onOk={handleDismissWin}
-          solverSummary={solverSummary ?? undefined}
+          solverSummary={comparisonText}
           onShowSolver={solverResult?.supported && (solverResult.complete || solverResult.line.length > 0) ? () => setShowSolverReplay(true) : undefined}
         />
       )}
@@ -287,10 +301,11 @@ export default function App() {
           onOk={handleDismissWin}
           isWin
           scoreResult={scoreResult}
-          solverSummary={comparisonText ?? undefined}
+          solverSummary={comparisonText}
           onShowSolver={solverResult?.supported && solverResult.line.length > 0 ? () => setShowSolverReplay(true) : undefined}
         />
       )}
+      {showAI && <AIAnalysisModal summary={comparisonText} canReplay={!!solverResult?.supported && (solverResult.complete || solverResult.line.length > 0)} onClose={() => setShowAI(false)} onReplay={() => { setShowAI(false); setShowSolverReplay(true); }} />}
       {showSolverReplay && solverResult?.supported && (solverResult.complete || solverResult.line.length > 0) && (
         <SolverReplayModal initial={initialState} result={solverResult} onClose={() => setShowSolverReplay(false)} />
       )}

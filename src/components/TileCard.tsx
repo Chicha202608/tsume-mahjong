@@ -21,7 +21,7 @@ const sizeMap = {
 };
 
 export default function TileCard({ tile, size = 'md', onClick, highlighted, faceDown, rotated, dora, className = '' }: Props) {
-  const { label } = tileDisplay(tile);
+  const label = faceDown ? '伏せ牌' : tileDisplay(tile).label;
   const { outer, w, h, shadow } = sizeMap[size];
   const showShimmer = dora && !faceDown;
 

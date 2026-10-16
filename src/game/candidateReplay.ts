@@ -1,6 +1,7 @@
 import type { Tile } from '@/types';
 import type { State } from '@/game/gameState';
 import { scoreHand } from '@/game/scoreAdapter';
+import { drawStride, playerDrawOffset } from '@/game/seatFlow';
 import { enumerateTenpaiCandidates, findCandidateWinOpportunities, type CandidateWinOpportunity } from '@/game/tenpaiCandidates';
 
 function face(tile: Tile): number {
@@ -15,8 +16,8 @@ export function isTargetFuriten(
 ): boolean {
   const available = Array<number>(34).fill(0);
   for (const tile of initial.playerHand) available[face(tile)]++;
-  const firstOwnIndex = initial.phase === 'playerDraw' ? 0 : 1;
-  for (let i = firstOwnIndex; i < wallIndex; i += 2) available[face(initial.wall[i])]++;
+  const firstOwnIndex = playerDrawOffset(initial);
+  for (let i = firstOwnIndex; i < wallIndex; i += drawStride(initial)) available[face(initial.wall[i])]++;
   return initial.playerDiscards.some(tile => waits.includes(face(tile))) ||
     waits.some(i => available[i] > target[i]);
 }
@@ -43,13 +44,14 @@ export function replayCandidateOpportunity(
 ): CandidateReplay | null {
   if (!['playerDraw', 'cpuTurn'].includes(initial.phase) || initial.playerFuro.length ||
       initial.playerDrawnTile || initial.playerHand.length !== 13) return null;
-  const firstOwnIndex = initial.phase === 'playerDraw' ? 0 : 1;
+  const firstOwnIndex = playerDrawOffset(initial);
+  const stride = drawStride(initial);
   const target = opportunity.candidate.counts;
   const hand = [...initial.playerHand];
   // Prefer red fives whenever more copies of a face exist than the target needs.
   // The chronological retention rule below preserves already-held red copies.
   const discards: Tile[] = [];
-  for (let i = firstOwnIndex; i < opportunity.wallIndex; i += 2) {
+  for (let i = firstOwnIndex; i < opportunity.wallIndex; i += stride) {
     const drawn = initial.wall[i];
     const available = [...hand, drawn];
     const counts = Array<number>(34).fill(0);
@@ -81,6 +83,7 @@ export function replayCandidateOpportunity(
     phase: 'win',
     winType: opportunity.type,
     winTile: winningTile,
+    winFromWind: opportunity.sourceWind,
     // Advance the wall through this win for accurate last-tile yaku flags.
     wall: initial.wall.slice(opportunity.wallIndex + 1),
     isIppatsu: false,
@@ -100,14 +103,13 @@ export function replayCandidateOpportunity(
   // The preceding discard must actually leave this exact 13-tile tenpai.
   // For ron this is the immediately preceding own discard; for tsumo the
   // preceding player draw/discard is two wall positions earlier.
-  const lastDiscardWallIndex = opportunity.type === 'ron'
-    ? opportunity.wallIndex - 1 : opportunity.wallIndex - 2;
+  const lastDiscardWallIndex = firstOwnIndex + Math.floor((opportunity.wallIndex - 1 - firstOwnIndex) / stride) * stride;
   // Both preceding indices must actually be player-draw/discard turns.
   const previousHand = lastDiscardWallIndex >= firstOwnIndex ? (() => {
     const tiles = [...initial.playerHand];
-    for (let i = firstOwnIndex; i <= lastDiscardWallIndex; i += 2) {
+    for (let i = firstOwnIndex; i <= lastDiscardWallIndex; i += stride) {
       tiles.push(initial.wall[i]);
-      const discard = discards[(i - firstOwnIndex) / 2];
+      const discard = discards[(i - firstOwnIndex) / stride];
       if (!discard) return null;
       const idx = tiles.findIndex(t => t.id === discard.id);
       if (idx < 0) return null;
@@ -121,12 +123,12 @@ export function replayCandidateOpportunity(
   // Last-discard riichi is legal only when an ensuing player draw remains;
   // the CPU's last discard still exists in player-first order.
   const previousOwnTurn = lastDiscardWallIndex >= firstOwnIndex
-    ? (lastDiscardWallIndex - firstOwnIndex) / 2 + 1 : 0;
+    ? (lastDiscardWallIndex - firstOwnIndex) / stride + 1 : 0;
   const canLateRiichi = !initial.isRiichi && priorIsTenpai &&
     previousOwnTurn < 18 &&
     // A riichi declaration needs at least one subsequent own draw available.
     // This excludes the player-first 18th CPU ron but permits CPU-first 18th ron.
-    lastDiscardWallIndex + 2 < initial.wall.length;
+    lastDiscardWallIndex + stride < initial.wall.length;
   const withRiichi = canLateRiichi ? evaluate(true) : null;
   const useRiichi = withRiichi !== null && (without === null || withRiichi > without);
   return { opportunity, discards, furiten,

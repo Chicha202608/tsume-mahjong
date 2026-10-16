@@ -1,3 +1,5 @@
+import type { State } from '@/game/gameState';
+import { isPlayerWallIndex } from '@/game/seatFlow';
 import { Tile, Phase } from '@/types';
 import TileCard from '@/components/TileCard';
 import { X, Layers } from 'lucide-react';
@@ -5,6 +7,7 @@ import { X, Layers } from 'lucide-react';
 const WANPAI_COUNT = 14;
 
 interface Props {
+  state?: State;
   wall: Tile[];
   fullWall: Tile[];
   wallDrawnCount: number;
@@ -15,7 +18,7 @@ interface Props {
   turnCount: number;
 }
 
-export default function WallModal({ wall, fullWall, wallDrawnCount, doraCount, wanpai, phase, turnCount,onClose }: Props) {
+export default function WallModal({ state, wall, fullWall, wallDrawnCount, doraCount, wanpai, phase, turnCount,onClose }: Props) {
   const supplementCount = Math.max(doraCount - 1, 0);
   const MAX_DRAWS = 18;
   
@@ -31,6 +34,7 @@ export default function WallModal({ wall, fullWall, wallDrawnCount, doraCount, w
     if (idx >= fullWall.length - supplementCount) return false;
   
     const offset = idx - wallDrawnCount;
+    if (state?.mode === 'four') return isPlayerWallIndex(state, offset);
     
     // プレイヤーがツモる位置だけを対象にする
     const isPlayerDrawPosition = nextDrawIsPlayer
