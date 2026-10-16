@@ -1,10 +1,31 @@
 import { describe, expect, it } from 'vitest';
-import { evaluateCandidateWins } from '@/game/candidateReplay';
+import { evaluateCandidateWins, replayCandidateOpportunity } from '@/game/candidateReplay';
 import { makeInitialStateBase } from '@/game/gameState';
 import type { Tile } from '@/types';
 const tile = (suit: Tile['suit'], value: number, id: string): Tile => ({ suit, value, id });
 
 describe('candidate replay', () => {
+  it('discards hatsu before 2p when both are surplus to 567m99p12345789s', () => {
+    const hand = [
+      ...[5,6,7].map(v => tile('man',v,`m${v}`)),
+      tile('pin',2,'p2'), tile('pin',9,'p9a'), tile('pin',9,'p9b'),
+      ...[2,4,4,4,9].map((v,i) => tile('sou',v,`s${i}`)),
+      tile('wind',4,'north1'), tile('wind',4,'north2'),
+    ];
+    const draws = [tile('dragon',2,'hatsu'), ...[1,3,5,7,8].map(v => tile('sou',v,`draw${v}`))];
+    const wall = draws.flatMap((t,i) => [t, tile('man',1,`cpu${i}`)]);
+    wall.push(tile('sou',6,'win'));
+    const counts = Array<number>(34).fill(0);
+    for (const f of [4,5,6,17,17,18,19,20,21,22,24,25,26]) counts[f]++;
+    const initial = { ...makeInitialStateBase(hand,[],wall,[]), roundWind: 'east' as const };
+    const replay = replayCandidateOpportunity(initial, {
+      candidate: { counts, waits: [20,23], earliestPlayerDraw: 6 },
+      type: 'tsumo', wallIndex: 12, winningFace: 23,
+    });
+    expect(replay?.score).toBeGreaterThan(0);
+    expect(replay?.discards.map(t => t.id)).toEqual(['hatsu','north2','north1','s3','s2','p2']);
+  });
+
   const hand = [
     tile('man',1,'m1'),tile('man',2,'m2'),tile('man',3,'m3'),
     tile('pin',1,'p1'),tile('pin',2,'p2'),tile('pin',3,'p3'),

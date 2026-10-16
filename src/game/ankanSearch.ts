@@ -131,7 +131,7 @@ export function searchWithAnkan(
         }
         const all = [...state.playerHand, state.playerDrawnTile!];
         const held = counts(all);
-        const extra = state.isRiichi ? [state.playerDrawnTile!] : all.filter(t =>
+        const extra = state.isRiichi ? [state.playerDrawnTile!] : [...all].reverse().filter(t =>
           held[face(t)] > (pending.includes(face(t)) ? 4 : target.counts[face(t)]));
         const discard = extra.find(t => !t.isRed && !target.waits.includes(face(t))) ?? extra.find(t => !t.isRed) ?? extra[0];
         if (!discard) break;

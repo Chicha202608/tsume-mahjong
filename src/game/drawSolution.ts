@@ -50,7 +50,7 @@ export function findDrawSolution(initial: State): SolverResult | null {
         const available = [...state.playerHand, state.playerDrawnTile];
         const counts = Array<number>(34).fill(0);
         for (const tile of available) counts[face(tile)]++;
-        const extra = available.filter(t => counts[face(t)] > target.counts[face(t)] &&
+        const extra = [...available].reverse().filter(t => counts[face(t)] > target.counts[face(t)] &&
           (!state.isRiichi || t.id === state.playerDrawnTile!.id));
         const tile = extra.find(t => !t.isRed) ?? extra[0];
         if (!tile) break;
