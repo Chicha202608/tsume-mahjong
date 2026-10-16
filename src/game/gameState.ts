@@ -1,7 +1,15 @@
 import { Tile, Phase, Furo, Wind } from '@/types';
-import { initGame, NakiOption } from '@/gameLogic';
+import { initGame, createDeck, shuffle, sortHand, NakiOption } from '@/gameLogic';
+
+export type GameMode = 'two' | 'four';
 
 export interface State {
+  mode?: GameMode;
+  opponents?: { wind: Wind; hand: Tile[]; discards: Tile[] }[];
+  nextSeat?: Wind;
+  lastDiscardWind?: Wind;
+  winFromWind?: Wind;
+  temporaryFuriten?: boolean;
   playerHand: Tile[];
   playerDrawnTile: Tile | null;
   cpuHand: Tile[];
@@ -28,6 +36,8 @@ export interface State {
   cpuWind: Wind;
   winTile: Tile | null;
   isIppatsu: boolean;
+  /** The current drawn tile came from the dead wall. */
+  drawnFromRinshan?: boolean;
 }
 
 const winds: Wind[] = ['east', 'south', 'west', 'north'];
@@ -41,7 +51,17 @@ export function isPlayerUpwind(playerWind: Wind, cpuWind: Wind): boolean {
   return winds.indexOf(playerWind) < winds.indexOf(cpuWind);
 }
 
-export function makeInitialState(): State {
+export function makeInitialState(mode: GameMode = 'two'): State {
+  if (mode === 'four') {
+    const deck = shuffle(createDeck());
+    const playerWind = randomWind();
+    const playerHand = sortHand(deck.splice(0, 13));
+    const opponents = winds.filter(w => w !== playerWind).map(wind =>
+      ({ wind, hand: sortHand(deck.splice(0, 13)), discards: [] as Tile[] }));
+    const wanpai = deck.splice(0, 14);
+    return { ...makeInitialStateBase(playerHand, opponents[0].hand, deck, wanpai, playerWind, opponents[0].wind),
+      mode, opponents, nextSeat: 'east', phase: playerWind === 'east' ? 'playerDraw' : 'cpuTurn' };
+  }
   const { playerHand, cpuHand, wall, wanpai } = initGame();
   const playerWind = randomWind();
   const otherSeats = winds.filter(w => w !== playerWind);

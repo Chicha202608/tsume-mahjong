@@ -47,7 +47,7 @@ function reconstruct(initial: State, candidate: CandidateReplay): SolverAction[]
   const opportunity = candidate.opportunity;
   const winIndex = opportunity.wallIndex;
 
-  for (let guard = 0; guard < 120; guard++) {
+  for (let guard = 0; guard < 320; guard++) {
     if (state.wallDrawnCount === winIndex &&
         opportunity.type === 'tsumo' && state.phase === 'playerDraw') {
       const next = applyPlayerDraw(state);
@@ -65,6 +65,7 @@ function reconstruct(initial: State, candidate: CandidateReplay): SolverAction[]
       if (!tile) return null;
       const next = applyCpuTurn(state);
       if (!next) return null;
+      if (initial.mode === 'four' && !next.ronAvailable) return null;
       line.push({ type: 'cpu-turn' });
       line.push({ type: 'ron', tile, riichi: candidate.riichi,
         lastMomentRiichi: candidate.riichi && !initial.isRiichi,

@@ -2,7 +2,7 @@ import type { State } from '@/game/gameState';
 import type { SolverAction, SolverResult } from '@/game/solver';
 import {
   applyPlayerDraw, applyCpuTurn, applyPlayerDiscard, applyPassTsumo,
-  applyPassNaki, applyCallRon, applyDeclareTsumo,
+  applyPassNaki, applyCallRon, applyDeclareTsumo, applyDeclareKan,
 } from '@/game/transitions';
 
 export interface ReplayFrame {
@@ -20,28 +20,29 @@ export function buildSolverReplay(initial: State, result: SolverResult): ReplayF
     switch (action.type) {
       case 'draw': next = applyPlayerDraw(state); break;
       case 'cpu-turn': next = applyCpuTurn(state); break;
+      case 'ankan': next = applyDeclareKan(state, action.option); break;
       case 'discard': {
         // Mark last-moment riichi only when a legal declaration is actually possible.
         // The solver's scoring convention is retained in this replay.
         next = applyPlayerDiscard(state, action.tile);
-        if (next && action.riichi) next = { ...next, isRiichi: true, isIppatsu: true };
+        if (next && action.riichi && !next.isRiichi) next = { ...next, isRiichi: true, isIppatsu: true };
         break;
       }
       case 'pass-tsumo': next = applyPassTsumo(state); break;
       case 'pass-naki': next = applyPassNaki(state); break;
       case 'ron':
-        next = applyCallRon(state) ?? (
+        next = applyCallRon(state) ?? (state.mode === 'four' ? null : (
           { ...state, phase: 'win', winType: 'ron',
             winTile: action.tile, lastCpuDiscard: action.tile, ronAvailable: false }
-        );
-        if (next && action.riichi) next = { ...next, isRiichi: true, isIppatsu: true };
+        ));
+        if (next && action.riichi && !next.isRiichi) next = { ...next, isRiichi: true, isIppatsu: true };
         break;
       case 'tsumo':
         next = applyDeclareTsumo(state) ?? (
           state.playerDrawnTile ? { ...state, phase: 'win', winType: 'tsumo',
             winTile: state.playerDrawnTile, tsumoAvailable: false } : null
         );
-        if (next && action.riichi) next = { ...next, isRiichi: true, isIppatsu: true };
+        if (next && action.riichi && !next.isRiichi) next = { ...next, isRiichi: true, isIppatsu: true };
         break;
       default: return frames;
     }
@@ -56,7 +57,7 @@ export function buildSolverReplay(initial: State, result: SolverResult): ReplayF
 export function buildNotenReplay(initial: State): ReplayFrame[] {
   const frames: ReplayFrame[] = [{ state: initial, action: null }];
   let state = initial;
-  for (let i = 0; i < 120 && state.phase !== 'exhausted'; i++) {
+  for (let i = 0; i < 320 && state.phase !== 'exhausted'; i++) {
     let action: SolverAction;
     let next: State | null;
     if (state.phase === 'playerDraw') {

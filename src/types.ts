@@ -10,6 +10,7 @@ export interface Tile {
 }
 
 export interface Furo {
+  fromWind?: Wind;
   tiles: Tile[];
   type: 'pung' | 'chii' | 'kan' | 'ankan' | 'daiminkan' | 'kakan';
   calledTile: Tile;

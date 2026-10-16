@@ -60,7 +60,7 @@ function toMeld(furo: Furo, cpuDir: Direction, kamichaDir: Direction): Meld {
 
   const calledIndex = furo.tiles.findIndex(t => t.id === furo.calledTile.id);
   // Chi must come from kamicha; other called melds come from the CPU seat.
-  const from = groupType === 'run' ? kamichaDir : cpuDir;
+  const from = furo.fromWind ? toDirection(furo.fromWind) : groupType === 'run' ? kamichaDir : cpuDir;
   return createMeld({
     type: groupType,
     tiles,
@@ -94,7 +94,7 @@ function kamichaDirection(playerWind: Wind): Direction {
 export function buildHandInput(state: State): HandInput | null {
   if (state.phase !== 'win' || !state.winTile || !state.winType) return null;
 
-  const cpuDir = cpuDirection(state.playerWind);
+  const cpuDir = state.mode === 'four' ? toDirection(state.winFromWind ?? state.lastDiscardWind ?? state.cpuWind) : cpuDirection(state.playerWind);
   const kamichaDir = kamichaDirection(state.playerWind);
   const closedTiles = state.playerHand.map(toMahjongTile);
   const openMelds = state.playerFuro.map(f => toMeld(f, cpuDir, kamichaDir));
@@ -121,8 +121,9 @@ export function buildHandInput(state: State): HandInput | null {
     uradoraIndicators,
     isRiichi: state.isRiichi,
     isIppatsu: state.isIppatsu,
-    isHaitei: state.winType === 'tsumo' && state.wall.length === 0 && state.fullWall.length === 36,
-    isHoutei: state.winType === 'ron' && state.wall.length === 0 && state.fullWall.length === 36,
+    isRinshan: state.winType === 'tsumo' && !!state.drawnFromRinshan,
+    isHaitei: state.winType === 'tsumo' && !state.drawnFromRinshan && state.wall.length === 0 && state.fullWall.length === (state.mode === 'four' ? 70 : 36),
+    isHoutei: state.winType === 'ron' && state.wall.length === 0 && state.fullWall.length === (state.mode === 'four' ? 70 : 36),
   });
 
   return {
@@ -151,6 +152,7 @@ export function canRonWithYaku(state: State, discardTile: Tile): boolean {
     winTile: discardTile,
     playerDrawnTile: null,
     lastCpuDiscard: discardTile,
+    ...(state.mode === 'four' ? { winFromWind: state.nextSeat } : {}),
     // This helper runs before applyCpuTurn consumes the CPU's wall tile.
     wall: state.wall.slice(1),
   };
@@ -172,7 +174,7 @@ export function canTsumoWithYaku(state: State, drawTile: Tile): boolean {
     winTile: drawTile,
     playerDrawnTile: drawTile,
     // This helper runs before applyPlayerDraw consumes the winning tile.
-    wall: state.wall.slice(1),
+    wall: state.drawnFromRinshan ? state.wall : state.wall.slice(1),
   };
   try {
     const result = scoreHand(winState);

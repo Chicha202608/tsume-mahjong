@@ -1,6 +1,57 @@
 import { createDeck, shuffle, sortHand } from '@/gameLogic';
 import { makeInitialStateBase, type State } from '@/game/gameState';
 import type { Tile, Furo } from '@/types';
+import { SEATS, seatAfter } from '@/game/seatFlow';
+
+/** Keep debug scenarios usable in either mode without duplicating tiles. */
+export function asFourPlayerTestState(state: State): State {
+  const used = new Set([...state.playerHand, ...state.cpuHand, ...state.wall, ...state.wanpai,
+    ...state.playerFuro.flatMap(f => f.tiles)].map(t => t.id));
+  const deck = createDeck().filter(t => !used.has(t.id));
+  const cpuWind = state.cpuWind === state.playerWind ? seatAfter(state.playerWind, 3) : state.cpuWind;
+  const opponents = SEATS.filter(w => w !== state.playerWind).map(wind => ({ wind,
+    hand: wind === cpuWind ? state.cpuHand : sortHand(deck.splice(0, 13)), discards: [] as Tile[] }));
+  const cpuFirst = state.phase === 'cpuTurn';
+  // Preserve the fixture's own draws while inserting the two extra CPU turns.
+  const wall: Tile[] = [];
+  state.wall.forEach((tile, i) => {
+    wall.push(tile);
+    if (i % 2 === 1) wall.push(...deck.splice(0, 2));
+  });
+  wall.splice(70);
+  return { ...state, mode: 'four', cpuWind, opponents, wall, fullWall: [...wall],
+    nextSeat: cpuFirst ? seatAfter(state.playerWind, 3) : state.playerWind };
+}
+
+export type TestMode = 'ankan' | 'kakan' | 'daiminkan' | 'riichi-ankan' |
+  'open-ittsu-ron' | 'open-ittsu-tsumo' | 'two-ankan' | 'chained-ankan';
+
+/** Short endgame with two guaranteed kans and a second-rinshan win. */
+export function makeTwoAnkanTestState(chained = false): State {
+  const deck = createDeck();
+  const take = (suit: Tile['suit'], value: number): Tile => {
+    const index = deck.findIndex(t => t.suit === suit && t.value === value && !t.isRed);
+    if (index < 0) throw new Error(`Missing two-kan test tile: ${suit} ${value}`);
+    return deck.splice(index, 1)[0];
+  };
+  const hand = sortHand([
+    ...[1, 1, 1, 9, 9, 9].map(v => take('man', v)),
+    ...[2, 3, 4, 5, 5].map(v => take('pin', v)), take('sou', 7), take('sou', 8),
+  ]);
+  const fourth1m = take('man', 1);
+  const fourth9m = take('man', 9);
+  const winningTile = take('sou', 9);
+  const firstRinshan = chained ? fourth9m : take('dragon', 1);
+  const wall = chained
+    ? [fourth1m, take('wind', 1), take('wind', 2), take('wind', 3)]
+    : [fourth1m, take('wind', 1), fourth9m, take('wind', 2), take('wind', 3), take('wind', 4)];
+  const wanpai = [firstRinshan, winningTile, ...deck.splice(0, 2),
+    take('dragon', 1), take('dragon', 2), take('dragon', 3), ...deck.splice(0, 2),
+    take('dragon', 1), take('dragon', 2), take('dragon', 3), ...deck.splice(0, 2)];
+  const cpuHand = sortHand(deck.splice(0, 13));
+  return { ...makeInitialStateBase(hand, cpuHand, wall, wanpai, 'south', 'west'),
+    roundWind: 'east', turnCount: chained ? 16 : 15 };
+}
 
 /** Deterministic UI test: riichi, three 1m in hand, fourth 1m next draw.
  * The original 5p tanki wait survives the concealed kan.

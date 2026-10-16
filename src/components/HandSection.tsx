@@ -5,6 +5,7 @@ import { Trophy, X, Layers, Zap } from 'lucide-react';
 import HistoryControls from '@/components/HistoryControls';
 
 interface Props {
+  fourPlayer?: boolean;
   playerHand: Tile[];
   playerDrawnTile: Tile | null;
   playerFuro: Furo[];
@@ -30,19 +31,23 @@ interface Props {
 }
 
 export default function HandSection({
-  playerHand, playerDrawnTile, playerFuro, phase, isRiichi, isViewingPast,
+  fourPlayer = false,
+  playerHand, playerDrawnTile, playerFuro, phase, isRiichi,
   canTsumo, canRiichi, riichiValidTiles, isDora,
   onDiscard, onNakiDiscard, onRiichiDiscard,
   onDeclareTsumo, onPassTsumo, onDeclareRiichi, onShowWall,
   canUndo, canStepForward, onMatta, onStepBack, onStepForward,
 }: Props) {
   return (
-    <section className="shrink-0 flex flex-col items-stretch justify-end px-2 pt-1 pb-6">
-      <div className="min-h-[44px] w-full mb-2 relative z-30 bg-[#1a2e1a] flex items-center overflow-x-auto [scrollbar-width:thin]">
+    <section className={`shrink-0 flex flex-col items-stretch justify-end px-2 pt-1 ${fourPlayer ? 'pb-16 h-[190px]' : 'pb-6'}`}>
+      <div className={`min-h-[44px] w-full mb-2 relative z-30 ${fourPlayer ? '' : 'bg-[#1a2e1a]'} flex items-center overflow-x-auto [scrollbar-width:thin]`}>
         <div className="flex items-center gap-2 flex-nowrap py-1 px-1 flex-1 justify-end">
           <h2 className="text-green-400 text-sm font-semibold tracking-widest uppercase shrink-0">
             手牌
           </h2>
+          <button onClick={onShowWall} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 text-white font-bold text-sm shrink-0">
+            <Layers size={14} />山
+          </button>
         </div>
         <div className="flex items-center justify-center py-1 px-1 shrink-0">
           <HistoryControls
@@ -54,13 +59,6 @@ export default function HandSection({
           />
         </div>
         <div className="flex items-center gap-2 flex-nowrap py-1 px-1 flex-1 justify-start">
-          <button
-            onClick={onShowWall}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 active:scale-95 text-white font-bold text-sm transition-all shadow-md shrink-0 whitespace-nowrap"
-          >
-            <Layers size={14} />
-            山
-          </button>
           {canRiichi && (
             <button
               onClick={onDeclareRiichi}
@@ -95,8 +93,8 @@ export default function HandSection({
         </div>
       </div>
 
-      <div className="relative w-full">
-        <div className="flex flex-nowrap justify-center items-end gap-0.5 sm:gap-1 w-full max-w-full overflow-x-auto [scrollbar-width:thin] px-2">
+      <div className={fourPlayer ? "relative w-full flex items-end justify-center gap-6" : "relative w-full"}>
+        <div data-player-hand className={`flex flex-nowrap justify-center items-end gap-0.5 sm:gap-1 ${fourPlayer ? 'shrink-0' : 'w-full max-w-full overflow-x-auto [scrollbar-width:thin]'} px-2`}>
           {playerHand.map(tile => {
             const isRiichiInvalid = phase === 'riichiSelect' && !riichiValidTiles.has(tile.id);
             return (
@@ -116,7 +114,7 @@ export default function HandSection({
               </div>
             );
           })}
-          <div className="ml-2 sm:ml-3 w-[53px] shrink-0 flex justify-center aspect-[3/4]">
+          <div className="ml-1 w-[53px] shrink-0 flex justify-center aspect-[3/4]">
             {playerDrawnTile && (
               <TileCard
                 tile={playerDrawnTile}
@@ -133,12 +131,19 @@ export default function HandSection({
             )}
           </div>
         </div>
-        {playerFuro.length > 0 && (
+      {fourPlayer && playerFuro.length > 0 && <div aria-label="副露" data-player-furo className="shrink-0 flex items-end gap-3">
+        {playerFuro.map((furo, i) => <div key={i} className="flex gap-0.5">
+          {furo.tiles.map((tile, j) => <TileCard key={tile.id} tile={tile} size="sm" dora={isDora(tile)}
+            faceDown={furo.type === 'ankan' && (j === 0 || j === 3)} />)}
+        </div>)}
+      </div>}
+        {playerFuro.length > 0 && !fourPlayer && (
           <div className="absolute right-2 bottom-0 z-40">
             <PlayerFuro playerFuro={playerFuro} isDora={isDora} />
           </div>
         )}
       </div>
+
     </section>
   );
 }

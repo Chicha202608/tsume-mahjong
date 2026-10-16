@@ -26,6 +26,7 @@ export type SolverAction =
   | { type: 'cpu-turn' }
   | { type: 'discard'; tile: Tile; riichi?: boolean }
   | { type: 'call-naki'; option: NakiOption }
+  | { type: 'ankan'; option: NakiOption }
   | { type: 'pass-tsumo' }
   | { type: 'pass-naki' }
   | { type: 'tsumo'; riichi: boolean; lastMomentRiichi: boolean; score: number }
@@ -35,9 +36,9 @@ export interface SolverResult {
   /** False when the input state is outside this closed-hand solver's scope. */
   supported: boolean;
   unsupportedReason?: 'open-hand';
-  /** Final result: wins outrank tenpai, which outranks noten. Null means unsupported or incomplete. */
+  /** Outcome of the selected line. Null means unsupported or incomplete. */
   outcome: 'win' | 'tenpai' | 'noten' | null;
-  /** Best score for the player. Null means no winning line was found. */
+  /** Score for the player, including the tenpai-draw payment. Null means no result was found. */
   bestScore: number | null;
   /** One maximum-score line. Other equally scoring lines are not enumerated yet. */
   line: SolverAction[];
@@ -47,6 +48,9 @@ export interface SolverResult {
     cacheHits: number;
     prunedBranches: number;
     elapsedMs: number;
+    ankanCombinations?: number;
+    replayedLines?: number;
+    timeLimitReached?: boolean;
   };
 }
 
