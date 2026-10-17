@@ -4,6 +4,7 @@ import type { TestMode } from '@/game/testScenarios';
 import type { GameMode } from '@/game/gameState';
 
 interface Props {
+  onHome: () => void;
   mode: GameMode;
   onMode: (mode: GameMode) => void;
   onAI: () => void;
@@ -17,10 +18,11 @@ interface Props {
   onSetupTest: (mode: TestMode) => void;
 }
 
-export default function Header({ mode, onMode, onAI, turnCount, maxDraws, wallCount, isViewingPast, historyIndex, historyLength, onRestart, onSetupTest }: Props) {
+export default function Header({ onHome, mode, onMode, onAI, turnCount, maxDraws, wallCount, isViewingPast, historyIndex, historyLength, onRestart, onSetupTest }: Props) {
   if (mode === 'four') return <header className="contents">
     <nav aria-label="対局メニュー" className="absolute left-2 top-3 bottom-3 w-[148px] rounded-xl border border-emerald-900 bg-[#0f1f0f] p-3 flex flex-col gap-5 text-white">
       <h1 className="font-bold text-xl text-center py-2">詰め麻雀</h1>
+      <button onClick={onHome} className="h-11 rounded-lg border border-emerald-700 text-sm hover:bg-emerald-900">トップへ</button>
       <div aria-label="対局モード" className="flex flex-col gap-2">
         {(['two', 'four'] as const).map(value => <button key={value} aria-pressed={mode === value}
           onClick={() => onMode(value)} className={`h-11 rounded-lg text-sm ${mode === value ? 'bg-amber-500 text-black font-bold' : 'border border-emerald-700 text-emerald-100 hover:bg-emerald-900'}`}>
@@ -42,6 +44,7 @@ export default function Header({ mode, onMode, onAI, turnCount, maxDraws, wallCo
           <span className="text-white font-black text-sm">麻</span>
         </div>
         <h1 className="text-white font-bold text-xl tracking-wide">詰め麻雀</h1>
+        <button onClick={onHome} className="px-3 py-1.5 rounded-lg border border-emerald-700 text-emerald-100 text-sm hover:bg-emerald-900">トップへ</button>
         <div aria-label="対局モード" className="flex rounded-lg border border-emerald-700 overflow-hidden">
           {(['two', 'four'] as const).map(value => <button key={value} aria-pressed={mode === value}
             onClick={() => onMode(value)} className={`px-5 py-1.5 text-sm ${mode === value ? 'bg-amber-500 text-black font-bold' : 'text-emerald-100 hover:bg-emerald-900'}`}>
