@@ -3,6 +3,7 @@ import type { SolverAction, SolverResult } from '@/game/solver';
 import {
   applyPlayerDraw, applyCpuTurn, applyPlayerDiscard, applyPassTsumo,
   applyPassNaki, applyCallRon, applyDeclareTsumo, applyDeclareKan,
+  applyCallNaki, applyPlayerNakiDiscard,
 } from '@/game/transitions';
 
 export interface ReplayFrame {
@@ -20,11 +21,15 @@ export function buildSolverReplay(initial: State, result: SolverResult): ReplayF
     switch (action.type) {
       case 'draw': next = applyPlayerDraw(state); break;
       case 'cpu-turn': next = applyCpuTurn(state); break;
-      case 'ankan': next = applyDeclareKan(state, action.option); break;
+      case 'ankan':
+      case 'kakan': next = applyDeclareKan(state, action.option); break;
+      case 'call-naki': next = action.option.type === 'daiminkan'
+        ? applyDeclareKan(state, action.option) : applyCallNaki(state, action.option); break;
       case 'discard': {
         // Mark last-moment riichi only when a legal declaration is actually possible.
         // The solver's scoring convention is retained in this replay.
-        next = applyPlayerDiscard(state, action.tile);
+        next = state.phase === 'playerNakiDiscard'
+          ? applyPlayerNakiDiscard(state, action.tile) : applyPlayerDiscard(state, action.tile);
         if (next && action.riichi && !next.isRiichi) next = { ...next, isRiichi: true, isIppatsu: true };
         break;
       }

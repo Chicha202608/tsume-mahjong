@@ -1,0 +1,3805 @@
+{
+  "definition": "Selected AI best-score line contains chiitoitsu in a top-scoring interpretation; not all tied final shapes",
+  "totalBudgetMs": 60000,
+  "rows": [
+    {
+      "mode": "two",
+      "sample": 0,
+      "seed": 20261017,
+      "playerWind": "west",
+      "roundWind": "south",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 1094,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 1,
+      "seed": 20268936,
+      "playerWind": "west",
+      "roundWind": "north",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 225,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 2,
+      "seed": 20276855,
+      "playerWind": "west",
+      "roundWind": "south",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 375,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 3,
+      "seed": 20284774,
+      "playerWind": "south",
+      "roundWind": "north",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 961,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 4,
+      "seed": 20292693,
+      "playerWind": "south",
+      "roundWind": "south",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu"
+      ],
+      "elapsedMs": 964,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 5,
+      "seed": 20300612,
+      "playerWind": "south",
+      "roundWind": "north",
+      "score": 7900,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "haitei"
+      ],
+      "elapsedMs": 60001,
+      "ankanTimedOut": false,
+      "openTimedOut": true
+    },
+    {
+      "mode": "two",
+      "sample": 6,
+      "seed": 20308531,
+      "playerWind": "south",
+      "roundWind": "south",
+      "score": 32000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "suuankou"
+      ],
+      "elapsedMs": 7265,
+      "ankanTimedOut": true,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 7,
+      "seed": 20316450,
+      "playerWind": "east",
+      "roundWind": "north",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 519,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 8,
+      "seed": 20324369,
+      "playerWind": "east",
+      "roundWind": "south",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 432,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 9,
+      "seed": 20332288,
+      "playerWind": "east",
+      "roundWind": "north",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 102,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 10,
+      "seed": 20340207,
+      "playerWind": "east",
+      "roundWind": "south",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "tanyao"
+      ],
+      "elapsedMs": 2733,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 11,
+      "seed": 20348126,
+      "playerWind": "north",
+      "roundWind": "north",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo",
+        "pinfu",
+        "chanta",
+        "sanshoku"
+      ],
+      "elapsedMs": 314,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 12,
+      "seed": 20356045,
+      "playerWind": "north",
+      "roundWind": "south",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo",
+        "tanyao"
+      ],
+      "elapsedMs": 331,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 13,
+      "seed": 20363964,
+      "playerWind": "north",
+      "roundWind": "north",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 263,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 14,
+      "seed": 20371883,
+      "playerWind": "north",
+      "roundWind": "south",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu",
+        "tanyao"
+      ],
+      "elapsedMs": 1070,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 15,
+      "seed": 20379802,
+      "playerWind": "west",
+      "roundWind": "north",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "honitsu"
+      ],
+      "elapsedMs": 743,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 16,
+      "seed": 20387721,
+      "playerWind": "west",
+      "roundWind": "south",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 99,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 17,
+      "seed": 20395640,
+      "playerWind": "west",
+      "roundWind": "north",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "sanankou"
+      ],
+      "elapsedMs": 5979,
+      "ankanTimedOut": true,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 18,
+      "seed": 20403559,
+      "playerWind": "south",
+      "roundWind": "south",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "chinitsu"
+      ],
+      "elapsedMs": 1155,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 19,
+      "seed": 20411478,
+      "playerWind": "south",
+      "roundWind": "north",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "tanyao"
+      ],
+      "elapsedMs": 1642,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 20,
+      "seed": 20419397,
+      "playerWind": "south",
+      "roundWind": "south",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 1243,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 21,
+      "seed": 20427316,
+      "playerWind": "south",
+      "roundWind": "north",
+      "score": 8000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "sanshoku"
+      ],
+      "elapsedMs": 593,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 22,
+      "seed": 20435235,
+      "playerWind": "east",
+      "roundWind": "south",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 4801,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 23,
+      "seed": 20443154,
+      "playerWind": "east",
+      "roundWind": "north",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu"
+      ],
+      "elapsedMs": 889,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 24,
+      "seed": 20451073,
+      "playerWind": "east",
+      "roundWind": "south",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 3674,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 25,
+      "seed": 20458992,
+      "playerWind": "east",
+      "roundWind": "north",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 499,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 26,
+      "seed": 20466911,
+      "playerWind": "north",
+      "roundWind": "south",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 400,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 27,
+      "seed": 20474830,
+      "playerWind": "north",
+      "roundWind": "north",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 6315,
+      "ankanTimedOut": true,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 28,
+      "seed": 20482749,
+      "playerWind": "north",
+      "roundWind": "south",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "sanankou"
+      ],
+      "elapsedMs": 265,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 29,
+      "seed": 20490668,
+      "playerWind": "north",
+      "roundWind": "north",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 505,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 30,
+      "seed": 20498587,
+      "playerWind": "west",
+      "roundWind": "south",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "seat-wind",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 1186,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 31,
+      "seed": 20506506,
+      "playerWind": "west",
+      "roundWind": "north",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 402,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 32,
+      "seed": 20514425,
+      "playerWind": "west",
+      "roundWind": "south",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 476,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 33,
+      "seed": 20522344,
+      "playerWind": "south",
+      "roundWind": "north",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "pinfu",
+        "tanyao",
+        "sanshoku"
+      ],
+      "elapsedMs": 1020,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 34,
+      "seed": 20530263,
+      "playerWind": "south",
+      "roundWind": "south",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "round-wind",
+        "seat-wind",
+        "sanankou",
+        "toitoi",
+        "honitsu"
+      ],
+      "elapsedMs": 722,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 35,
+      "seed": 20538182,
+      "playerWind": "south",
+      "roundWind": "north",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 453,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 36,
+      "seed": 20546101,
+      "playerWind": "south",
+      "roundWind": "south",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "pinfu",
+        "sanshoku"
+      ],
+      "elapsedMs": 2107,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 37,
+      "seed": 20554020,
+      "playerWind": "east",
+      "roundWind": "north",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 1577,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 38,
+      "seed": 20561939,
+      "playerWind": "east",
+      "roundWind": "south",
+      "score": 48000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "suuankou"
+      ],
+      "elapsedMs": 9447,
+      "ankanTimedOut": true,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 39,
+      "seed": 20569858,
+      "playerWind": "east",
+      "roundWind": "north",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu",
+        "tanyao"
+      ],
+      "elapsedMs": 714,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 40,
+      "seed": 20577777,
+      "playerWind": "east",
+      "roundWind": "south",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "sanankou",
+        "honitsu"
+      ],
+      "elapsedMs": 1105,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 41,
+      "seed": 20585696,
+      "playerWind": "north",
+      "roundWind": "north",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 238,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 42,
+      "seed": 20593615,
+      "playerWind": "north",
+      "roundWind": "south",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo",
+        "sanshoku"
+      ],
+      "elapsedMs": 2673,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 43,
+      "seed": 20601534,
+      "playerWind": "north",
+      "roundWind": "north",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "sanankou"
+      ],
+      "elapsedMs": 412,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 44,
+      "seed": 20609453,
+      "playerWind": "north",
+      "roundWind": "south",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "haitei",
+        "haku",
+        "honitsu"
+      ],
+      "elapsedMs": 1626,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 45,
+      "seed": 20617372,
+      "playerWind": "west",
+      "roundWind": "north",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "junchan",
+        "sanshoku"
+      ],
+      "elapsedMs": 1095,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 46,
+      "seed": 20625291,
+      "playerWind": "west",
+      "roundWind": "south",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "haku",
+        "chun",
+        "menzen-tsumo",
+        "honitsu"
+      ],
+      "elapsedMs": 616,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 47,
+      "seed": 20633210,
+      "playerWind": "west",
+      "roundWind": "north",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 176,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 48,
+      "seed": 20641129,
+      "playerWind": "south",
+      "roundWind": "south",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 72,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 49,
+      "seed": 20649048,
+      "playerWind": "south",
+      "roundWind": "north",
+      "score": 8000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 1892,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 50,
+      "seed": 20656967,
+      "playerWind": "south",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu"
+      ],
+      "elapsedMs": 1415,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 51,
+      "seed": 20664886,
+      "playerWind": "south",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "tanyao"
+      ],
+      "elapsedMs": 882,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 52,
+      "seed": 20672805,
+      "playerWind": "east",
+      "roundWind": "west",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "hatsu",
+        "menzen-tsumo",
+        "chanta"
+      ],
+      "elapsedMs": 1947,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 53,
+      "seed": 20680724,
+      "playerWind": "east",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 451,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 54,
+      "seed": 20688643,
+      "playerWind": "east",
+      "roundWind": "west",
+      "score": 48000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "suuankou"
+      ],
+      "elapsedMs": 706,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 55,
+      "seed": 20696562,
+      "playerWind": "east",
+      "roundWind": "east",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu",
+        "sanshoku"
+      ],
+      "elapsedMs": 1021,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 56,
+      "seed": 20704481,
+      "playerWind": "north",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu",
+        "tanyao"
+      ],
+      "elapsedMs": 3069,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 57,
+      "seed": 20712400,
+      "playerWind": "north",
+      "roundWind": "east",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 4209,
+      "ankanTimedOut": true,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 58,
+      "seed": 20720319,
+      "playerWind": "north",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 134,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 59,
+      "seed": 20728238,
+      "playerWind": "north",
+      "roundWind": "east",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu",
+        "tanyao",
+        "iipeiko"
+      ],
+      "elapsedMs": 2160,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 60,
+      "seed": 20736157,
+      "playerWind": "west",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu"
+      ],
+      "elapsedMs": 812,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 61,
+      "seed": 20744076,
+      "playerWind": "west",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "haku",
+        "chanta"
+      ],
+      "elapsedMs": 547,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 62,
+      "seed": 20751995,
+      "playerWind": "west",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 321,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 63,
+      "seed": 20759914,
+      "playerWind": "west",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 706,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 64,
+      "seed": 20767833,
+      "playerWind": "south",
+      "roundWind": "west",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "honitsu"
+      ],
+      "elapsedMs": 1198,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 65,
+      "seed": 20775752,
+      "playerWind": "south",
+      "roundWind": "east",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "honitsu"
+      ],
+      "elapsedMs": 619,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 66,
+      "seed": 20783671,
+      "playerWind": "south",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 580,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 67,
+      "seed": 20791590,
+      "playerWind": "east",
+      "roundWind": "east",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "pinfu"
+      ],
+      "elapsedMs": 921,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 68,
+      "seed": 20799509,
+      "playerWind": "east",
+      "roundWind": "west",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "tanyao"
+      ],
+      "elapsedMs": 458,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 69,
+      "seed": 20807428,
+      "playerWind": "east",
+      "roundWind": "east",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "tanyao"
+      ],
+      "elapsedMs": 395,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 70,
+      "seed": 20815347,
+      "playerWind": "east",
+      "roundWind": "west",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 825,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 71,
+      "seed": 20823266,
+      "playerWind": "north",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "haku",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 416,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 72,
+      "seed": 20831185,
+      "playerWind": "north",
+      "roundWind": "west",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "chun",
+        "menzen-tsumo",
+        "honitsu",
+        "ittsuu"
+      ],
+      "elapsedMs": 775,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 73,
+      "seed": 20839104,
+      "playerWind": "north",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 846,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 74,
+      "seed": 20847023,
+      "playerWind": "north",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 635,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 75,
+      "seed": 20854942,
+      "playerWind": "west",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 1275,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 76,
+      "seed": 20862861,
+      "playerWind": "west",
+      "roundWind": "west",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo",
+        "pinfu",
+        "tanyao"
+      ],
+      "elapsedMs": 164,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 77,
+      "seed": 20870780,
+      "playerWind": "west",
+      "roundWind": "east",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 1989,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 78,
+      "seed": 20878699,
+      "playerWind": "west",
+      "roundWind": "west",
+      "score": 8000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 540,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 79,
+      "seed": 20886618,
+      "playerWind": "south",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "sanankou",
+        "toitoi"
+      ],
+      "elapsedMs": 3863,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 80,
+      "seed": 20894537,
+      "playerWind": "south",
+      "roundWind": "west",
+      "score": 5200,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "tanyao"
+      ],
+      "elapsedMs": 36521,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 81,
+      "seed": 20902456,
+      "playerWind": "south",
+      "roundWind": "east",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "seat-wind",
+        "menzen-tsumo",
+        "sanankou"
+      ],
+      "elapsedMs": 241,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 82,
+      "seed": 20910375,
+      "playerWind": "east",
+      "roundWind": "west",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 242,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 83,
+      "seed": 20918294,
+      "playerWind": "east",
+      "roundWind": "east",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "pinfu",
+        "tanyao"
+      ],
+      "elapsedMs": 1590,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 84,
+      "seed": 20926213,
+      "playerWind": "east",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 592,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 85,
+      "seed": 20934132,
+      "playerWind": "east",
+      "roundWind": "east",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "menzen-tsumo",
+        "honitsu"
+      ],
+      "elapsedMs": 731,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 86,
+      "seed": 20942051,
+      "playerWind": "north",
+      "roundWind": "west",
+      "score": 8000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 504,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 87,
+      "seed": 20949970,
+      "playerWind": "north",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 100,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 88,
+      "seed": 20957889,
+      "playerWind": "north",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu",
+        "tanyao"
+      ],
+      "elapsedMs": 2418,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 89,
+      "seed": 20965808,
+      "playerWind": "north",
+      "roundWind": "east",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo",
+        "honitsu"
+      ],
+      "elapsedMs": 564,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 90,
+      "seed": 20973727,
+      "playerWind": "west",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu"
+      ],
+      "elapsedMs": 528,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 91,
+      "seed": 20981646,
+      "playerWind": "west",
+      "roundWind": "east",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo",
+        "honitsu"
+      ],
+      "elapsedMs": 4892,
+      "ankanTimedOut": true,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 92,
+      "seed": 20989565,
+      "playerWind": "west",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 263,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 93,
+      "seed": 20997484,
+      "playerWind": "west",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo",
+        "chanta"
+      ],
+      "elapsedMs": 2666,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 94,
+      "seed": 21005403,
+      "playerWind": "south",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 1651,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 95,
+      "seed": 21013322,
+      "playerWind": "south",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "hatsu",
+        "menzen-tsumo",
+        "sanankou"
+      ],
+      "elapsedMs": 1112,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 96,
+      "seed": 21021241,
+      "playerWind": "south",
+      "roundWind": "west",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 851,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 97,
+      "seed": 21029160,
+      "playerWind": "east",
+      "roundWind": "east",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "pinfu",
+        "tanyao"
+      ],
+      "elapsedMs": 5436,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 98,
+      "seed": 21037079,
+      "playerWind": "east",
+      "roundWind": "west",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "haku",
+        "hatsu",
+        "menzen-tsumo",
+        "sanankou"
+      ],
+      "elapsedMs": 689,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "two",
+      "sample": 99,
+      "seed": 21044998,
+      "playerWind": "east",
+      "roundWind": "east",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu",
+        "sanshoku"
+      ],
+      "elapsedMs": 319,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 0,
+      "seed": 20261017,
+      "playerWind": "west",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "hatsu",
+        "honitsu"
+      ],
+      "elapsedMs": 2332,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 1,
+      "seed": 20268936,
+      "playerWind": "west",
+      "roundWind": "south",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "chun",
+        "haku",
+        "toitoi",
+        "honitsu",
+        "shousangen"
+      ],
+      "elapsedMs": 1081,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 2,
+      "seed": 20276855,
+      "playerWind": "west",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 2529,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 3,
+      "seed": 20284774,
+      "playerWind": "south",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 329,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 4,
+      "seed": 20292693,
+      "playerWind": "south",
+      "roundWind": "south",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 2549,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 5,
+      "seed": 20300612,
+      "playerWind": "south",
+      "roundWind": "east",
+      "score": 8000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 2105,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 6,
+      "seed": 20308531,
+      "playerWind": "south",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 1476,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 7,
+      "seed": 20316450,
+      "playerWind": "east",
+      "roundWind": "south",
+      "score": 48000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "daisangen"
+      ],
+      "elapsedMs": 1708,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 8,
+      "seed": 20324369,
+      "playerWind": "east",
+      "roundWind": "east",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu"
+      ],
+      "elapsedMs": 1587,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 9,
+      "seed": 20332288,
+      "playerWind": "east",
+      "roundWind": "west",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 3837,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 10,
+      "seed": 20340207,
+      "playerWind": "east",
+      "roundWind": "south",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 676,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 11,
+      "seed": 20348126,
+      "playerWind": "north",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "tanyao",
+        "sanankou"
+      ],
+      "elapsedMs": 1667,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 12,
+      "seed": 20356045,
+      "playerWind": "north",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "chun",
+        "haku",
+        "toitoi",
+        "honitsu"
+      ],
+      "elapsedMs": 3635,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 13,
+      "seed": 20363964,
+      "playerWind": "north",
+      "roundWind": "south",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 464,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 14,
+      "seed": 20371883,
+      "playerWind": "north",
+      "roundWind": "east",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 907,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 15,
+      "seed": 20379802,
+      "playerWind": "west",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "iipeiko",
+        "chanta"
+      ],
+      "elapsedMs": 237,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 16,
+      "seed": 20387721,
+      "playerWind": "west",
+      "roundWind": "south",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 584,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 17,
+      "seed": 20395640,
+      "playerWind": "west",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "round-wind",
+        "honitsu"
+      ],
+      "elapsedMs": 1894,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 18,
+      "seed": 20403559,
+      "playerWind": "south",
+      "roundWind": "west",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 1480,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 19,
+      "seed": 20411478,
+      "playerWind": "south",
+      "roundWind": "south",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "tanyao"
+      ],
+      "elapsedMs": 1571,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 20,
+      "seed": 20419397,
+      "playerWind": "south",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "tanyao"
+      ],
+      "elapsedMs": 1288,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 21,
+      "seed": 20427316,
+      "playerWind": "south",
+      "roundWind": "north",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 3450,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 22,
+      "seed": 20435235,
+      "playerWind": "east",
+      "roundWind": "south",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 281,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 23,
+      "seed": 20443154,
+      "playerWind": "east",
+      "roundWind": "east",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu"
+      ],
+      "elapsedMs": 723,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 24,
+      "seed": 20451073,
+      "playerWind": "east",
+      "roundWind": "north",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "pinfu",
+        "tanyao"
+      ],
+      "elapsedMs": 4034,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 25,
+      "seed": 20458992,
+      "playerWind": "east",
+      "roundWind": "south",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "honroutou"
+      ],
+      "elapsedMs": 771,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 26,
+      "seed": 20466911,
+      "playerWind": "north",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 740,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 27,
+      "seed": 20474830,
+      "playerWind": "north",
+      "roundWind": "north",
+      "score": 8000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "hatsu"
+      ],
+      "elapsedMs": 456,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 28,
+      "seed": 20482749,
+      "playerWind": "north",
+      "roundWind": "south",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "tanyao",
+        "sanshoku"
+      ],
+      "elapsedMs": 648,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 29,
+      "seed": 20490668,
+      "playerWind": "north",
+      "roundWind": "east",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 157,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 30,
+      "seed": 20498587,
+      "playerWind": "west",
+      "roundWind": "north",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "honitsu"
+      ],
+      "elapsedMs": 1533,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 31,
+      "seed": 20506506,
+      "playerWind": "west",
+      "roundWind": "south",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "hatsu",
+        "sanankou",
+        "toitoi"
+      ],
+      "elapsedMs": 3479,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 32,
+      "seed": 20514425,
+      "playerWind": "west",
+      "roundWind": "east",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "round-wind",
+        "menzen-tsumo",
+        "sanankou",
+        "honitsu"
+      ],
+      "elapsedMs": 292,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 33,
+      "seed": 20522344,
+      "playerWind": "south",
+      "roundWind": "north",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "tanyao"
+      ],
+      "elapsedMs": 931,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 34,
+      "seed": 20530263,
+      "playerWind": "south",
+      "roundWind": "south",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "round-wind",
+        "seat-wind",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 1987,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 35,
+      "seed": 20538182,
+      "playerWind": "south",
+      "roundWind": "east",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "pinfu",
+        "sanshoku"
+      ],
+      "elapsedMs": 2041,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 36,
+      "seed": 20546101,
+      "playerWind": "south",
+      "roundWind": "north",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "honitsu",
+        "ryanpeikou"
+      ],
+      "elapsedMs": 6349,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 37,
+      "seed": 20554020,
+      "playerWind": "east",
+      "roundWind": "south",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "pinfu",
+        "tanyao",
+        "sanshoku"
+      ],
+      "elapsedMs": 9499,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 38,
+      "seed": 20561939,
+      "playerWind": "east",
+      "roundWind": "east",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu",
+        "tanyao",
+        "iipeiko"
+      ],
+      "elapsedMs": 6314,
+      "ankanTimedOut": true,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 39,
+      "seed": 20569858,
+      "playerWind": "east",
+      "roundWind": "north",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "seat-wind"
+      ],
+      "elapsedMs": 5417,
+      "ankanTimedOut": true,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 40,
+      "seed": 20577777,
+      "playerWind": "east",
+      "roundWind": "south",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "seat-wind",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 604,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 41,
+      "seed": 20585696,
+      "playerWind": "north",
+      "roundWind": "east",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "tanyao"
+      ],
+      "elapsedMs": 5120,
+      "ankanTimedOut": true,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 42,
+      "seed": 20593615,
+      "playerWind": "north",
+      "roundWind": "north",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "tanyao",
+        "chinitsu"
+      ],
+      "elapsedMs": 6943,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 43,
+      "seed": 20601534,
+      "playerWind": "north",
+      "roundWind": "west",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "haitei",
+        "chun",
+        "hatsu",
+        "round-wind",
+        "toitoi",
+        "honitsu"
+      ],
+      "elapsedMs": 916,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 44,
+      "seed": 20609453,
+      "playerWind": "north",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 1142,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 45,
+      "seed": 20617372,
+      "playerWind": "west",
+      "roundWind": "north",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 1672,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 46,
+      "seed": 20625291,
+      "playerWind": "west",
+      "roundWind": "west",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "round-wind",
+        "seat-wind",
+        "haku",
+        "sanankou",
+        "honitsu"
+      ],
+      "elapsedMs": 2655,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 47,
+      "seed": 20633210,
+      "playerWind": "west",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu"
+      ],
+      "elapsedMs": 762,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 48,
+      "seed": 20641129,
+      "playerWind": "south",
+      "roundWind": "north",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 1380,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 49,
+      "seed": 20649048,
+      "playerWind": "south",
+      "roundWind": "west",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 1165,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 50,
+      "seed": 20656967,
+      "playerWind": "south",
+      "roundWind": "east",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "tanyao"
+      ],
+      "elapsedMs": 467,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 51,
+      "seed": 20664886,
+      "playerWind": "south",
+      "roundWind": "north",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "tanyao"
+      ],
+      "elapsedMs": 496,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 52,
+      "seed": 20672805,
+      "playerWind": "east",
+      "roundWind": "west",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "hatsu",
+        "honitsu"
+      ],
+      "elapsedMs": 16913,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 53,
+      "seed": 20680724,
+      "playerWind": "east",
+      "roundWind": "east",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 762,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 54,
+      "seed": 20688643,
+      "playerWind": "east",
+      "roundWind": "north",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 1796,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 55,
+      "seed": 20696562,
+      "playerWind": "east",
+      "roundWind": "west",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "tanyao",
+        "sanshoku"
+      ],
+      "elapsedMs": 1016,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 56,
+      "seed": 20704481,
+      "playerWind": "north",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "hatsu",
+        "sanankou"
+      ],
+      "elapsedMs": 856,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 57,
+      "seed": 20712400,
+      "playerWind": "north",
+      "roundWind": "north",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 594,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 58,
+      "seed": 20720319,
+      "playerWind": "north",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "tanyao"
+      ],
+      "elapsedMs": 840,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 59,
+      "seed": 20728238,
+      "playerWind": "north",
+      "roundWind": "east",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "honitsu"
+      ],
+      "elapsedMs": 1030,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 60,
+      "seed": 20736157,
+      "playerWind": "west",
+      "roundWind": "north",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu",
+        "iipeiko"
+      ],
+      "elapsedMs": 3133,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 61,
+      "seed": 20744076,
+      "playerWind": "west",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 944,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 62,
+      "seed": 20751995,
+      "playerWind": "west",
+      "roundWind": "east",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "hatsu",
+        "chun",
+        "toitoi",
+        "honitsu",
+        "honroutou"
+      ],
+      "elapsedMs": 2368,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 63,
+      "seed": 20759914,
+      "playerWind": "west",
+      "roundWind": "north",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "junchan",
+        "sanshoku"
+      ],
+      "elapsedMs": 803,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 64,
+      "seed": 20767833,
+      "playerWind": "south",
+      "roundWind": "west",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu",
+        "sanshoku"
+      ],
+      "elapsedMs": 1317,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 65,
+      "seed": 20775752,
+      "playerWind": "south",
+      "roundWind": "south",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 873,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 66,
+      "seed": 20783671,
+      "playerWind": "south",
+      "roundWind": "north",
+      "score": 5200,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "chun",
+        "honitsu"
+      ],
+      "elapsedMs": 30814,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 67,
+      "seed": 20791590,
+      "playerWind": "east",
+      "roundWind": "west",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 2363,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 68,
+      "seed": 20799509,
+      "playerWind": "east",
+      "roundWind": "south",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 1656,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 69,
+      "seed": 20807428,
+      "playerWind": "east",
+      "roundWind": "north",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 2590,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 70,
+      "seed": 20815347,
+      "playerWind": "east",
+      "roundWind": "west",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 729,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 71,
+      "seed": 20823266,
+      "playerWind": "north",
+      "roundWind": "south",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "houtei",
+        "honitsu"
+      ],
+      "elapsedMs": 1009,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 72,
+      "seed": 20831185,
+      "playerWind": "north",
+      "roundWind": "north",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "chun",
+        "honitsu"
+      ],
+      "elapsedMs": 540,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 73,
+      "seed": 20839104,
+      "playerWind": "north",
+      "roundWind": "west",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 1719,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 74,
+      "seed": 20847023,
+      "playerWind": "north",
+      "roundWind": "south",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "hatsu",
+        "honitsu"
+      ],
+      "elapsedMs": 817,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 75,
+      "seed": 20854942,
+      "playerWind": "west",
+      "roundWind": "north",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "sanshoku-doukou"
+      ],
+      "elapsedMs": 3899,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 76,
+      "seed": 20862861,
+      "playerWind": "west",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "chun",
+        "honitsu"
+      ],
+      "elapsedMs": 4760,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 77,
+      "seed": 20870780,
+      "playerWind": "west",
+      "roundWind": "south",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu",
+        "iipeiko"
+      ],
+      "elapsedMs": 517,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 78,
+      "seed": 20878699,
+      "playerWind": "west",
+      "roundWind": "north",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "honitsu"
+      ],
+      "elapsedMs": 2335,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 79,
+      "seed": 20886618,
+      "playerWind": "south",
+      "roundWind": "west",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "tanyao"
+      ],
+      "elapsedMs": 6823,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 80,
+      "seed": 20894537,
+      "playerWind": "south",
+      "roundWind": "south",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 1479,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 81,
+      "seed": 20902456,
+      "playerWind": "south",
+      "roundWind": "north",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "rinshan-kaihou",
+        "seat-wind",
+        "toitoi"
+      ],
+      "elapsedMs": 1509,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 82,
+      "seed": 20910375,
+      "playerWind": "east",
+      "roundWind": "west",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 580,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 83,
+      "seed": 20918294,
+      "playerWind": "east",
+      "roundWind": "south",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 1041,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 84,
+      "seed": 20926213,
+      "playerWind": "east",
+      "roundWind": "east",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 2734,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 85,
+      "seed": 20934132,
+      "playerWind": "east",
+      "roundWind": "west",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "honitsu"
+      ],
+      "elapsedMs": 1021,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 86,
+      "seed": 20942051,
+      "playerWind": "north",
+      "roundWind": "south",
+      "score": 8000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "chun",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 675,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 87,
+      "seed": 20949970,
+      "playerWind": "north",
+      "roundWind": "east",
+      "score": 12000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "pinfu",
+        "ittsuu"
+      ],
+      "elapsedMs": 896,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 88,
+      "seed": 20957889,
+      "playerWind": "north",
+      "roundWind": "west",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "chinitsu"
+      ],
+      "elapsedMs": 5217,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 89,
+      "seed": 20965808,
+      "playerWind": "north",
+      "roundWind": "south",
+      "score": 8000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 764,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 90,
+      "seed": 20973727,
+      "playerWind": "west",
+      "roundWind": "east",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 123,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 91,
+      "seed": 20981646,
+      "playerWind": "west",
+      "roundWind": "west",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "sanankou",
+        "toitoi"
+      ],
+      "elapsedMs": 3550,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 92,
+      "seed": 20989565,
+      "playerWind": "west",
+      "roundWind": "south",
+      "score": 8000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu"
+      ],
+      "elapsedMs": 2770,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 93,
+      "seed": 20997484,
+      "playerWind": "west",
+      "roundWind": "east",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "tanyao"
+      ],
+      "elapsedMs": 3686,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 94,
+      "seed": 21005403,
+      "playerWind": "south",
+      "roundWind": "west",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 725,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 95,
+      "seed": 21013322,
+      "playerWind": "south",
+      "roundWind": "south",
+      "score": 16000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "pinfu",
+        "tanyao",
+        "iipeiko"
+      ],
+      "elapsedMs": 1269,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 96,
+      "seed": 21021241,
+      "playerWind": "south",
+      "roundWind": "east",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "haitei",
+        "menzen-tsumo",
+        "tanyao"
+      ],
+      "elapsedMs": 2192,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 97,
+      "seed": 21029160,
+      "playerWind": "east",
+      "roundWind": "west",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 2465,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 98,
+      "seed": 21037079,
+      "playerWind": "east",
+      "roundWind": "south",
+      "score": 24000,
+      "outcome": "win",
+      "chiitoitsu": false,
+      "yaku": [
+        "riichi",
+        "ippatsu",
+        "hatsu",
+        "menzen-tsumo"
+      ],
+      "elapsedMs": 684,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    },
+    {
+      "mode": "four",
+      "sample": 99,
+      "seed": 21044998,
+      "playerWind": "east",
+      "roundWind": "east",
+      "score": 18000,
+      "outcome": "win",
+      "chiitoitsu": true,
+      "yaku": [
+        "chiitoitsu",
+        "riichi",
+        "ippatsu",
+        "menzen-tsumo",
+        "tanyao"
+      ],
+      "elapsedMs": 3510,
+      "ankanTimedOut": false,
+      "openTimedOut": false
+    }
+  ]
+}

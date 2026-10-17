@@ -23,8 +23,128 @@ export function asFourPlayerTestState(state: State): State {
     nextSeat: cpuFirst ? seatAfter(state.playerWind, 3) : state.playerWind };
 }
 
-export type TestMode = 'ankan' | 'kakan' | 'daiminkan' | 'riichi-ankan' |
+export type TestMode = 'four-pon-kakan' | 'three-open-haneman' | 'two-open-haneman' | 'open-pon-haneman' | 'open-chi-haneman' | 'ankan' | 'kakan' | 'daiminkan' | 'riichi-ankan' |
   'open-ittsu-ron' | 'open-ittsu-tsumo' | 'two-ankan' | 'chained-ankan';
+
+/** Four pon, each upgraded on a later own draw: eight operations to suukantsu. */
+export function makeFourPonKakanTestState(mode: 'two' | 'four' = 'four'): State {
+  const deck = createDeck();
+  const take = (suit: Tile['suit'], value: number) => {
+    const i = deck.findIndex(t => t.suit === suit && t.value === value && !t.isRed);
+    if (i < 0) throw new Error('Missing four-kakan fixture tile');
+    return deck.splice(i,1)[0];
+  };
+  const faces: [Tile['suit'],number][] = [['pin',1],['pin',4],['pin',8],['dragon',3]];
+  const pairs = faces.flatMap(([s,v]) => [take(s,v),take(s,v)]);
+  const pon = faces.map(([s,v]) => take(s,v));
+  const upgrades = faces.map(([s,v]) => take(s,v));
+  const hand = sortHand([...pairs,take('wind',3),...[2,4,6,8].map(v=>take('sou',v))]);
+  const win = take('wind',3);
+  const rinshan = [2,4,6,8].map(v=>take('man',v));
+  const indicators = deck.splice(0,10);
+  const stride = mode === 'four' ? 3 : 1;
+  const fillers = deck.splice(0,stride*4);
+  const wall = pon.flatMap((t,i) => [t,...fillers.slice(i*stride,i*stride+stride),upgrades[i]]);
+  wall.push(win,...deck.splice(0,5));
+  const cpuHand = sortHand(deck.splice(0,13));
+  const state = {...makeInitialStateBase(hand,cpuHand,wall,[...rinshan,...indicators],'south','east'),
+    mode,roundWind:'east' as const};
+  return mode === 'two' ? state : {...state,nextSeat:'east',
+    opponents:SEATS.filter(w => w !== 'south').map(wind => ({wind,
+      hand:wind === 'east' ? cpuHand : sortHand(deck.splice(0,13)),discards:[]}))};
+}
+
+/** Three mandatory calls; each changes which seat consumes the next wall tile. */
+export function makeThreeOpenHanemanTestState(kind: 'pon' | 'chi' = 'pon',
+  mode: 'two' | 'four' = 'four'): State {
+  const deck = createDeck();
+  const take = (suit: Tile['suit'], value: number) => {
+    const index = deck.findIndex(t => t.suit === suit && t.value === value && !t.isRed);
+    if (index < 0) throw new Error('Missing three-open-call test tile');
+    return deck.splice(index,1)[0];
+  };
+  const held = kind === 'pon'
+    ? [take('dragon',1),take('dragon',1),take('dragon',2),take('dragon',2),
+      ...[1,1,9,9,2,2].map(v => take('man',v))]
+    : [1,2,4,5,7,8,1,2,5,5].map(v => take('man',v));
+  const hand = sortHand([...held,take('wind',2),take('wind',3),take('wind',4)]);
+  const calls = kind === 'pon' ? [take('dragon',1),take('dragon',2),take('man',1)]
+    : [3,6,9].map(v => take('man',v));
+  const wall: Tile[] = [];
+  calls.forEach((tile,i) => {
+    if (i > 0 && kind === 'chi' && mode === 'four') wall.push(take('wind',i),take('wind',i+1));
+    wall.push(tile);
+  });
+  wall.push(take('man',kind === 'pon' ? 9 : 3),take('pin',8),take('pin',7),take('sou',8),take('sou',7));
+  const indicator = take('pin',1);
+  const wanpai = [...deck.splice(0,4),indicator,...deck.splice(0,9)];
+  const cpuHand = sortHand(deck.splice(0,13));
+  const initial = { ...makeInitialStateBase(hand,cpuHand,wall,wanpai,'south','east'),
+    roundWind:'east' as const,turnCount:14,mode };
+  return mode === 'two' ? initial : { ...initial,nextSeat:'east',
+    opponents:SEATS.filter(w => w !== 'south').map(wind => ({ wind,
+      hand:wind === 'east' ? cpuHand : sortHand(deck.splice(0,13)),discards:[] })) };
+}
+
+/** Both calls are necessary: the called tiles are never available as own draws. */
+export function makeTwoOpenHanemanTestState(kind: 'pon-pon' | 'chi-chi' | 'pon-chi' | 'chi-pon' = 'pon-pon',
+  mode: 'two' | 'four' = 'four'): State {
+  const deck = createDeck();
+  const take = (suit: Tile['suit'], value: number) => {
+    const index = deck.findIndex(t => t.suit === suit && t.value === value && !t.isRed);
+    if (index < 0) throw new Error('Missing two-open-call test tile');
+    return deck.splice(index, 1)[0];
+  };
+  const firstChi = kind.startsWith('chi');
+  const secondChi = kind.endsWith('chi');
+  const first = firstChi ? [take('man',1),take('man',2)] : [take('dragon',1),take('dragon',1)];
+  const second = secondChi ? (firstChi ? [take('man',4),take('man',5)] : [take('man',1),take('man',2)])
+    : [take('dragon',2),take('dragon',2)];
+  const rest = kind === 'pon-pon' ? [1,1,1,9,9,2,2] : kind === 'chi-chi' ? [7,8,9,5,5,2,3] : [4,5,6,7,8,5,5];
+  const hand = sortHand([...first,...second,...rest.map(v => take('man',v)),take('wind',4),take('wind',2)]);
+  const call1 = firstChi ? take('man',3) : take('dragon',1);
+  const call2 = secondChi ? take('man',firstChi ? 6 : 3) : take('dragon',2);
+  const win = take('man',kind === 'chi-chi' ? 1 : 9);
+  const wall = [call1];
+  // After the first call, west and north precede the upstream east seat.
+  if (mode === 'four' && secondChi) wall.push(take('wind',3),take('wind',3));
+  wall.push(call2,win,take('pin',8),take('pin',7),take('sou',8),take('sou',7));
+  const mixed = firstChi !== secondChi;
+  const indicator = take(mixed ? 'man' : 'pin',mixed ? 4 : 1);
+  const wanpai = [...deck.splice(0,4),indicator,...deck.splice(0,9)];
+  const cpuHand = sortHand(deck.splice(0,13));
+  const initial = { ...makeInitialStateBase(hand,cpuHand,wall,wanpai,'south','east'),
+    roundWind: 'east' as const, turnCount: 15, mode };
+  return mode === 'two' ? initial : { ...initial,nextSeat: 'east',
+    opponents: SEATS.filter(w => w !== 'south').map(wind => ({ wind,
+      hand: wind === 'east' ? cpuHand : sortHand(deck.splice(0,13)),discards: [] })) };
+}
+
+/** Reproducible closed starting hands: one call unlocks a 12,000-point ron. */
+export function makeOpenHanemanTestState(kind: 'pon' | 'chi', mode: 'two' | 'four' = 'four'): State {
+  const deck = createDeck();
+  const take = (suit: Tile['suit'], value: number) => {
+    const index = deck.findIndex(t => t.suit === suit && t.value === value && !t.isRed);
+    if (index < 0) throw new Error('Missing open haneman test tile');
+    return deck.splice(index, 1)[0];
+  };
+  const hand = kind === 'chi'
+    ? [1,2,4,5,6,7,8,9,5,5,2,3].map(v => take('man', v))
+    : [take('dragon',1),take('dragon',1),take('dragon',2),take('dragon',2),take('dragon',2),
+      ...[1,1,1,9,9,2,2].map(v => take('man',v))];
+  hand.push(take('wind',4));
+  const call = kind === 'chi' ? take('man',3) : take('dragon',1);
+  const win = kind === 'chi' ? take('man',1) : take('man',9);
+  const wall = [call,win,take('wind',3),take('wind',2),take('pin',8),take('pin',7)];
+  const indicator = take('pin',1); // 2p is not in either winning hand.
+  const wanpai = [...deck.splice(0,4),indicator,...deck.splice(0,9)];
+  const cpuHand = sortHand(deck.splice(0,13));
+  const initial = { ...makeInitialStateBase(sortHand(hand),cpuHand,wall,wanpai,'south','east'),
+    roundWind: 'east' as const, turnCount: 16, mode };
+  return mode === 'two' ? initial : { ...initial, nextSeat: 'east',
+    opponents: SEATS.filter(w => w !== 'south').map(wind => ({ wind,
+      hand: wind === 'east' ? cpuHand : sortHand(deck.splice(0,13)), discards: [] })) };
+}
 
 /** Short endgame with two guaranteed kans and a second-rinshan win. */
 export function makeTwoAnkanTestState(chained = false): State {

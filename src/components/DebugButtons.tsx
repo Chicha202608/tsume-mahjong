@@ -11,6 +11,13 @@ export default function DebugButtons({ onSetupTest, vertical = false }: { onSetu
     <select id="test-scenario" aria-label="テスト局面" value={mode}
       onChange={event => setMode(event.target.value as TestMode)}
       className={`${vertical ? 'w-full' : 'w-40'} rounded-md bg-gray-800 px-2 py-2 text-xs text-gray-200 border border-gray-600`}>
+      <optgroup label="副露の探索">
+        <option value="four-pon-kakan">4ポン＋4加槓（四槓子）</option>
+        <option value="three-open-haneman">副露3回で跳満（12,000点）</option>
+        <option value="two-open-haneman">副露2回で跳満（12,000点）</option>
+        <option value="open-pon-haneman">ポンで跳満（12,000点）</option>
+        <option value="open-chi-haneman">チーで跳満（12,000点）</option>
+      </optgroup>
       <optgroup label="暗槓の探索">
         <option value="two-ankan">暗槓2回（通常ツモ）</option>
         <option value="chained-ankan">暗槓2回（嶺上から連続）</option>

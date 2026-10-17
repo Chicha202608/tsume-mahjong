@@ -11,7 +11,7 @@ import {
 } from '@/gameLogic';
 import { State, makeInitialState, type GameMode } from '@/game/gameState';
 import { hasFuturePlayerDraw } from '@/game/seatFlow';
-import { asFourPlayerTestState } from '@/game/testScenarios';
+import { asFourPlayerTestState, makeFourPonKakanTestState, makeOpenHanemanTestState, makeTwoOpenHanemanTestState, makeThreeOpenHanemanTestState } from '@/game/testScenarios';
 import { makeKanTestState, makeRiichiAnkanTestState, makeOpenIttsuRonTestState, makeOpenIttsuTsumoTestState, makeTwoAnkanTestState, type TestMode } from '@/game/testScenarios';
 import {
   applyPlayerDraw,
@@ -78,7 +78,14 @@ export interface GameEngine {
 }
 
 export function useGameEngine(): GameEngine {
-  const [history, setHistory] = useState<State[]>(() => [makeInitialState()]);
+  const [history, setHistory] = useState<State[]>(() => {
+    const example = new URLSearchParams(window.location.search).get('example');
+    if (example === 'four-pon-kakan') return [makeFourPonKakanTestState()];
+    if (example === 'three-open-haneman') return [makeThreeOpenHanemanTestState()];
+    if (example === 'two-open-haneman') return [makeTwoOpenHanemanTestState()];
+    return [example === 'open-pon-haneman' || example === 'open-chi-haneman'
+      ? makeOpenHanemanTestState(example === 'open-pon-haneman' ? 'pon' : 'chi') : makeInitialState()];
+  });
   const [historyIndex, setHistoryIndex] = useState(0);
   const [pendingAction, setPendingAction] = useState<{ action: () => void; message: string } | null>(null);
   const [dismissedIndex, setDismissedIndex] = useState(-1);
@@ -114,6 +121,30 @@ export function useGameEngine(): GameEngine {
   const setupTestState = useCallback((mode: TestMode) => {
     clearTimer();
     const prepare = (test: State) => state.mode === 'four' ? asFourPlayerTestState(test) : test;
+    if (mode === 'four-pon-kakan') {
+      setHistory([makeFourPonKakanTestState(state.mode ?? 'two')]);
+      setHistoryIndex(0);
+      setDismissedIndex(-1);
+      return;
+    }
+    if (mode === 'three-open-haneman') {
+      setHistory([makeThreeOpenHanemanTestState('pon',state.mode ?? 'two')]);
+      setHistoryIndex(0);
+      setDismissedIndex(-1);
+      return;
+    }
+    if (mode === 'two-open-haneman') {
+      setHistory([makeTwoOpenHanemanTestState('pon-pon',state.mode ?? 'two')]);
+      setHistoryIndex(0);
+      setDismissedIndex(-1);
+      return;
+    }
+    if (mode === 'open-pon-haneman' || mode === 'open-chi-haneman') {
+      setHistory([makeOpenHanemanTestState(mode === 'open-pon-haneman' ? 'pon' : 'chi', state.mode ?? 'two')]);
+      setHistoryIndex(0);
+      setDismissedIndex(-1);
+      return;
+    }
     if (mode === 'two-ankan' || mode === 'chained-ankan') {
       setHistory([prepare(makeTwoAnkanTestState(mode === 'chained-ankan'))]);
       setHistoryIndex(0);

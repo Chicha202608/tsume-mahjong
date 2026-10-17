@@ -2,16 +2,22 @@ import { findBestNoKanSolution } from '@/game/drawSolution';
 import type { State } from '@/game/gameState';
 import type { SolverResult } from '@/game/solver';
 import { searchWithAnkan } from '@/game/ankanSearch';
+import { searchWithOpenCalls } from '@/game/openSearch';
 
 /**
- * First publish the no-kan target search, then compare up to two ankan.
- * Both use chronological legal play rather than the older all-discard DP.
+ * Publish the no-kan target search, compare up to two ankan, then up to four
+ * fixed melds mixing open calls, ankan and kakan upgrades (up to eight operations).
+ * Open hands strictly beat the closed line; sub-mangan closed results also
+ * allow a fallback search for open wins below haneman.
+ * Each stage uses chronological legal play rather than the older all-discard DP.
  *
  * Candidate enumeration covers standard hands, seven pairs and kokushi, and its replay
  * selects a deterministic discard order per target. Therefore a found
  * score is a lower bound, not a mathematically certified maximum.
  */
 self.onmessage = (event: MessageEvent<State>) => {
+  const deadline = Date.now() + 60000;
+  const remainingMs = () => Math.max(0, deadline - Date.now());
   try {
     const candidate = findBestNoKanSolution(event.data);
     const result: SolverResult = candidate ?? {
@@ -30,12 +36,18 @@ self.onmessage = (event: MessageEvent<State>) => {
     self.postMessage({ result, preliminary: true });
     let latest = result;
     try {
-      const final = searchWithAnkan(event.data, result, 8000, 2,
+      const final = searchWithAnkan(event.data, result, Math.min(8000, remainingMs()), 2,
         progress => {
           latest = progress ?? latest;
           self.postMessage({ result: latest, preliminary: true });
         });
-      self.postMessage({ result: final ?? latest, preliminary: false });
+      latest = final ?? latest;
+      self.postMessage({ result: latest, preliminary: true });
+      latest = searchWithOpenCalls(event.data, latest, remainingMs(), 4, undefined, progress => {
+        latest = progress ?? latest;
+        self.postMessage({ result: latest, preliminary: true });
+      }) ?? latest;
+      self.postMessage({ result: latest, preliminary: false });
     } catch {
       // An optional kan search must not discard the already available answer.
       self.postMessage({ result: latest, preliminary: false });

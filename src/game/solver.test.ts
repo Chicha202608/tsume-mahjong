@@ -363,6 +363,32 @@ describe('searchBestWin', () => {
 });
 
 describe('equal-score win tie breaker', () => {
+  it.each([3, 4])('discards the rightmost tile on equal winning routes (drawn wind %i)', (value) => {
+    const hand = [
+      tile('m1', 'man', 1), tile('m2', 'man', 2), tile('m3', 'man', 3),
+      tile('p1', 'pin', 1), tile('p2', 'pin', 2), tile('p3', 'pin', 3),
+      tile('s1', 'sou', 1), tile('s2', 'sou', 2), tile('s3', 'sou', 3),
+      tile('s7', 'sou', 7), tile('south1', 'wind', 2), tile('south2', 'wind', 2),
+      tile('left-junk', 'wind', 3),
+    ];
+    const drawn = tile('right-junk', 'wind', value);
+    const state = {
+      ...makeInitialStateBase(hand, [], [
+        tile('cpu1', 'dragon', 1), tile('s8', 'sou', 8),
+        tile('cpu2', 'dragon', 2), tile('s9', 'sou', 9),
+      ], []),
+      phase: 'playerDiscard' as const,
+      playerDrawnTile: drawn,
+      roundWind: 'east' as const,
+    };
+    const result = searchBestWin(state);
+    expect(result.complete).toBe(true);
+    expect(result.outcome).toBe('win');
+    expect(result.line[0]).toMatchObject({ type: 'discard', tile: drawn });
+    expect(state.playerHand).toEqual(hand);
+    expect(state.playerHand[12].id).toBe('left-junk');
+  });
+
   const win = (score: number, draw: number) => ({
     rank: 2 as const, score, winWallDrawCount: draw,
   });
