@@ -4,6 +4,8 @@ import type { Tile, Wind } from '@/types';
 import { seatAfter, windLetter } from '@/game/seatFlow';
 import TileCard from '@/components/TileCard';
 
+const windKanji: Record<Wind, string> = { east: '東', south: '南', west: '西', north: '北' };
+
 const positions = [
   { x: '50%', y: 'calc(50% + 106px)', angle: 0 },
   { x: 'calc(50% + 285px)', y: '50%', angle: -90 },
@@ -54,9 +56,9 @@ export default function FourPlayerTable({ state, embedded = false, compact = fal
           : relative === 2 ? { left: '50%', top: '-22px', transform: 'translateX(-50%)' }
           : { top: '50%', [relative === 1 ? 'right' : 'left']: '-24px', transform: 'translateY(-50%)' };
         const active = state.phase === 'cpuTurn' ? state.nextSeat === wind : relative === 0;
-        return <span key={wind} style={style} className={`absolute text-lg ${active ? 'text-amber-300' : 'text-emerald-200/70'}`}>{windLetter(wind)}</span>;
+        return <span key={wind} style={style} className={`absolute text-lg ${active ? 'text-amber-300' : 'text-emerald-200/70'}`}>{windKanji[wind]}</span>;
       })}
-      <div className="text-base leading-7">場 {windLetter(state.roundWind)}</div>
+      <div className="text-base leading-7">{windKanji[state.roundWind]}場</div>
       <div className="text-sm leading-6">{state.turnCount}巡</div>
       <div className="text-sm leading-6">×{state.wall.length}</div>
       <div aria-label="ドラ表示牌" className="flex justify-center gap-0.5 mt-1">
