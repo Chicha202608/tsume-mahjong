@@ -77,14 +77,14 @@ export interface GameEngine {
   stepForward: () => void;
 }
 
-export function useGameEngine(): GameEngine {
+export function useGameEngine(initialMode: GameMode = 'two'): GameEngine {
   const [history, setHistory] = useState<State[]>(() => {
     const example = new URLSearchParams(window.location.search).get('example');
     if (example === 'four-pon-kakan') return [makeFourPonKakanTestState()];
     if (example === 'three-open-haneman') return [makeThreeOpenHanemanTestState()];
     if (example === 'two-open-haneman') return [makeTwoOpenHanemanTestState()];
     return [example === 'open-pon-haneman' || example === 'open-chi-haneman'
-      ? makeOpenHanemanTestState(example === 'open-pon-haneman' ? 'pon' : 'chi') : makeInitialState()];
+      ? makeOpenHanemanTestState(example === 'open-pon-haneman' ? 'pon' : 'chi') : makeInitialState(initialMode)];
   });
   const [historyIndex, setHistoryIndex] = useState(0);
   const [pendingAction, setPendingAction] = useState<{ action: () => void; message: string } | null>(null);

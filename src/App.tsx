@@ -17,15 +17,23 @@ import SolverReplayModal from '@/components/SolverReplayModal';
 import FourPlayerTable from '@/components/FourPlayerTable';
 import AIAnalysisModal from '@/components/AIAnalysisModal';
 import type { SolverResult } from '@/game/solver';
+import type { GameMode } from '@/game/gameState';
+import ModeSelect from '@/components/ModeSelect';
 
 export default function App() {
+  const [mode, setSelectedMode] = useState<GameMode | null>(null);
+  if (mode === null) return <ModeSelect onSelect={setSelectedMode} />;
+  return <Game initialMode={mode} onHome={() => setSelectedMode(null)} />;
+}
+
+function Game({ initialMode, onHome }: { initialMode: GameMode; onHome: () => void }) {
   const [showAI, setShowAI] = useState(false);
   const [showWall, setShowWall] = useState(false);
   const [showScoreModal, setShowScoreModal] = useState(false);
   const [showSolverReplay, setShowSolverReplay] = useState(false);
   const [solverResult, setSolverResult] = useState<SolverResult | null>(null);
   const [solverBusy, setSolverBusy] = useState(false);
-  const engine = useGameEngine();
+  const engine = useGameEngine(initialMode);
   const {
     state,
     initialState,
@@ -170,6 +178,7 @@ export default function App() {
       }
     }} style={{ width: DESIGN_WIDTH, height: DESIGN_HEIGHT, transform: `scale(${scale})`, transformOrigin: 'top left', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
       <Header
+        onHome={onHome}
         mode={state.mode ?? 'two'} onMode={setMode} onAI={() => setShowAI(true)}
         turnCount={turnCount}
         maxDraws={MAX_DRAWS}
