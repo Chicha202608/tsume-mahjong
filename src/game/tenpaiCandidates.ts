@@ -64,8 +64,12 @@ function waitsFor(counts: number[], numFuro = 0): number[] {
   return waits;
 }
 
-export function enumerateTenpaiCandidates(state: State): TenpaiCandidate[] {
-  if (state.playerFuro.some(f => f.type !== 'ankan')) return [];
+export function enumerateTenpaiCandidates(state: State, options: {
+  allowOpen?: boolean;
+  shouldStop?: () => boolean;
+  accept?: (candidate: TenpaiCandidate) => boolean;
+} = {}): TenpaiCandidate[] {
+  if (!options.allowOpen && state.playerFuro.some(f => f.type !== 'ankan')) return [];
   const numFuro = state.playerFuro.length;
   const fixed = [...state.playerHand, ...(state.playerDrawnTile ? [state.playerDrawnTile] : [])];
   // A wall draw is consumed by the player only when the current turn points
@@ -110,9 +114,11 @@ export function enumerateTenpaiCandidates(state: State): TenpaiCandidate[] {
     const waits = (knownWaits ?? waitsFor(counts, numFuro)).filter(i =>
       counts[i] + state.playerFuro.flatMap(f => f.tiles).filter(t => indexOf(t) === i).length < 4);
     if (!waits.length) return;
-    found.set(key, { counts: [...counts], earliestPlayerDraw: earliest, waits });
+    const candidate = { counts: [...counts], earliestPlayerDraw: earliest, waits };
+    if (!options.accept || options.accept(candidate)) found.set(key, candidate);
   };
   const select = (tiles: number[], next: () => void) => {
+    if (options.shouldStop?.()) return;
     const needed = new Map<number, number>();
     for (const i of tiles) needed.set(i, (needed.get(i) ?? 0) + 1);
     if ([...needed].some(([i, n]) => counts[i] + n > available[i])) return;

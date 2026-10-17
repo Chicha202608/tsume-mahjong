@@ -14,6 +14,9 @@ const positions = [
 /** Pure table view shared by live play and AI replay. */
 export default function FourPlayerTable({ state, embedded = false, compact = false }: { state: State; embedded?: boolean; compact?: boolean }) {
   const { playerWind, playerDiscards, opponents = [], wanpai, doraCount } = state;
+  const calledTileIds = new Set(state.playerFuro
+    .filter(furo => furo.type !== 'ankan')
+    .map(furo => furo.calledTile.id));
   const handPositions = [null,
     { left: `calc(50% + ${compact ? 410 : 430}px)`, top: '50%', angle: -90 },
     { left: '50%', top: '24px', angle: 180 },
@@ -40,7 +43,7 @@ export default function FourPlayerTable({ state, embedded = false, compact = fal
         className="absolute grid grid-cols-6 grid-rows-4 gap-0.5 w-[250px] h-[220px]"
         style={{ left: position.x, top: position.y, transform, transformOrigin: 'center' }}>
         {discards.map(tile => <div key={tile.id} className={state.lastCpuDiscard?.id === tile.id ? 'ring-2 ring-amber-400 rounded' : ''}>
-          <TileCard tile={tile} size="sm" />
+          <TileCard tile={tile} size="sm" className={calledTileIds.has(tile.id) ? 'brightness-50' : ''} />
         </div>)}
       </div>;
     })}

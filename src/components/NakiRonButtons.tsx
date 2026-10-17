@@ -15,7 +15,7 @@ interface Props {
   onDeclareKan: (option: NakiOption) => void;
   onPassNaki: () => void;
   readOnly?: boolean;
-  replayChoice?: 'pass' | 'ron';
+  replayChoice?: 'pass' | 'ron' | NakiOption;
   compact?: boolean;
   largeChoices?: boolean;
   uniformReplayButtons?: boolean;
@@ -40,7 +40,7 @@ export default function NakiRonButtons({ phase, lastCpuDiscard, ronAvailable, na
           key={idx}
           disabled={readOnly}
           onClick={() => (opt.type === 'daiminkan' || opt.type === 'kan') ? onDeclareKan(opt) : onNaki(opt)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${(opt.type === 'daiminkan' || opt.type === 'kan') ? 'bg-purple-600 enabled:hover:bg-purple-500' : 'bg-blue-600 enabled:hover:bg-blue-500'} enabled:active:scale-95 text-white font-bold text-sm transition-all shadow-lg ${readOnly ? 'cursor-default' : ''}`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${(opt.type === 'daiminkan' || opt.type === 'kan') ? 'bg-purple-600 enabled:hover:bg-purple-500' : 'bg-blue-600 enabled:hover:bg-blue-500'} enabled:active:scale-95 text-white font-bold text-sm transition-all shadow-lg ${readOnly ? 'cursor-default' : ''} ${typeof replayChoice === 'object' && replayChoice.type === opt.type && replayChoice.tiles.every(t => opt.tiles.some(o => o.id === t.id)) ? 'ring-4 ring-yellow-400' : ''}`}
         >
           <Hand size={16} />
           <span>{opt.type === 'pung' ? 'ポン' : (opt.type === 'daiminkan' || opt.type === 'kan') ? 'カン' : 'チー'}</span>
