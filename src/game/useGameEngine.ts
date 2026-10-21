@@ -47,6 +47,7 @@ export interface GameEngine {
   initialState: State;
   isViewingPast: boolean;
   canUndo: boolean;
+  canStepBack: boolean;
   canStepForward: boolean;
   historyIndex: number;
   historyLength: number;
@@ -79,6 +80,8 @@ export interface GameEngine {
   matta: () => void;
   stepBack: () => void;
   stepForward: () => void;
+  goToFirst: () => void;
+  goToLast: () => void;
 }
 
 export function useGameEngine(initialMode: GameMode = 'two'): GameEngine {
@@ -99,6 +102,7 @@ export function useGameEngine(initialMode: GameMode = 'two'): GameEngine {
   const state = history[historyIndex] ?? history[0] ?? makeInitialState();
   const isViewingPast = historyIndex < history.length - 1;
   const canUndo = historyIndex > 1;
+  const canStepBack = historyIndex > 0;
   const canStepForward = historyIndex < history.length - 1;
 
   const clearTimer = useCallback(() => {
@@ -361,13 +365,27 @@ export function useGameEngine(initialMode: GameMode = 'two'): GameEngine {
 
   const stepBack = useCallback(() => {
     if (historyIndex <= 0) return;
+    clearTimer();
     setHistoryIndex(findPrevStopIndex(history, historyIndex));
-  }, [historyIndex, history]);
+  }, [historyIndex, history, clearTimer]);
 
   const stepForward = useCallback(() => {
     if (historyIndex >= history.length - 1) return;
+    clearTimer();
     setHistoryIndex(findNextStopIndex(history, historyIndex));
-  }, [historyIndex, history]);
+  }, [historyIndex, history, clearTimer]);
+
+  const goToFirst = useCallback(() => {
+    if (historyIndex <= 0 || pendingAction) return;
+    clearTimer();
+    setHistoryIndex(0);
+  }, [historyIndex, pendingAction, clearTimer]);
+
+  const goToLast = useCallback(() => {
+    if (historyIndex >= history.length - 1 || pendingAction) return;
+    clearTimer();
+    setHistoryIndex(history.length - 1);
+  }, [historyIndex, history.length, pendingAction, clearTimer]);
 
   // --- Pending action dialog callbacks ---
 
@@ -390,7 +408,8 @@ export function useGameEngine(initialMode: GameMode = 'two'): GameEngine {
 
   useEffect(() => {
     if (isViewingPast) {
-      if (!isStopState(state) && historyIndex < history.length - 1) {
+      // Keep the initial record visible until the user presses Forward.
+      if (historyIndex > 0 && !isStopState(state) && historyIndex < history.length - 1) {
         timeoutRef.current = setTimeout(() => {
           setHistoryIndex(prev => Math.min(prev + 1, history.length - 1));
         }, 400);
@@ -444,6 +463,7 @@ export function useGameEngine(initialMode: GameMode = 'two'): GameEngine {
     initialState: history[0],
     isViewingPast,
     canUndo,
+    canStepBack,
     canStepForward,
     historyIndex,
     historyLength: history.length,
@@ -475,5 +495,7 @@ export function useGameEngine(initialMode: GameMode = 'two'): GameEngine {
     matta,
     stepBack,
     stepForward,
+    goToFirst,
+    goToLast,
   };
 }

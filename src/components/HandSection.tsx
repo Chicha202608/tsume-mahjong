@@ -28,10 +28,13 @@ interface Props {
   onDeclareRiichi: () => void;
   onShowWall: () => void;
   canUndo: boolean;
+  canStepBack: boolean;
   canStepForward: boolean;
   onMatta: () => void;
   onStepBack: () => void;
   onStepForward: () => void;
+  onFirst: () => void;
+  onLast: () => void;
 }
 
 export default function HandSection({
@@ -41,7 +44,7 @@ export default function HandSection({
   canTsumo, canRiichi, riichiValidTiles, isDora,
   onDiscard, onNakiDiscard, onRiichiDiscard,
   onDeclareTsumo, onPassTsumo, onDeclareRiichi, onShowWall,
-  canUndo, canStepForward, onMatta, onStepBack, onStepForward,
+  canUndo, canStepBack, canStepForward, onMatta, onStepBack, onStepForward, onFirst, onLast,
 }: Props) {
   return (
     <section className={`shrink-0 flex flex-col items-stretch justify-end px-2 pt-1 ${fourPlayer ? 'pb-16 h-[190px]' : 'pb-6'}`}>
@@ -57,10 +60,13 @@ export default function HandSection({
         <div className="flex items-center justify-center py-1 px-1 shrink-0">
           <HistoryControls
             canUndo={canUndo}
+            canStepBack={canStepBack}
             canStepForward={canStepForward}
             onMatta={onMatta}
             onStepBack={onStepBack}
             onStepForward={onStepForward}
+            onFirst={onFirst}
+            onLast={onLast}
           />
         </div>
         <div className="flex items-center gap-2 flex-nowrap py-1 px-1 flex-1 justify-start">

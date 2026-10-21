@@ -323,6 +323,39 @@ describe('riichi, kan, and scoring', () => {
 });
 
 describe('decision history', () => {
+  it('jumps to the first and last records without changing the recorded states', () => {
+    const initial = fixture();
+    let history: SoloHistory = { entries: [{ state: initial }], index: 0, pending: null };
+    for (let i = 0; i < 3; i++) {
+      const current = history.entries[history.index].state;
+      history = soloHistoryReducer(history, { type: 'act', action: {
+        type: 'discard', tileId: current.seats[current.turn].drawn!.id,
+      } });
+    }
+    const entries = history.entries;
+    expect(entries).toHaveLength(4);
+    history = soloHistoryReducer(history, { type: 'first' });
+    expect(history.index).toBe(0);
+    expect(history.entries[0].state).toBe(initial);
+    history = soloHistoryReducer(history, { type: 'last' });
+    expect(history.index).toBe(3);
+    expect(history.entries).toBe(entries);
+    history = soloHistoryReducer(history, { type: 'first' });
+    history = soloHistoryReducer(history, { type: 'act', action: entries[1].action! });
+    expect(history.index).toBe(1);
+    expect(history.entries).toBe(entries);
+  });
+
+  it('keeps single-entry history in bounds and blocks jumps during confirmation', () => {
+    const initial = fixture();
+    const history: SoloHistory = { entries: [{ state: initial }], index: 0, pending: null };
+    for (const type of ['first', 'last'] as const) {
+      expect(soloHistoryReducer(history, { type }).index).toBe(0);
+      const pending: SoloHistory = { ...history, pending: { rewind: 0 } };
+      expect(soloHistoryReducer(pending, { type })).toBe(pending);
+    }
+  });
+
   it('restores the exact state, view and wall highlight without generating moves', () => {
     const initial = fixture();
     let history: SoloHistory = { entries: [{ state: initial }], index: 0, pending: null };

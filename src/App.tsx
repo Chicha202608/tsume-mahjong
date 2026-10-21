@@ -42,6 +42,7 @@ function Game({ initialMode, onHome }: { initialMode: GameMode; onHome: () => vo
     initialState,
     isViewingPast,
     canUndo,
+    canStepBack,
     canStepForward,
     historyIndex,
     historyLength,
@@ -73,6 +74,8 @@ function Game({ initialMode, onHome }: { initialMode: GameMode; onHome: () => vo
     matta,
     stepBack,
     stepForward,
+    goToFirst,
+    goToLast,
   } = engine;
 
   const { playerHand, playerDrawnTile, cpuHand, wall, fullWall, wallDrawnCount, wanpai, playerDiscards, cpuDiscards, playerFuro, phase, turnCount, lastCpuDiscard, nakiOptions, ronAvailable, winType, doraCount, isRiichi, tsumoAvailable, roundWind, playerWind } = state;
@@ -265,10 +268,13 @@ function Game({ initialMode, onHome }: { initialMode: GameMode; onHome: () => vo
           onDeclareRiichi={declareRiichi}
           onShowWall={() => setShowWall(true)}
           canUndo={canUndo}
+          canStepBack={canStepBack}
           canStepForward={canStepForward}
           onMatta={matta}
           onStepBack={stepBack}
           onStepForward={stepForward}
+          onFirst={goToFirst}
+          onLast={goToLast}
           />
         </div>
       </div>
