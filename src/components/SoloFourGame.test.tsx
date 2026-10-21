@@ -37,7 +37,9 @@ describe('solo mode public information and entry point', () => {
     expect(html).not.toContain('AI');
     expect(html).toContain('戻る');
     expect(html).toContain('進む');
-    expect(html.match(/ disabled=""/g)).toHaveLength(3);
+    expect(html).toContain('最初');
+    expect(html).toContain('最後');
+    expect(html.match(/ disabled=""/g)).toHaveLength(5);
   });
 
   it.each(SEATS)('rotates the public hands and rivers correctly from %s perspective', view => {

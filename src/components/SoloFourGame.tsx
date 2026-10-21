@@ -110,9 +110,12 @@ export default function SoloFourGame({ onHome, onMode }: { onHome: () => void; o
             onDiscard={discard} onNakiDiscard={discard} onRiichiDiscard={discard}
             onDeclareTsumo={() => act({ type: 'tsumo' })} onDeclareRiichi={() => act({ type: 'riichi' })}
             onShowWall={() => setShowWall(true)} canUndo={history.index > 0 && !history.pending}
+            canStepBack={history.index > 0 && !history.pending}
             canStepForward={isViewingPast && !history.pending}
             onMatta={() => dispatch({ type: 'matta' })} onStepBack={() => dispatch({ type: 'back' })}
-            onStepForward={() => { setShowResult(true); dispatch({ type: 'forward' }); }} />
+            onStepForward={() => { setShowResult(true); dispatch({ type: 'forward' }); }}
+            onFirst={() => dispatch({ type: 'first' })}
+            onLast={() => { setShowResult(true); dispatch({ type: 'last' }); }} />
         </div>
         {showWall && <SoloFourWall state={state} onClose={() => setShowWall(false)} />}
         {history.pending && <ConfirmPopup message="これ以降の牌譜は消去されますが、よろしいですか？"

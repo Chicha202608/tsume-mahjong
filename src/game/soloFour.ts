@@ -394,7 +394,7 @@ export interface SoloHistory {
 
 export type SoloHistoryEvent =
   | { type: 'act'; action: SoloAction }
-  | { type: 'back' | 'forward' | 'confirm' | 'cancel' | 'matta' }
+  | { type: 'back' | 'forward' | 'first' | 'last' | 'confirm' | 'cancel' | 'matta' }
   | { type: 'restart'; state: SoloState };
 
 export function soloHistoryReducer(history: SoloHistory, event: SoloHistoryEvent): SoloHistory {
@@ -408,6 +408,8 @@ export function soloHistoryReducer(history: SoloHistory, event: SoloHistoryEvent
     return { entries: [...history.entries.slice(0, history.index + 1), history.pending], index: history.index + 1, pending: null };
   }
   if (history.pending) return history;
+  if (event.type === 'first') return { ...history, index: 0 };
+  if (event.type === 'last') return { ...history, index: history.entries.length - 1 };
   if (event.type === 'back') return { ...history, index: Math.max(0, history.index - 1) };
   if (event.type === 'forward') return { ...history, index: Math.min(history.entries.length - 1, history.index + 1) };
   if (event.type === 'matta') {
