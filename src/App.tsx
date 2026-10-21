@@ -19,11 +19,13 @@ import FourPlayerTable from '@/components/FourPlayerTable';
 import AIAnalysisModal from '@/components/AIAnalysisModal';
 import type { SolverResult } from '@/game/solver';
 import type { GameMode } from '@/game/gameState';
-import ModeSelect from '@/components/ModeSelect';
+import ModeSelect, { type PlayMode } from '@/components/ModeSelect';
+import SoloFourGame from '@/components/SoloFourGame';
 
 export default function App() {
-  const [mode, setSelectedMode] = useState<GameMode | null>(null);
+  const [mode, setSelectedMode] = useState<PlayMode | null>(null);
   if (mode === null) return <ModeSelect onSelect={setSelectedMode} />;
+  if (mode === 'solo-four') return <SoloFourGame onHome={() => setSelectedMode(null)} onMode={setSelectedMode} />;
   return <Game initialMode={mode} onHome={() => setSelectedMode(null)} />;
 }
 

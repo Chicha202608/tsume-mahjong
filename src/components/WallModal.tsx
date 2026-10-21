@@ -4,6 +4,7 @@ import { isPlayerWallIndex } from '@/game/seatFlow';
 import { Tile, Phase } from '@/types';
 import TileCard from '@/components/TileCard';
 import { X, Layers } from 'lucide-react';
+import { useEffect } from 'react';
 
 const WANPAI_COUNT = 14;
 
@@ -17,9 +18,16 @@ interface Props {
   phase: Phase;
   onClose: () => void;
   turnCount: number;
+  highlightWallIndex?: (index: number) => boolean;
+  highlightLabel?: string;
 }
 
-export default function WallModal({ state, wall, fullWall, wallDrawnCount, doraCount, wanpai, phase, turnCount,onClose }: Props) {
+export default function WallModal({ state, wall, fullWall, wallDrawnCount, doraCount, wanpai, phase, turnCount,onClose, highlightWallIndex, highlightLabel }: Props) {
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [onClose]);
   const supplementCount = Math.max(doraCount - 1, 0) + (state?.playerNuki?.length ?? 0);
   const MAX_DRAWS = 18;
   
@@ -31,6 +39,7 @@ export default function WallModal({ state, wall, fullWall, wallDrawnCount, doraC
       : Math.max(MAX_DRAWS - turnCount, 0);
   
   const isPlayerFutureDraw = (idx: number) => {
+    if (highlightWallIndex) return highlightWallIndex(idx);
     if (idx < wallDrawnCount) return false;
     if (idx >= fullWall.length - supplementCount) return false;
   
@@ -49,7 +58,7 @@ export default function WallModal({ state, wall, fullWall, wallDrawnCount, doraC
     return playerDrawIndex < futurePlayerDrawCount;
   };
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={onClose}>
+    <div role="dialog" aria-modal="true" aria-label="ツモ山" className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={onClose}>
       <div className="bg-[#152615] border border-green-700 rounded-2xl p-6 max-w-4xl w-full mx-4 shadow-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-white font-bold text-lg flex items-center gap-2">
@@ -57,12 +66,14 @@ export default function WallModal({ state, wall, fullWall, wallDrawnCount, doraC
             ツモ山 — 残り{wall.length}枚 / 全{fullWall.length}枚
           </h2>
           <button
+            aria-label="山を閉じる"
             onClick={onClose}
             className="text-green-400 hover:text-white transition-colors"
           >
             <X size={24} />
           </button>
         </div>
+        {highlightLabel && <p className="mb-4 text-sm text-amber-200">{highlightLabel}</p>}
 
         {/* Live wall */}
         <div className="rounded-lg p-3 bg-[#0e1e0e]">
