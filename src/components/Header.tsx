@@ -1,14 +1,15 @@
-import type { ReactNode } from 'react';
 import { RefreshCw } from 'lucide-react';
 import DebugButtons from '@/components/DebugButtons';
 import type { TestMode } from '@/game/testScenarios';
 import type { GameMode } from '@/game/gameState';
+import type { ReactNode } from 'react';
 
 interface Props {
   onHome: () => void;
-  mode: GameMode;
-  onMode: (mode: GameMode) => void;
-  onAI: () => void;
+  mode: GameMode | 'solo-four';
+  onMode?: (mode: GameMode) => void;
+  onAI?: () => void;
+  modeDetails?: ReactNode;
   turnCount: number;
   maxDraws: number;
   wallCount: number;
@@ -17,25 +18,25 @@ interface Props {
   historyLength: number;
   onRestart: () => void;
   onSetupTest?: (mode: TestMode) => void;
-  modeDetails?: ReactNode;
 }
 
 export default function Header({ onHome, mode, onMode, onAI, modeDetails, turnCount, maxDraws, wallCount, isViewingPast, historyIndex, historyLength, onRestart, onSetupTest }: Props) {
-  if (mode === 'three' || mode === 'four') return <header className="contents">
+  if (mode === 'three' || mode === 'four' || mode === 'solo-four') return <header className="contents">
     <nav aria-label="対局メニュー" className="absolute left-2 top-3 bottom-3 w-[148px] rounded-xl border border-emerald-900 bg-[#0f1f0f] p-3 flex flex-col gap-5 text-white">
       <h1 className="font-bold text-xl text-center py-2">詰め麻雀</h1>
       <button onClick={onHome} className="h-11 rounded-lg border border-emerald-700 text-sm hover:bg-emerald-900">トップへ</button>
       <div aria-label="対局モード" className="flex flex-col gap-2">
-        {(['two', 'three', 'four'] as const).map(value => <button key={value} aria-pressed={mode === value}
+        {mode === 'solo-four' && <span className="rounded-lg bg-amber-500 py-3 text-center text-sm font-bold text-black">一人四人麻雀</span>}
+        {onMode && (['two', 'three', 'four'] as const).map(value => <button key={value} aria-pressed={mode === value}
           onClick={() => onMode(value)} className={`h-11 rounded-lg text-sm ${mode === value ? 'bg-amber-500 text-black font-bold' : 'border border-emerald-700 text-emerald-100 hover:bg-emerald-900'}`}>
           {value === 'two' ? '二人' : value === 'three' ? '三人' : '四人'}
         </button>)}
       </div>
       {modeDetails}
-      {isViewingPast && <p className="mt-auto text-center text-sm text-amber-300">牌譜 {historyIndex + 1}/{historyLength}</p>}
+      {(isViewingPast || mode === 'solo-four') && <p className="mt-auto text-center text-sm text-amber-300">牌譜 {historyIndex + 1}/{historyLength}</p>}
     </nav>
     <nav aria-label="検討メニュー" className="absolute right-2 top-3 bottom-3 w-[148px] rounded-xl border border-emerald-900 bg-[#0f1f0f] p-3 flex flex-col gap-3 text-white">
-      <button onClick={onAI} className="h-11 rounded-lg border border-emerald-700 hover:bg-emerald-900">AI</button>
+      {onAI && <button onClick={onAI} className="h-11 rounded-lg border border-emerald-700 hover:bg-emerald-900">AI</button>}
       <button onClick={onRestart} className="h-11 flex items-center justify-center gap-2 rounded-lg bg-green-700 hover:bg-green-600"><RefreshCw size={16} />新局</button>
       {onSetupTest && <div className="mt-auto pt-4 border-t border-emerald-900"><DebugButtons vertical onSetupTest={onSetupTest} /></div>}
     </nav>
@@ -49,12 +50,12 @@ export default function Header({ onHome, mode, onMode, onAI, modeDetails, turnCo
         <h1 className="text-white font-bold text-xl tracking-wide">詰め麻雀</h1>
         <button onClick={onHome} className="px-3 py-1.5 rounded-lg border border-emerald-700 text-emerald-100 text-sm hover:bg-emerald-900">トップへ</button>
         <div aria-label="対局モード" className="flex rounded-lg border border-emerald-700 overflow-hidden">
-          {(['two', 'three', 'four'] as const).map(value => <button key={value} aria-pressed={mode === value}
+          {onMode && (['two', 'three', 'four'] as const).map(value => <button key={value} aria-pressed={mode === value}
             onClick={() => onMode(value)} className={`px-5 py-1.5 text-sm ${mode === value ? 'bg-amber-500 text-black font-bold' : 'text-emerald-100 hover:bg-emerald-900'}`}>
             {value === 'two' ? '二人' : value === 'three' ? '三人' : '四人'}
           </button>)}
         </div>
-        <button onClick={onAI} className="px-4 py-1.5 rounded-lg border border-emerald-700 text-white text-sm hover:bg-emerald-900">AI</button>
+        {onAI && <button onClick={onAI} className="px-4 py-1.5 rounded-lg border border-emerald-700 text-white text-sm hover:bg-emerald-900">AI</button>}
         {onSetupTest && <DebugButtons onSetupTest={onSetupTest} />}
       </div>
       <div className="flex items-center gap-3 text-sm text-green-300">

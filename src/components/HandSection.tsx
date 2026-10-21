@@ -1,11 +1,15 @@
-import { Tile, Phase, Furo } from '@/types';
+import { Tile, Phase, Furo, Wind } from '@/types';
 import TileCard from '@/components/TileCard';
 import PlayerFuro from '@/components/PlayerFuro';
 import { Trophy, X, Layers, Zap } from 'lucide-react';
 import HistoryControls from '@/components/HistoryControls';
+import TableMelds from '@/components/TableMelds';
 
 interface Props {
   fourPlayer?: boolean;
+  publicTiles?: boolean;
+  playerWind?: Wind;
+  canDiscardTile?: (tile: Tile) => boolean;
   playerHand: Tile[];
   playerDrawnTile: Tile | null;
   playerFuro: Furo[];
@@ -20,7 +24,7 @@ interface Props {
   onNakiDiscard: (tile: Tile) => void;
   onRiichiDiscard: (tile: Tile) => void;
   onDeclareTsumo: () => void;
-  onPassTsumo: () => void;
+  onPassTsumo?: () => void;
   onDeclareRiichi: () => void;
   onShowWall: () => void;
   canUndo: boolean;
@@ -32,6 +36,7 @@ interface Props {
 
 export default function HandSection({
   fourPlayer = false,
+  publicTiles = false, playerWind = 'east', canDiscardTile,
   playerHand, playerDrawnTile, playerFuro, phase, isRiichi,
   canTsumo, canRiichi, riichiValidTiles, isDora,
   onDiscard, onNakiDiscard, onRiichiDiscard,
@@ -80,7 +85,7 @@ export default function HandSection({
             )}
           </div>
           <div className="w-[110px] shrink-0 flex justify-center">
-            {canTsumo && (
+            {canTsumo && onPassTsumo && (
               <button
                 onClick={onPassTsumo}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-600 hover:bg-gray-500 active:scale-95 text-white font-bold text-sm transition-all shadow-md whitespace-nowrap"
@@ -94,17 +99,19 @@ export default function HandSection({
       </div>
 
       <div className={fourPlayer ? "relative w-full flex items-end justify-center gap-6" : "relative w-full"}>
-        <div data-player-hand className={`flex flex-nowrap justify-center items-end gap-0.5 sm:gap-1 ${fourPlayer ? 'shrink-0' : 'w-full max-w-full overflow-x-auto [scrollbar-width:thin]'} px-2`}>
+        <div data-player-hand data-hand-wind={publicTiles ? playerWind : undefined} className={`flex flex-nowrap justify-center items-end gap-0.5 sm:gap-1 ${fourPlayer ? 'shrink-0' : 'w-full max-w-full overflow-x-auto [scrollbar-width:thin]'} px-2`}>
           {playerHand.map(tile => {
             const isRiichiInvalid = phase === 'riichiSelect' && !riichiValidTiles.has(tile.id);
+            const blocked = canDiscardTile ? !canDiscardTile(tile) : false;
             return (
               <div key={tile.id} className="w-[53px] shrink-0 flex justify-center aspect-[3/4]">
                 <TileCard
                   tile={tile}
                   size="lg"
                   dora={isDora(tile)}
-                  className={`w-full h-full object-contain ${isRiichiInvalid ? 'opacity-30 grayscale pointer-events-none' : ''}`}
+                  className={`w-full h-full object-contain ${isRiichiInvalid || (blocked && (phase === 'playerDiscard' || phase === 'playerNakiDiscard')) ? 'opacity-30 grayscale pointer-events-none' : ''}`}
                   onClick={
+                    blocked ? undefined :
                     phase === 'playerDiscard' && !isRiichi ? () => onDiscard(tile) :
                     phase === 'playerNakiDiscard' ? () => onNakiDiscard(tile) :
                     phase === 'riichiSelect' && !isRiichiInvalid ? () => onRiichiDiscard(tile) :
@@ -122,6 +129,7 @@ export default function HandSection({
                 dora={isDora(playerDrawnTile)}
                 className={`w-full h-full object-contain ${phase === 'riichiSelect' && !riichiValidTiles.has(playerDrawnTile.id) ? 'opacity-30 grayscale pointer-events-none' : ''}`}
                 onClick={
+                  canDiscardTile && !canDiscardTile(playerDrawnTile) ? undefined :
                   phase === 'playerDiscard' ? () => onDiscard(playerDrawnTile) :
                   phase === 'playerNakiDiscard' ? () => onNakiDiscard(playerDrawnTile) :
                   phase === 'riichiSelect' && riichiValidTiles.has(playerDrawnTile.id) ? () => onRiichiDiscard(playerDrawnTile) :
@@ -132,7 +140,7 @@ export default function HandSection({
           </div>
         </div>
       {fourPlayer && playerFuro.length > 0 && <div aria-label="副露" data-player-furo className="shrink-0 flex items-end gap-3">
-        {playerFuro.map((furo, i) => <div key={i} className="flex gap-0.5">
+        {publicTiles ? <TableMelds furo={playerFuro} wind={playerWind} isDora={isDora} size="sm" /> : playerFuro.map((furo, i) => <div key={i} className="flex gap-0.5">
           {furo.tiles.map((tile, j) => <TileCard key={tile.id} tile={tile} size="sm" dora={isDora(tile)}
             faceDown={furo.type === 'ankan' && (j === 0 || j === 3)} />)}
         </div>)}
