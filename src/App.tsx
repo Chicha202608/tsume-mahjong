@@ -1,3 +1,4 @@
+import { isTableMode } from '@/game/seatFlow';
 import { drawSettlement } from '@/game/drawSettlement';
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { MAX_DRAWS } from '@/game/transitions';
@@ -50,6 +51,7 @@ function Game({ initialMode, onHome }: { initialMode: GameMode; onHome: () => vo
     canTsumo,
     ankanOptions,
     kakanOptions,
+    nukiOptions, nuki,
     canRiichi,
     riichiValidTiles,
     isDora,
@@ -148,7 +150,7 @@ function Game({ initialMode, onHome }: { initialMode: GameMode; onHome: () => vo
     restart();
   }
 
-  const fourPlayer = state.mode === 'four';
+  const fourPlayer = isTableMode(state);
   const DESIGN_WIDTH = fourPlayer ? 1440 : 1280;
   const DESIGN_HEIGHT = fourPlayer ? 960 : 720;
   const [scale, setScale] = useState(1);
@@ -187,7 +189,8 @@ function Game({ initialMode, onHome }: { initialMode: GameMode; onHome: () => vo
         historyIndex={historyIndex}
         historyLength={historyLength}
         onRestart={handleRestart}
-        onSetupTest={setupTestState}
+        onSetupTest={state.mode === 'three' ? undefined : setupTestState}
+        modeDetails={state.mode === 'three' ? <p className="text-xs leading-6 text-emerald-200">萬子2〜8なし<br />北抜き・ツモ損あり<br />チーなし</p> : undefined}
       />
 
       {!fourPlayer && <DoraIndicator
@@ -219,6 +222,7 @@ function Game({ initialMode, onHome }: { initialMode: GameMode; onHome: () => vo
 
         {/* Keep call and ron controls visible below the scrolling river. */}
         <div className={fourPlayer ? "h-14 shrink-0 flex items-center justify-center gap-3" : "shrink-0"}>
+          {!isViewingPast && nukiOptions.length > 0 && <button onClick={() => nuki(nukiOptions[nukiOptions.length - 1])} className="rounded-lg bg-sky-700 px-4 py-2 font-bold text-white">北抜き</button>}
           {fourPlayer && !isViewingPast && phase === 'playerDiscard' && [...ankanOptions, ...kakanOptions].map((option, i) => <button key={i} onClick={() => declareKan(option)} className="rounded-lg bg-purple-700 px-4 py-2 text-white">{option.type === 'ankan' ? '暗槓' : '加槓'} {option.tiles[0].value}{option.tiles[0].suit === 'pin' ? 'p' : option.tiles[0].suit === 'sou' ? 's' : option.tiles[0].suit === 'man' ? 'm' : 'z'}</button>)}
           <NakiRonButtons
             largeChoices={fourPlayer}

@@ -1,3 +1,4 @@
+import { isTableMode } from '@/game/seatFlow';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Tile } from '@/types';
 import {
@@ -11,7 +12,7 @@ import {
 } from '@/gameLogic';
 import { State, makeInitialState, type GameMode } from '@/game/gameState';
 import { hasFuturePlayerDraw } from '@/game/seatFlow';
-import { asFourPlayerTestState, makeFourPonKakanTestState, makeOpenHanemanTestState, makeTwoOpenHanemanTestState, makeThreeOpenHanemanTestState } from '@/game/testScenarios';
+import { asFourPlayerTestState, makeThreeNukiTestState, makeFourPonKakanTestState, makeOpenHanemanTestState, makeTwoOpenHanemanTestState, makeThreeOpenHanemanTestState } from '@/game/testScenarios';
 import { makeKanTestState, makeRiichiAnkanTestState, makeOpenIttsuRonTestState, makeOpenIttsuTsumoTestState, makeTwoAnkanTestState, type TestMode } from '@/game/testScenarios';
 import {
   applyPlayerDraw,
@@ -26,6 +27,7 @@ import {
   applyDeclareKan,
   applyDeclareRiichi,
   applyRiichiDiscard,
+  applyNuki, findNukiOptions,
 } from '@/game/transitions';
 import {
   isStopState,
@@ -56,6 +58,8 @@ export interface GameEngine {
   canTsumo: boolean;
   ankanOptions: NakiOption[];
   kakanOptions: NakiOption[];
+  nukiOptions: Tile[];
+  nuki: (tile: Tile) => void;
   canRiichi: boolean;
   riichiValidTiles: Set<string>;
   isDora: (t: Tile) => boolean;
@@ -80,6 +84,7 @@ export interface GameEngine {
 export function useGameEngine(initialMode: GameMode = 'two'): GameEngine {
   const [history, setHistory] = useState<State[]>(() => {
     const example = new URLSearchParams(window.location.search).get('example');
+    if (initialMode === 'three') return [example === 'sanma-nuki' ? makeThreeNukiTestState() : makeInitialState(initialMode)];
     if (example === 'four-pon-kakan') return [makeFourPonKakanTestState()];
     if (example === 'three-open-haneman') return [makeThreeOpenHanemanTestState()];
     if (example === 'two-open-haneman') return [makeTwoOpenHanemanTestState()];
@@ -120,6 +125,7 @@ export function useGameEngine(initialMode: GameMode = 'two'): GameEngine {
 
   const setupTestState = useCallback((mode: TestMode) => {
     clearTimer();
+    if (state.mode === 'three') return;
     const prepare = (test: State) => state.mode === 'four' ? asFourPlayerTestState(test) : test;
     if (mode === 'four-pon-kakan') {
       setHistory([makeFourPonKakanTestState(state.mode ?? 'two')]);
@@ -323,6 +329,12 @@ export function useGameEngine(initialMode: GameMode = 'two'): GameEngine {
     );
   }, [performAction]);
 
+  const nuki = useCallback((tile: Tile) => {
+    performAction(cur => applyNuki(cur, tile), (cur, next) =>
+      (next.playerNuki?.length ?? 0) === (cur.playerNuki?.length ?? 0) + 1 &&
+      next.playerNuki?.slice(-1)[0]?.id === tile.id, CONFIRM_MESSAGE);
+  }, [performAction]);
+
   // --- History navigation callbacks ---
 
   const matta = useCallback(() => {
@@ -387,7 +399,7 @@ export function useGameEngine(initialMode: GameMode = 'two'): GameEngine {
       return;
     }
     if (state.phase === 'cpuTurn' && state.wall.length > 0) {
-      timeoutRef.current = setTimeout(() => cpuTurn(), state.mode === 'four' ? 400 : 700);
+      timeoutRef.current = setTimeout(() => cpuTurn(), isTableMode(state) ? 400 : 700);
       return () => { clearTimer(); };
     }
     if (state.phase === 'playerDraw' && state.wall.length > 0) {
@@ -395,7 +407,7 @@ export function useGameEngine(initialMode: GameMode = 'two'): GameEngine {
       return () => { clearTimer(); };
     }
     if (state.phase === 'playerDiscard' && state.isRiichi && state.playerDrawnTile && !state.tsumoAvailable && !isViewingPast &&
-        findLegalAnkanOptions(state.playerHand, state.playerDrawnTile, state.playerFuro, true).length === 0) {
+        findLegalAnkanOptions(state.playerHand, state.playerDrawnTile, state.playerFuro, true).length === 0 && findNukiOptions(state).length === 0) {
       timeoutRef.current = setTimeout(() => playerDiscard(state.playerDrawnTile!), 700);
       return () => { clearTimer(); };
     }
@@ -421,9 +433,10 @@ export function useGameEngine(initialMode: GameMode = 'two'): GameEngine {
 
   const isMenzen = isMenzenLogic(playerFuro);
   const canRiichi = !isRiichi && isMenzen && phase === 'playerDiscard' && !!playerDrawnTile &&
-    (state.mode !== 'four' || hasFuturePlayerDraw(state)) && canRiichiLogic(playerHand, playerDrawnTile!, playerFuro);
+    (!isTableMode(state) || hasFuturePlayerDraw(state)) && canRiichiLogic(playerHand, playerDrawnTile!, playerFuro);
   const riichiValidTiles = phase === 'riichiSelect' && playerDrawnTile ? validRiichiDiscards(playerHand, playerDrawnTile, playerFuro) : new Set<string>();
-  const doraKeys = getDoraTileKeys(wanpai, doraCount);
+  const nukiOptions = findNukiOptions(state);
+  const doraKeys = getDoraTileKeys(wanpai, doraCount, state.mode);
   const isDora = (t: Tile) => doraKeys.has(`${t.suit}-${t.value}`);
 
   return {
@@ -442,6 +455,7 @@ export function useGameEngine(initialMode: GameMode = 'two'): GameEngine {
     canTsumo,
     ankanOptions,
     kakanOptions,
+    nukiOptions, nuki,
     canRiichi,
     riichiValidTiles,
     isDora,

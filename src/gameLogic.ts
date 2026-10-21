@@ -1,6 +1,6 @@
 import { Tile, Furo } from '@/types';
 
-export function createDeck(): Tile[] {
+export function createDeck(mode?: 'two' | 'three' | 'four'): Tile[] {
   const tiles: Tile[] = [];
   let id = 0;
   for (const suit of ['man', 'pin', 'sou'] as const) {
@@ -25,7 +25,7 @@ export function createDeck(): Tile[] {
       tiles.push({ id: String(id++), suit: 'dragon', value: v });
     }
   }
-  return tiles;
+  return mode === 'three' ? tiles.filter(t => t.suit !== 'man' || t.value === 1 || t.value === 9) : tiles;
 }
 
 export function shuffle<T>(arr: T[]): T[] {
@@ -165,8 +165,9 @@ export function getWaits(hand: Tile[], furoList: Furo[]): Tile[] {
   return waits;
 }
 
-export function nextDoraTile(indicator: Tile): Tile {
+export function nextDoraTile(indicator: Tile, mode?: 'two' | 'three' | 'four'): Tile {
   const { suit, value } = indicator;
+  if (mode === 'three' && suit === 'man') return { id: 'dora', suit, value: value === 1 ? 9 : 1 };
   if (suit === 'man' || suit === 'pin' || suit === 'sou') {
     return { id: 'dora', suit, value: value === 9 ? 1 : value + 1 };
   }
@@ -176,12 +177,12 @@ export function nextDoraTile(indicator: Tile): Tile {
   return { id: 'dora', suit, value: value === 3 ? 1 : value + 1 };
 }
 
-export function getDoraTileKeys(wanpai: Tile[], doraCount: number): Set<string> {
+export function getDoraTileKeys(wanpai: Tile[], doraCount: number, mode?: 'two' | 'three' | 'four'): Set<string> {
   const keys = new Set<string>();
   for (let i = 0; i < doraCount && i < 5; i++) {
     const indicator = wanpai[4 + i];
     if (!indicator) continue;
-    const dora = nextDoraTile(indicator);
+    const dora = nextDoraTile(indicator, mode);
     keys.add(`${dora.suit}-${dora.value}`);
   }
   return keys;

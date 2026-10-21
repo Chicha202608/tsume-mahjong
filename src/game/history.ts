@@ -18,7 +18,7 @@ export function actionMatchesNext(
   if (!next) return false;
   switch (action) {
     case 'passNaki':
-      return (next.phase === 'playerDraw' || next.phase === 'exhausted') && next.nakiOptions.length === 0 && !next.ronAvailable;
+      return (next.phase === 'playerDraw' || next.phase === 'cpuTurn' || next.phase === 'exhausted') && next.nakiOptions.length === 0 && !next.ronAvailable;
     case 'passTsumo':
       return next.phase === 'playerDiscard' && !next.tsumoAvailable;
     case 'callRon':

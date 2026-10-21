@@ -1,4 +1,5 @@
 import type { HandAnalysis } from 'riichi-score';
+import type { ScoredHandAnalysis } from '@/game/scoreAdapter';
 import type { CSSProperties } from 'react';
 
 interface RSYaku {
@@ -98,7 +99,7 @@ function scoreTierLabel(best: NonNullable<HandAnalysis['handInterpretations'][nu
 }
 
 interface Props {
-  result: HandAnalysis;
+  result: ScoredHandAnalysis;
 }
 
 export default function YakuDisplay({ result }: Props) {
@@ -128,6 +129,10 @@ export default function YakuDisplay({ result }: Props) {
             <span className="text-white font-bold">{yakuHanLabel(yaku)}</span>
           </div>
         ))}
+        {!!best.nukiDora && <div className="flex items-center justify-between text-sm">
+          <span className="text-white yaku-brush">抜きドラ</span>
+          <span className="text-white font-bold">{best.nukiDora}飜</span>
+        </div>}
         {best.dora > 0 && (
           <div className="flex items-center justify-between text-sm">
             <span className="text-white yaku-brush">ドラ</span>

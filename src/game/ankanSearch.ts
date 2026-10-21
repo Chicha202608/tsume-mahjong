@@ -4,7 +4,8 @@ import type { State } from '@/game/gameState';
 import type { SolverAction, SolverResult } from '@/game/solver';
 import { findLegalAnkanOptions, getWaits, canRiichi } from '@/gameLogic';
 import { enumerateTenpaiCandidates, type TenpaiCandidate } from '@/game/tenpaiCandidates';
-import { scoreHand, buildHandInput } from '@/game/scoreAdapter';
+import { buildHandInput } from '@/game/scoreAdapter';
+import { analyzeSearchHand, type SearchContext } from '@/game/searchContext';
 import { isPlayerWallIndex, playerDrawOffset } from '@/game/seatFlow';
 import {
   applyPlayerDraw, applyCpuTurn, applyPlayerDiscard, applyDeclareKan,
@@ -31,11 +32,12 @@ export function searchWithOneAnkan(
 export function searchWithAnkan(
   initial: State, baseline: SolverResult | null, maxDurationMs = 8000, maxKans: 1 | 2 = 2,
   onProgress?: (result: SolverResult | null) => void,
+  context?: SearchContext,
 ): SolverResult | null {
   if (initial.playerFuro.length || initial.playerDrawnTile || initial.playerHand.length !== 13 ||
       !['playerDraw', 'cpuTurn'].includes(initial.phase) || initial.wanpai.length < 14) return baseline;
   const started = Date.now();
-  const deadline = started + maxDurationMs;
+  const deadline = Math.min(started + maxDurationMs, context?.deadline ?? Infinity);
   let best = baseline;
   let bestDraws = Infinity;
   let visited = 0;
@@ -52,7 +54,7 @@ export function searchWithAnkan(
     if (scoreCache.has(key)) { cacheHits++; return scoreCache.get(key)!; }
     let value: number | null = null;
     try {
-      const result = scoreHand(state);
+      const result = analyzeSearchHand(state, context);
       if (result?.valid && result.handInterpretations.length)
         value = Math.max(...result.handInterpretations.map(h => h.totalWinnings));
     } catch { /* An invalid interpretation is not a winning line. */ }
@@ -88,11 +90,11 @@ export function searchWithAnkan(
         break;
       }
       if (state.phase === 'playerDraw') {
-        const next = applyPlayerDraw(state);
+        const next = applyPlayerDraw(state, context?.baseScores);
         if (!next) break;
         line.push({ type: 'draw' }); state = next;
       } else if (state.phase === 'cpuTurn') {
-        const next = applyCpuTurn(state);
+        const next = applyCpuTurn(state, context?.baseScores);
         if (!next) break;
         line.push({ type: 'cpu-turn' }); state = next;
       } else if (state.phase === 'naki') {
@@ -121,7 +123,7 @@ export function searchWithAnkan(
           const option = pending.map(f => options.find(o => face(o.tiles[0]) === f)).find(o => o);
           if (option) {
             if (riichiBefore === completed.size + 1 && !state.isRiichi) break;
-            const next = applyDeclareKan(state, option);
+            const next = applyDeclareKan(state, option, context?.baseScores);
             if (!next) break;
             line.push({ type: 'ankan', option }); state = next; completed.add(face(option.tiles[0]));
             continue;
@@ -163,7 +165,7 @@ export function searchWithAnkan(
 
   for (let kanCount = 1; kanCount <= maxKans && Date.now() < deadline; kanCount++) {
     // Reserve half of the total time for two kans. Unused time carries over.
-    stageDeadline = maxKans === 2 && kanCount === 1 ? started + maxDurationMs / 2 : deadline;
+    stageDeadline = maxKans === 2 && kanCount === 1 ? Math.min(deadline, started + maxDurationMs / 2) : deadline;
     const liveWall = initial.wall.slice(0, -kanCount);
     const ownDraws = liveWall.filter((_, i) => isPlayerWallIndex(initial, i));
     const beforeKanPool = [...initial.playerHand, ...ownDraws];
@@ -198,7 +200,7 @@ export function searchWithAnkan(
           return { type: 'ankan', tiles: quad, calledTile: quad[0] };
         }) };
       const winningFaces = new Set([...liveWall, ...rinshan].map(face));
-      const targets = enumerateTenpaiCandidates(targetState);
+      const targets = enumerateTenpaiCandidates(targetState, { shouldStop: () => Date.now() >= stageDeadline });
       for (const target of targets) {
         if (Date.now() >= stageDeadline) break;
         if ((best?.bestScore ?? -1) >= TENPAI_DRAW_POINTS && !target.waits.some(wait => winningFaces.has(wait))) continue;

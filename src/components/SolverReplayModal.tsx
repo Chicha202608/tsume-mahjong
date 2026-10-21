@@ -1,3 +1,4 @@
+import { isTableMode } from '@/game/seatFlow';
 import { replayChoiceStyle } from '@/components/replayChoiceStyle';
 import { hasFuturePlayerDraw } from '@/game/seatFlow';
 import FourPlayerTable from '@/components/FourPlayerTable';
@@ -23,6 +24,7 @@ const actionLabel: Record<string,string> = {
   draw: 'ツモ', 'cpu-turn': 'CPUツモ切り', discard: '打牌',
   'pass-tsumo': 'ツモ見送り', 'pass-naki': '鳴き・ロン見送り',
   ron: 'ロン', tsumo: 'ツモ和了', ankan: '暗槓・嶺上牌ツモ', kakan: '加槓・嶺上牌ツモ', 'call-naki': 'チー・ポン・大明槓',
+  nuki: '北抜き・補充牌ツモ',
 };
 export default function SolverReplayModal({ initial, result, onClose }: Props) {
   useLayoutEffect(() => {
@@ -55,36 +57,36 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
   };
   if (!frame) return null;
   const { state, action } = frame;
-  const dora = getDoraTileKeys(state.wanpai, state.doraCount);
+  const dora = getDoraTileKeys(state.wanpai, state.doraCount, state.mode);
   const isDora = (tile: typeof state.playerHand[number]) => dora.has(`${tile.suit}-${tile.value}`);
   const followingStop = stops[stopPosition + 1] ?? index;
   const nextAction = frames[index + 1]?.action;
   const replayChoice = nextAction?.type === 'pass-naki' ? 'pass'
     : nextAction?.type === 'ron' ? 'ron' : nextAction?.type === 'call-naki' ? nextAction.option : undefined;
   const showRiichi = state.phase === 'playerDiscard' && !state.isRiichi &&
-    !!state.playerDrawnTile && (state.mode !== 'four' || hasFuturePlayerDraw(state)) && canRiichi(state.playerHand, state.playerDrawnTile, state.playerFuro);
+    !!state.playerDrawnTile && (!isTableMode(state) || hasFuturePlayerDraw(state)) && canRiichi(state.playerHand, state.playerDrawnTile, state.playerFuro);
   const chooseRiichi = (nextAction?.type === 'discard' || nextAction?.type === 'tsumo') && nextAction.riichi;
   const cancelRiichi = nextAction?.type === 'discard' && !nextAction.riichi;
-  const choiceClass = (selected: boolean) => `${initial.mode === 'four' ? replayChoiceStyle : 'rounded-lg px-5 py-2.5 font-bold cursor-default'} ${selected ? 'ring-4 ring-yellow-400' : ''}`;
+  const choiceClass = (selected: boolean) => `${isTableMode(initial) ? replayChoiceStyle : 'rounded-lg px-5 py-2.5 font-bold cursor-default'} ${selected ? 'ring-4 ring-yellow-400' : ''}`;
   const nextDiscard = result.outcome !== 'noten'
     ? frames.slice(index + 1, followingStop + 1).map(frame => frame.action)
       .find(action => action?.type === 'discard') ?? null : null;
   const highlightedId = nextDiscard?.type === 'discard' ? nextDiscard.tile.id : null;
-  const handSlots = initial.mode === 'four'
+  const handSlots = isTableMode(initial)
     ? Math.max(state.playerHand.length, 13 - state.playerFuro.length * 3, 1) : 13;
   const resultText = result.outcome === 'win' ? `AIの得点 ${result.bestScore?.toLocaleString()}点`
     : result.outcome === 'tenpai' ? 'テンパイ流局 3,000点' : 'ノーテン流局 0点（ツモ切り例）';
 
   return createPortal(
     <div className="fixed inset-0 z-[70] bg-black/80 flex items-center justify-center p-3">
-      <ReplayFit width={initial.mode === 'four' ? 920 : 1040} height={initial.mode === 'four' ? 1160 : 660}>
+      <ReplayFit width={isTableMode(initial) ? 920 : 1040} height={isTableMode(initial) ? 1160 : 660}>
       <div role="dialog" aria-label="AIの手順" className="bg-[#1a2e1a] border border-green-700 rounded-2xl shadow-2xl w-full h-full overflow-hidden text-white p-4 grid grid-rows-[40px_minmax(0,1fr)_40px] gap-2">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-bold text-xl">AIの手順 — {resultText}</h2>
           <button onClick={onClose} className="rounded-lg bg-gray-600 hover:bg-gray-500 px-4 py-2 font-bold">閉じる</button>
         </div>
-        <div className={initial.mode === 'four' ? "min-h-0 grid grid-rows-[minmax(0,1fr)_80px_160px] gap-2" : "min-h-0 grid grid-rows-[52px_76px_76px_112px_minmax(0,1fr)] gap-2"}>
-        {initial.mode === 'four' ? <FourPlayerTable state={state} compact /> : <>
+        <div className={isTableMode(initial) ? "min-h-0 grid grid-rows-[minmax(0,1fr)_80px_160px] gap-2" : "min-h-0 grid grid-rows-[52px_76px_76px_112px_minmax(0,1fr)] gap-2"}>
+        {isTableMode(initial) ? <FourPlayerTable state={state} compact /> : <>
         <div className="flex items-center justify-between gap-4">
         <p className="text-green-200 text-sm">手順 {stopPosition + 1} / {stops.length}{'\u3000'}{action ? actionLabel[action.type] : '配牌'}</p>
         <div className="flex items-center gap-1 text-sm"><span>ドラ表示牌：</span>{Array.from({ length: 5 }, (_, i) => {
@@ -110,14 +112,15 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
           <div className="rounded-lg border border-green-700 overflow-hidden">
             <NakiRonButtons phase={state.phase} lastCpuDiscard={state.lastCpuDiscard}
               ronAvailable={state.ronAvailable || replayChoice === 'ron'} nakiOptions={state.nakiOptions}
-              readOnly compact={initial.mode !== 'four'} uniformReplayButtons={initial.mode === 'four'} replayChoice={replayChoice}
+              readOnly compact={!isTableMode(initial)} uniformReplayButtons={isTableMode(initial)} replayChoice={replayChoice}
               onRon={() => {}} onNaki={() => {}} onDeclareKan={() => {}} onPassNaki={() => {}} />
           </div>
         )}
-        {state.phase === 'playerDiscard' && (showRiichi || state.tsumoAvailable || nextAction?.type === 'ankan' || nextAction?.type === 'kakan') && (
+        {state.phase === 'playerDiscard' && (showRiichi || state.tsumoAvailable || nextAction?.type === 'ankan' || nextAction?.type === 'kakan' || nextAction?.type === 'nuki') && (
           <div className="flex flex-wrap items-center justify-center gap-6 rounded-lg border border-green-700 bg-[#1e3a1e] px-4 py-3">
             {nextAction?.type === 'ankan' && <button disabled className={`${choiceClass(true)} bg-purple-600`}>暗槓</button>}
             {nextAction?.type === 'kakan' && <button disabled className={`${choiceClass(true)} bg-purple-600`}>加槓</button>}
+            {nextAction?.type === 'nuki' && <button disabled className={`${choiceClass(true)} bg-sky-700`}>北抜き</button>}
             {showRiichi && <div className="flex gap-3">
               <button disabled className={`${choiceClass(!!chooseRiichi)} bg-blue-600`}>リーチ</button>
               <button disabled className={`${choiceClass(cancelRiichi)} bg-gray-600`} aria-label="リーチをキャンセル">キャンセル</button>
@@ -130,7 +133,7 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
         )}
         </div>
         <div data-replay-region="hand" className="min-h-0 bg-[#152615] rounded-lg px-3 py-2 grid grid-rows-[20px_72px_64px]">
-          <div className="text-green-400 text-sm">手牌{'\u3000'}{state.drawnFromRinshan ? '嶺上牌　' : ''}{highlightedId ? '（黄色枠が次に切る牌）' : ''}</div>
+          <div className="text-green-400 text-sm">手牌{'\u3000'}{state.drawnFromRinshan ? '嶺上牌　' : state.drawnFromNuki ? '北抜き補充牌　' : ''}{highlightedId ? '（黄色枠が次に切る牌）' : ''}</div>
           <div className="contents">
           <div className="grid items-center gap-1" style={{ gridTemplateColumns: `repeat(${handSlots},48px) 60px` }}>
             {Array.from({ length: handSlots }, (_, i) => {
@@ -139,8 +142,8 @@ export default function SolverReplayModal({ initial, result, onClose }: Props) {
             })}
             <div data-replay-region="drawn-tile" className="ml-1 h-16">{state.playerDrawnTile && <div className={`w-fit ${highlightedId === state.playerDrawnTile.id ? 'ring-4 ring-yellow-400 rounded-md' : ''}`}><TileCard tile={state.playerDrawnTile} size="md" dora={isDora(state.playerDrawnTile)} /></div>}</div>
           </div>
-          <div data-replay-region="kan" className={`flex items-center gap-3 ${initial.mode === 'four' ? 'shrink-0' : ''}`}>
-            <span className={`${initial.mode === 'four' ? 'hidden' : ''} text-amber-400 text-xs ${state.playerFuro.length ? '' : 'invisible'}`}>副露・暗槓</span>
+          <div data-replay-region="kan" className={`flex items-center gap-3 ${isTableMode(initial) ? 'shrink-0' : ''}`}>
+            <span className={`${isTableMode(initial) ? 'hidden' : ''} text-amber-400 text-xs ${state.playerFuro.length ? '' : 'invisible'}`}>副露・暗槓</span>
             {state.playerFuro.map((furo, i) => <div key={i} className="flex gap-1">
               {furo.tiles.map((tile, j) => <TileCard key={tile.id} tile={tile} size="sm" dora={isDora(tile)} faceDown={furo.type === 'ankan' && (j === 0 || j === 3)} />)}
             </div>)}

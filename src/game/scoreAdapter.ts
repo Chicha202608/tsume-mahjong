@@ -1,5 +1,7 @@
+import { isTableMode } from '@/game/seatFlow';
 import { Tile, Furo, Wind } from '@/types';
 import { State } from '@/game/gameState';
+import { nextDoraTile, sameTile } from '@/gameLogic';
 import {
   calculate,
   createGameState,
@@ -11,6 +13,7 @@ import {
   type Direction,
   type WinningTile,
   type HandAnalysis,
+  type HandInterpretation,
 } from 'riichi-score';
 
 // ── Tile → MahjongTile string conversion ──
@@ -94,7 +97,7 @@ function kamichaDirection(playerWind: Wind): Direction {
 export function buildHandInput(state: State): HandInput | null {
   if (state.phase !== 'win' || !state.winTile || !state.winType) return null;
 
-  const cpuDir = state.mode === 'four' ? toDirection(state.winFromWind ?? state.lastDiscardWind ?? state.cpuWind) : cpuDirection(state.playerWind);
+  const cpuDir = isTableMode(state) ? toDirection(state.winFromWind ?? state.lastDiscardWind ?? state.cpuWind) : cpuDirection(state.playerWind);
   const kamichaDir = kamichaDirection(state.playerWind);
   const closedTiles = state.playerHand.map(toMahjongTile);
   const openMelds = state.playerFuro.map(f => toMeld(f, cpuDir, kamichaDir));
@@ -122,8 +125,8 @@ export function buildHandInput(state: State): HandInput | null {
     isRiichi: state.isRiichi,
     isIppatsu: state.isIppatsu,
     isRinshan: state.winType === 'tsumo' && !!state.drawnFromRinshan,
-    isHaitei: state.winType === 'tsumo' && !state.drawnFromRinshan && state.wall.length === 0 && state.fullWall.length === (state.mode === 'four' ? 70 : 36),
-    isHoutei: state.winType === 'ron' && state.wall.length === 0 && state.fullWall.length === (state.mode === 'four' ? 70 : 36),
+    isHaitei: state.winType === 'tsumo' && !state.drawnFromRinshan && !state.drawnFromNuki && state.wall.length === 0 && state.fullWall.length === (state.mode === 'three' ? 55 : isTableMode(state) ? 70 : 36),
+    isHoutei: state.winType === 'ron' && state.wall.length === 0 && state.fullWall.length === (state.mode === 'three' ? 55 : isTableMode(state) ? 70 : 36),
   });
 
   return {
@@ -136,15 +139,74 @@ export function buildHandInput(state: State): HandInput | null {
 
 // ── Score calculation wrapper ──
 
-export function scoreHand(state: State): HandAnalysis | null {
+export type ScoredHandAnalysis = Omit<HandAnalysis, 'handInterpretations'> & {
+  handInterpretations: (HandInterpretation & { nukiDora?: number })[];
+};
+
+export interface BaseScoreCache extends Map<string, HandAnalysis> {
+  cacheHits?: number;
+  computations?: number;
+}
+
+/** Concealed tile order and physical IDs do not change a hand's score. */
+export function handInputCacheKey(input: HandInput): string {
+  return JSON.stringify({ ...input, closedTiles: [...input.closedTiles].sort() });
+}
+
+export function scoreHand(state: State, baseCache?: BaseScoreCache): ScoredHandAnalysis | null {
   const input = buildHandInput(state);
   if (!input) return null;
-  return calculate(input);
+  const key = baseCache ? handInputCacheKey(input) : '';
+  let base = baseCache?.get(key);
+  if (base && baseCache?.cacheHits !== undefined) baseCache.cacheHits++;
+  if (!base) {
+    if (baseCache?.computations !== undefined) baseCache.computations++;
+    base = calculate(input);
+    if (baseCache) {
+      if (baseCache.size >= 4096) {
+        const oldest = baseCache.keys().next().value;
+        if (oldest !== undefined) baseCache.delete(oldest);
+      }
+      baseCache.set(key, base);
+    }
+  }
+  // North bonuses and three-player payments only alter these interpretation
+  // fields. Keep the expensive grouping/yaku analysis immutable in the cache.
+  const result: ScoredHandAnalysis = baseCache && state.mode === 'three'
+    ? { ...base, handInterpretations: base.handInterpretations.map(hand => ({ ...hand })) } : base;
+  if (state.mode !== 'three' || !result.valid) return result;
+  const tiles = [...state.playerHand, ...state.playerFuro.flatMap(f => f.tiles), state.winTile!];
+  const indicators = state.wanpai.slice(4, 4 + state.doraCount);
+  const ura = state.isRiichi ? state.wanpai.slice(9, 9 + state.doraCount) : [];
+  const countDora = (list: Tile[], material: Tile[]) => list.reduce((n, indicator) =>
+    n + material.filter(t => sameTile(t, nextDoraTile(indicator, 'three'))).length, 0);
+  for (const hand of result.handInterpretations) {
+    // Keep yakuman payouts from the library, including stacked yakuman.
+    if (!hand.limit) {
+      const dora = countDora(indicators, tiles);
+      const uradora = countDora(ura, tiles);
+      hand.nukiDora = (state.playerNuki?.length ?? 0) + countDora([...indicators, ...ura], state.playerNuki ?? []);
+      hand.han += dora - hand.dora + uradora - hand.uradora + hand.nukiDora;
+      hand.dora = dora;
+      hand.uradora = uradora;
+      hand.basicPoints = hand.han >= 13 ? 8000 : hand.han >= 11 ? 6000 : hand.han >= 8 ? 4000
+        : hand.han >= 6 ? 3000 : Math.min(2000, hand.fu * 2 ** (hand.han + 2));
+    }
+    const bp = hand.basicPoints;
+    const round = (n: number) => Math.ceil(n / 100) * 100;
+    hand.seatPayments = state.winType === 'ron'
+      ? [{ seat: state.winFromWind ?? state.lastDiscardWind ?? state.cpuWind, value: round(bp * (state.playerWind === 'east' ? 6 : 4)) }]
+      : (['east', 'south', 'west'] as const).filter(w => w !== state.playerWind)
+        .map(seat => ({ seat, value: round(bp * (state.playerWind === 'east' || seat === 'east' ? 2 : 1)) }));
+    hand.totalWinnings = hand.seatPayments.reduce((n, payment) => n + payment.value, 0);
+  }
+  result.handInterpretations.sort((a, b) => b.totalWinnings - a.totalWinnings);
+  return result;
 }
 
 // ── Yaku check for ron eligibility ──
 
-export function canRonWithYaku(state: State, discardTile: Tile): boolean {
+export function canRonWithYaku(state: State, discardTile: Tile, baseCache?: BaseScoreCache): boolean {
   const winState: State = {
     ...state,
     phase: 'win' as const,
@@ -152,12 +214,12 @@ export function canRonWithYaku(state: State, discardTile: Tile): boolean {
     winTile: discardTile,
     playerDrawnTile: null,
     lastCpuDiscard: discardTile,
-    ...(state.mode === 'four' ? { winFromWind: state.nextSeat } : {}),
+    ...(isTableMode(state) ? { winFromWind: state.nextSeat } : {}),
     // This helper runs before applyCpuTurn consumes the CPU's wall tile.
     wall: state.wall.slice(1),
   };
   try {
-    const result = scoreHand(winState);
+    const result = scoreHand(winState, baseCache);
     return !!result && result.valid && result.handInterpretations.length > 0;
   } catch {
     return false;
@@ -166,7 +228,7 @@ export function canRonWithYaku(state: State, discardTile: Tile): boolean {
 
 // ── Yaku check for tsumo eligibility ──
 
-export function canTsumoWithYaku(state: State, drawTile: Tile): boolean {
+export function canTsumoWithYaku(state: State, drawTile: Tile, baseCache?: BaseScoreCache): boolean {
   const winState: State = {
     ...state,
     phase: 'win' as const,
@@ -174,10 +236,10 @@ export function canTsumoWithYaku(state: State, drawTile: Tile): boolean {
     winTile: drawTile,
     playerDrawnTile: drawTile,
     // This helper runs before applyPlayerDraw consumes the winning tile.
-    wall: state.drawnFromRinshan ? state.wall : state.wall.slice(1),
+    wall: state.drawnFromRinshan || state.drawnFromNuki ? state.wall : state.wall.slice(1),
   };
   try {
-    const result = scoreHand(winState);
+    const result = scoreHand(winState, baseCache);
     return !!result && result.valid && result.handInterpretations.length > 0;
   } catch {
     return false;

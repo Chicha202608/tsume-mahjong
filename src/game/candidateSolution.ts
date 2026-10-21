@@ -1,6 +1,7 @@
+import { isTableMode } from '@/game/seatFlow';
 import type { State } from '@/game/gameState';
 import type { SolverAction, SolverResult } from '@/game/solver';
-import { evaluateCandidateWins, type CandidateReplay } from '@/game/candidateReplay';
+import { evaluateCandidateWins, type CandidateReplay, type CandidateSearchOptions } from '@/game/candidateReplay';
 import { buildSolverReplay } from '@/game/solverReplay';
 import {
   applyPlayerDraw, applyCpuTurn, applyPlayerDiscard,
@@ -12,17 +13,19 @@ import {
  * global maximum: candidateReplay uses one deterministic discard order per
  * target and searches standard four-meld-and-pair, seven-pairs and kokushi waits.
  */
-export function findCandidateSolution(initial: State): SolverResult | null {
+export function findCandidateSolution(initial: State, options: CandidateSearchOptions = {}): SolverResult | null {
   if (initial.playerFuro.length || initial.playerDrawnTile ||
       (initial.phase !== 'playerDraw' && initial.phase !== 'cpuTurn') ||
       initial.playerHand.length !== 13) return null;
 
   const started = Date.now();
-  const candidates = evaluateCandidateWins(initial);
+  const candidates = evaluateCandidateWins(initial, options);
   for (const candidate of candidates
     .filter(c => c.score !== null)
     .sort((a, b) => (b.score! - a.score!) ||
       (a.opportunity.wallIndex - b.opportunity.wallIndex))) {
+    if (options.context?.shouldStop()) break;
+    if (candidate.score! <= (options.minimumScore ?? -1)) continue;
     const line = reconstruct(initial, candidate);
     if (!line) continue;
     const result: SolverResult = {
@@ -65,7 +68,7 @@ function reconstruct(initial: State, candidate: CandidateReplay): SolverAction[]
       if (!tile) return null;
       const next = applyCpuTurn(state);
       if (!next) return null;
-      if (initial.mode === 'four' && !next.ronAvailable) return null;
+      if (isTableMode(initial) && !next.ronAvailable) return null;
       line.push({ type: 'cpu-turn' });
       line.push({ type: 'ron', tile, riichi: candidate.riichi,
         lastMomentRiichi: candidate.riichi && !initial.isRiichi,
