@@ -1,9 +1,11 @@
+import { isTableMode } from '@/game/seatFlow';
 import type { State } from '@/game/gameState';
 import type { SolverAction, SolverResult } from '@/game/solver';
 import {
   applyPlayerDraw, applyCpuTurn, applyPlayerDiscard, applyPassTsumo,
   applyPassNaki, applyCallRon, applyDeclareTsumo, applyDeclareKan,
   applyCallNaki, applyPlayerNakiDiscard,
+  applyNuki,
 } from '@/game/transitions';
 
 export interface ReplayFrame {
@@ -21,6 +23,7 @@ export function buildSolverReplay(initial: State, result: SolverResult): ReplayF
     switch (action.type) {
       case 'draw': next = applyPlayerDraw(state); break;
       case 'cpu-turn': next = applyCpuTurn(state); break;
+      case 'nuki': next = applyNuki(state, action.tile); break;
       case 'ankan':
       case 'kakan': next = applyDeclareKan(state, action.option); break;
       case 'call-naki': next = action.option.type === 'daiminkan'
@@ -36,7 +39,7 @@ export function buildSolverReplay(initial: State, result: SolverResult): ReplayF
       case 'pass-tsumo': next = applyPassTsumo(state); break;
       case 'pass-naki': next = applyPassNaki(state); break;
       case 'ron':
-        next = applyCallRon(state) ?? (state.mode === 'four' ? null : (
+        next = applyCallRon(state) ?? (isTableMode(state) ? null : (
           { ...state, phase: 'win', winType: 'ron',
             winTile: action.tile, lastCpuDiscard: action.tile, ronAvailable: false }
         ));

@@ -28,6 +28,7 @@ export type SolverAction =
   | { type: 'call-naki'; option: NakiOption }
   | { type: 'ankan'; option: NakiOption }
   | { type: 'kakan'; option: NakiOption }
+  | { type: 'nuki'; tile: Tile }
   | { type: 'pass-tsumo' }
   | { type: 'pass-naki' }
   | { type: 'tsumo'; riichi: boolean; lastMomentRiichi: boolean; score: number }

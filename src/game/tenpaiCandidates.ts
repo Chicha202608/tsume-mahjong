@@ -1,3 +1,4 @@
+import { isTableMode } from '@/game/seatFlow';
 import type { Tile, Wind } from '@/types';
 import { isPlayerWallIndex, wallSeatAt } from '@/game/seatFlow';
 import type { State } from '@/game/gameState';
@@ -87,6 +88,7 @@ export function enumerateTenpaiCandidates(state: State, options: {
   // Build complete melds and partial melds directly, never choose arbitrary
   // 13-subsets of the entire tile pool.
   const emit = (knownWaits?: number[]) => {
+    if (options.shouldStop?.()) return;
     const key = counts.join(',');
     const existing = found.get(key);
     if (existing && knownWaits) {
@@ -112,6 +114,7 @@ export function enumerateTenpaiCandidates(state: State, options: {
     }
     if (!meets()) return;
     const waits = (knownWaits ?? waitsFor(counts, numFuro)).filter(i =>
+      !(state.mode === 'three' && i >= 1 && i <= 7) &&
       counts[i] + state.playerFuro.flatMap(f => f.tiles).filter(t => indexOf(t) === i).length < 4);
     if (!waits.length) return;
     const candidate = { counts: [...counts], earliestPlayerDraw: earliest, waits };
@@ -133,8 +136,9 @@ export function enumerateTenpaiCandidates(state: State, options: {
       melds.push([i, i+1, i+2]);
   }
   const buildMelds = (n: number, start: number, next: () => void): void => {
+    if (options.shouldStop?.()) return;
     if (!n) { next(); return; }
-    for (let m = start; m < melds.length; m++) {
+    for (let m = start; m < melds.length && !options.shouldStop?.(); m++) {
       select(melds[m], () => buildMelds(n-1, m, next));
     }
   };
@@ -160,6 +164,7 @@ export function enumerateTenpaiCandidates(state: State, options: {
   // structure directly avoids arbitrary 13-subsets of the available pool.
   const pairFaces = available.flatMap((n, i) => n >= 2 ? [i] : []);
   const buildPairs = (remaining: number, start: number): void => {
+    if (options.shouldStop?.()) return;
     if (remaining === 0) {
       for (let i = 0; i < 34; i++) {
         if (available[i] === 0 || counts[i] !== 0) continue;
@@ -208,23 +213,26 @@ export interface CandidateWinOpportunity {
 export function findCandidateWinOpportunities(
   state: State,
   candidates: TenpaiCandidate[],
+  shouldStop?: () => boolean,
 ): CandidateWinOpportunity[] {
   if (state.playerFuro.length || !['playerDraw', 'cpuTurn'].includes(state.phase)) return [];
   const held = Array<number>(34).fill(0);
   for (const tile of state.playerHand) held[indexOf(tile)]++;
   const opportunities: CandidateWinOpportunity[] = [];
   for (let wallIndex = 0; wallIndex < state.wall.length; wallIndex++) {
+    if (shouldStop?.()) break;
     const ownDraw = isPlayerWallIndex(state, wallIndex);
     // At this point, held contains the starting hand and all PRECEDING
     // own draws, not the current winning tile.
     const winFace = indexOf(state.wall[wallIndex]);
     for (const candidate of candidates) {
+      if (shouldStop?.()) break;
       if (!candidate.waits.includes(winFace)) continue;
       if (!candidate.counts.every((n, i) => held[i] >= n)) continue;
       opportunities.push({
         candidate, type: ownDraw ? 'tsumo' : 'ron', wallIndex,
         winningFace: winFace,
-        ...(state.mode === 'four' && !ownDraw ? { sourceWind: wallSeatAt(state, wallIndex) } : {}),
+        ...(isTableMode(state) && !ownDraw ? { sourceWind: wallSeatAt(state, wallIndex) } : {}),
       });
     }
     if (ownDraw) held[winFace]++;

@@ -3,6 +3,26 @@ import { makeInitialStateBase, type State } from '@/game/gameState';
 import type { Tile, Furo } from '@/types';
 import { SEATS, seatAfter } from '@/game/seatFlow';
 
+/** A real 108-tile deal: held north -> drawn north -> replacement tsumo. */
+export function makeThreeNukiTestState(): State {
+  const deck = createDeck('three');
+  const take = (suit: Tile['suit'], value: number) => {
+    const index = deck.findIndex(t => t.suit === suit && t.value === value && !t.isRed);
+    if (index < 0) throw new Error('Missing three-player fixture tile');
+    return deck.splice(index, 1)[0];
+  };
+  const hand = sortHand([...Array.from({length:9}, (_, i) => take('pin', i+1)),
+    take('sou',2),take('sou',3),take('sou',5),take('wind',4)]);
+  const first = take('sou',5);
+  const replacementWin = take('sou',1);
+  const replacementNorth = take('wind',4);
+  const wanpai = deck.splice(0,14);
+  const opponents = (['south','west'] as const).map(wind => ({ wind, hand: sortHand(deck.splice(0,13)), discards: [] as Tile[] }));
+  const wall = [first, ...shuffle(deck), replacementWin, replacementNorth];
+  return { ...makeInitialStateBase(hand, opponents[0].hand, wall, wanpai, 'east', 'south'),
+    mode: 'three', opponents, nextSeat: 'east', phase: 'playerDraw', playerNuki: [], roundWind: 'east' };
+}
+
 /** Keep debug scenarios usable in either mode without duplicating tiles. */
 export function asFourPlayerTestState(state: State): State {
   const used = new Set([...state.playerHand, ...state.cpuHand, ...state.wall, ...state.wanpai,

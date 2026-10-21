@@ -1,3 +1,4 @@
+import { isTableMode } from '@/game/seatFlow';
 import type { State } from '@/game/gameState';
 import { isPlayerWallIndex } from '@/game/seatFlow';
 import { Tile, Phase } from '@/types';
@@ -19,7 +20,7 @@ interface Props {
 }
 
 export default function WallModal({ state, wall, fullWall, wallDrawnCount, doraCount, wanpai, phase, turnCount,onClose }: Props) {
-  const supplementCount = Math.max(doraCount - 1, 0);
+  const supplementCount = Math.max(doraCount - 1, 0) + (state?.playerNuki?.length ?? 0);
   const MAX_DRAWS = 18;
   
   const nextDrawIsPlayer = phase === 'playerDraw' || phase === 'naki';
@@ -34,7 +35,7 @@ export default function WallModal({ state, wall, fullWall, wallDrawnCount, doraC
     if (idx >= fullWall.length - supplementCount) return false;
   
     const offset = idx - wallDrawnCount;
-    if (state?.mode === 'four') return isPlayerWallIndex(state, offset);
+    if (state && isTableMode(state)) return isPlayerWallIndex(state, offset);
     
     // プレイヤーがツモる位置だけを対象にする
     const isPlayerDrawPosition = nextDrawIsPlayer
@@ -75,7 +76,7 @@ export default function WallModal({ state, wall, fullWall, wallDrawnCount, doraC
                 const dimmed = isDrawn || isSupplement;
                 const isPlayerDraw = isPlayerFutureDraw(idx);
                 return (
-                  <div key={tile.id} className="flex flex-col items-center gap-1">
+                  <div key={tile.id} data-wall-tile={tile.id} data-highlighted={isPlayerDraw} className="flex flex-col items-center gap-1">
                     <span className={`text-[10px] ${dimmed ? 'text-gray-600' : 'text-green-600'}`}>
                       {idx + 1}
                     </span>

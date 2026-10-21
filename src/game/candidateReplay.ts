@@ -1,9 +1,17 @@
 import type { Tile } from '@/types';
 import type { State } from '@/game/gameState';
 import { sortHand } from '@/gameLogic';
-import { scoreHand } from '@/game/scoreAdapter';
+import { analyzeSearchHand, type SearchContext } from '@/game/searchContext';
+import { threePlayerScoreUpperBound } from '@/game/scoreUpperBound';
 import { drawStride, playerDrawOffset } from '@/game/seatFlow';
 import { enumerateTenpaiCandidates, findCandidateWinOpportunities, type CandidateWinOpportunity } from '@/game/tenpaiCandidates';
+
+export interface CandidateSearchStats { targets: number; prunedTargets: number; replayedOpportunities: number }
+export interface CandidateSearchOptions {
+  context?: SearchContext;
+  minimumScore?: number;
+  stats?: CandidateSearchStats;
+}
 
 function face(tile: Tile): number {
   const base = tile.suit === 'man' ? 0 : tile.suit === 'pin' ? 9 :
@@ -42,6 +50,7 @@ export interface CandidateReplay {
 export function replayCandidateOpportunity(
   initial: State,
   opportunity: CandidateWinOpportunity,
+  context?: SearchContext,
 ): CandidateReplay | null {
   if (!['playerDraw', 'cpuTurn'].includes(initial.phase) || initial.playerFuro.length ||
       initial.playerDrawnTile || initial.playerHand.length !== 13) return null;
@@ -53,6 +62,7 @@ export function replayCandidateOpportunity(
   // The chronological retention rule below preserves already-held red copies.
   const discards: Tile[] = [];
   for (let i = firstOwnIndex; i < opportunity.wallIndex; i += stride) {
+    if (context?.shouldStop()) return null;
     const drawn = initial.wall[i];
     const available = [...hand, drawn];
     const counts = Array<number>(34).fill(0);
@@ -92,8 +102,8 @@ export function replayCandidateOpportunity(
   };
   const evaluate = (riichi: boolean): number | null => {
     try {
-      const result = scoreHand({ ...winState, isRiichi: riichi,
-        isIppatsu: riichi && (!initial.isRiichi || initial.isIppatsu) });
+      const result = analyzeSearchHand({ ...winState, isRiichi: riichi,
+        isIppatsu: riichi && (!initial.isRiichi || initial.isIppatsu) }, context);
       return result?.valid && result.handInterpretations.length
         ? Math.max(...result.handInterpretations.map(h => h.totalWinnings))
         : null;
@@ -124,10 +134,7 @@ export function replayCandidateOpportunity(
   const priorIsTenpai = previousHand !== null && priorCounts.every((n, i) => n === target[i]);
   // Last-discard riichi is legal only when an ensuing player draw remains;
   // the CPU's last discard still exists in player-first order.
-  const previousOwnTurn = lastDiscardWallIndex >= firstOwnIndex
-    ? (lastDiscardWallIndex - firstOwnIndex) / stride + 1 : 0;
   const canLateRiichi = !initial.isRiichi && priorIsTenpai &&
-    previousOwnTurn < 18 &&
     // A riichi declaration needs at least one subsequent own draw available.
     // This excludes the player-first 18th CPU ron but permits CPU-first 18th ron.
     lastDiscardWallIndex + stride < initial.wall.length;
@@ -137,10 +144,37 @@ export function replayCandidateOpportunity(
     score: useRiichi ? withRiichi : without, riichi: useRiichi || initial.isRiichi };
 }
 
-export function evaluateCandidateWins(initial: State): CandidateReplay[] {
-  const candidates = enumerateTenpaiCandidates(initial);
-  return findCandidateWinOpportunities(initial, candidates)
-    .map(opportunity => replayCandidateOpportunity(initial, opportunity))
-    .filter((replay): replay is CandidateReplay => replay !== null)
-    .sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
+export function evaluateCandidateWins(initial: State, options: CandidateSearchOptions = {}): CandidateReplay[] {
+  const { context, minimumScore = -1, stats } = options;
+  const candidates = enumerateTenpaiCandidates(initial, { shouldStop: context?.shouldStop });
+  if (stats) stats.targets += candidates.length;
+  const pool = [...initial.playerHand, ...initial.wall.filter((_, i) =>
+    i % drawStride(initial) === playerDrawOffset(initial))];
+  const opportunities = findCandidateWinOpportunities(initial, candidates, context?.shouldStop);
+  const uses = new Map<CandidateWinOpportunity['candidate'], number>();
+  for (const opportunity of opportunities) uses.set(opportunity.candidate, (uses.get(opportunity.candidate) ?? 0) + 1);
+  const bounds = new Map<CandidateWinOpportunity['candidate'], number>();
+  const retained = new Set<CandidateWinOpportunity['candidate']>();
+  const replays: CandidateReplay[] = [];
+  for (const opportunity of opportunities) {
+    if (context?.shouldStop()) break;
+    const target = opportunity.candidate;
+    if (minimumScore >= 0) {
+      if (opportunity.type === 'ron' && isTargetFuriten(initial,target.counts,target.waits,opportunity.wallIndex)) continue;
+      // Matching the target to actual future winning tiles is cheaper than
+      // scoring a synthetic upper bound. Only amortize that bound when it can
+      // eliminate several chronological replays of the same target.
+      if (initial.mode === 'three' && (uses.get(target) ?? 0) >= 4) {
+        if (!bounds.has(target)) bounds.set(target, threePlayerScoreUpperBound(initial,target,pool,initial.wall,context));
+        if (bounds.get(target)! <= minimumScore) continue;
+      }
+    }
+    if (stats) stats.replayedOpportunities++;
+    const replay = replayCandidateOpportunity(initial, opportunity, context);
+    if (replay && (minimumScore < 0 || (replay.score ?? -1) > minimumScore)) {
+      replays.push(replay); retained.add(target);
+    }
+  }
+  if (stats) stats.prunedTargets += candidates.length - retained.size;
+  return replays.sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
 }

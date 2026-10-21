@@ -1,3 +1,4 @@
+import { isTableMode } from '@/game/seatFlow';
 import { Tile, Phase, Furo } from '@/types';
 import {
   sortHand,
@@ -11,22 +12,23 @@ import {
   NakiOption,
 } from '@/gameLogic';
 import { State } from '@/game/gameState';
-import { canRonWithYaku, canTsumoWithYaku } from '@/game/scoreAdapter';
-import { seatAfter, afterCpuPhase, hasFuturePlayerDraw } from '@/game/seatFlow';
+import { canRonWithYaku, canTsumoWithYaku, type BaseScoreCache } from '@/game/scoreAdapter';
+import { nextSeat, afterCpuPhase, hasFuturePlayerDraw } from '@/game/seatFlow';
 
 export const MAX_DRAWS = 18;
 
-export function applyPlayerDraw(cur: State): State | null {
+export function applyPlayerDraw(cur: State, baseCache?: BaseScoreCache): State | null {
   if (cur.phase !== 'playerDraw' || cur.wall.length === 0) return null;
   const [drawn, ...rest] = cur.wall;
   if (!drawn) return null;
   const won = checkWinConcealed([...cur.playerHand, drawn], cur.playerFuro.length);
-  const tsumoAvailable = won && canTsumoWithYaku({ ...cur, drawnFromRinshan: false }, drawn);
+  const tsumoAvailable = won && canTsumoWithYaku({ ...cur, drawnFromRinshan: false, drawnFromNuki: false }, drawn, baseCache);
   return {
     ...cur,
     playerDrawnTile: drawn,
-    ...(cur.mode === 'four' ? { nextSeat: seatAfter(cur.playerWind), temporaryFuriten: false } : {}),
+    ...(isTableMode(cur) ? { nextSeat: nextSeat(cur, cur.playerWind), temporaryFuriten: false } : {}),
     drawnFromRinshan: false,
+    drawnFromNuki: false,
     wall: rest,
     wallDrawnCount: cur.wallDrawnCount + 1,
     phase: 'playerDiscard',
@@ -52,11 +54,11 @@ export function applyPlayerDiscard(cur: State, tile: Tile): State | null {
   return { ...cur, playerHand: newHand, playerDrawnTile: null, playerDiscards: newDiscards, phase: 'cpuTurn', turnCount: newTurnCount, isIppatsu: false };
 }
 
-export function applyCpuTurn(cur: State): State | null {
+export function applyCpuTurn(cur: State, baseCache?: BaseScoreCache): State | null {
   if (cur.phase !== 'cpuTurn' || cur.wall.length === 0) return null;
-  const discardWind = cur.mode === 'four' ? cur.nextSeat! : cur.cpuWind;
-  if (cur.mode === 'four' && discardWind === cur.playerWind) return null;
-  const afterSeat = cur.mode === 'four' ? seatAfter(discardWind) : undefined;
+  const discardWind = isTableMode(cur) ? cur.nextSeat! : cur.cpuWind;
+  if (isTableMode(cur) && discardWind === cur.playerWind) return null;
+  const afterSeat = isTableMode(cur) ? nextSeat(cur, discardWind) : undefined;
   const [drawn, ...rest] = cur.wall;
   const cpuDiscard = drawn;
   const cpuAfterDiscard = cur.cpuHand;
@@ -64,12 +66,12 @@ export function applyCpuTurn(cur: State): State | null {
 
   const rawRon = canRonConcealed(cur.playerHand, cpuDiscard, cur.playerFuro.length);
   const furiten = isFuriten(getWaits(cur.playerHand, cur.playerFuro), cur.playerDiscards);
-  const hasYaku = rawRon && canRonWithYaku(cur, cpuDiscard);
+  const hasYaku = rawRon && canRonWithYaku(cur, cpuDiscard, baseCache);
   const ron = hasYaku && !furiten && !cur.missedRonAfterRiichi && !cur.temporaryFuriten;
   const naki = cur.isRiichi ? [] : findNakiOptions(cur.playerHand, cpuDiscard)
-    .filter(option => (option.type !== 'chii' || cur.mode !== 'four' || discardWind === seatAfter(cur.playerWind, 3)) &&
+    .filter(option => (option.type !== 'chii' || (cur.mode !== 'three' && (!isTableMode(cur) || discardWind === nextSeat(cur, cur.playerWind, -1)))) &&
       (option.type !== 'daiminkan' || (rest.length > 0 && cur.doraCount < 5 && cur.wanpai.length >= 14)));
-  const routing = cur.mode === 'four' ? {
+  const routing = isTableMode(cur) ? {
     nextSeat: afterSeat, lastDiscardWind: discardWind, lastCpuDiscard: cpuDiscard,
     opponents: cur.opponents?.map(p => p.wind === discardWind ? { ...p, discards: [...p.discards, cpuDiscard] } : p),
   } : {};
@@ -84,7 +86,7 @@ export function applyCpuTurn(cur: State): State | null {
     return { ...cur, ...routing, cpuHand: cpuAfterDiscard, wall: rest, wallDrawnCount: cur.wallDrawnCount + 1, cpuDiscards: newCpuDiscards, phase: 'exhausted' };
   }
   return { ...cur, ...routing, cpuHand: cpuAfterDiscard, wall: rest, wallDrawnCount: cur.wallDrawnCount + 1, cpuDiscards: newCpuDiscards,
-    phase: cur.mode === 'four' && afterSeat !== cur.playerWind ? 'cpuTurn' : 'playerDraw' };
+    phase: isTableMode(cur) && afterSeat !== cur.playerWind ? 'cpuTurn' : 'playerDraw' };
 }
 
 export function applyCallRon(cur: State): State | null {
@@ -95,6 +97,7 @@ export function applyCallRon(cur: State): State | null {
 
 export function applyCallNaki(cur: State, option: NakiOption): State | null {
   if (cur.phase !== 'naki' || !cur.lastCpuDiscard) return null;
+  if (cur.mode === 'three' && option.type === 'chii') return null;
   const tilesToRemove = new Set(option.tiles.map(t => t.id));
   const newHand = sortHand(cur.playerHand.filter(t => !tilesToRemove.has(t.id)));
   const newFuro: Furo = {
@@ -105,7 +108,7 @@ export function applyCallNaki(cur: State, option: NakiOption): State | null {
   };
   return {
     ...cur, playerHand: newHand, playerFuro: [...cur.playerFuro, newFuro],
-    ...(cur.mode === 'four' ? { nextSeat: seatAfter(cur.playerWind) } : {}),
+    ...(isTableMode(cur) ? { nextSeat: nextSeat(cur, cur.playerWind) } : {}),
     phase: 'playerNakiDiscard' as Phase, nakiOptions: [], ronAvailable: false, isIppatsu: false,
   };
 }
@@ -123,7 +126,7 @@ export function applyPlayerNakiDiscard(cur: State, tile: Tile): State | null {
 export function applyPassNaki(cur: State): State | null {
   if (cur.phase !== 'naki') return null;
   const missed = cur.isRiichi && cur.ronAvailable;
-  const temporary = cur.mode === 'four' ? { temporaryFuriten: !!cur.temporaryFuriten || cur.ronAvailable } : {};
+  const temporary = isTableMode(cur) ? { temporaryFuriten: !!cur.temporaryFuriten || cur.ronAvailable } : {};
   if (cur.wall.length === 0) {
     return { ...cur, ...temporary, phase: 'exhausted', nakiOptions: [], ronAvailable: false, missedRonAfterRiichi: cur.missedRonAfterRiichi || missed };
   }
@@ -140,7 +143,28 @@ export function applyDeclareTsumo(cur: State): State | null {
   return { ...cur, phase: 'win' as Phase, winType: 'tsumo' as const, tsumoAvailable: false, winTile: cur.playerDrawnTile, isIppatsu: cur.isIppatsu };
 }
 
-export function applyDeclareKan(cur: State, option: NakiOption): State | null {
+export function findNukiOptions(cur: State): Tile[] {
+  if (cur.mode !== 'three' || cur.phase !== 'playerDiscard' || !cur.playerDrawnTile || !cur.wall.length) return [];
+  const tiles = cur.isRiichi ? [cur.playerDrawnTile] : [...cur.playerHand, cur.playerDrawnTile];
+  return tiles.filter(t => t.suit === 'wind' && t.value === 4);
+}
+
+/** North replacement uses the live wall's tail; it neither reveals dora nor consumes rinshan. */
+export function applyNuki(cur: State, tile: Tile, baseCache?: BaseScoreCache): State | null {
+  if (!findNukiOptions(cur).some(t => t.id === tile.id)) return null;
+  const hand = sortHand([...cur.playerHand, cur.playerDrawnTile!].filter(t => t.id !== tile.id));
+  const drawn = cur.wall[cur.wall.length - 1];
+  const next: State = {
+    ...cur, playerHand: hand, playerDrawnTile: drawn,
+    playerNuki: [...(cur.playerNuki ?? []), tile], wall: cur.wall.slice(0, -1),
+    drawnFromRinshan: false, drawnFromNuki: true, isIppatsu: false,
+    temporaryFuriten: false, tsumoAvailable: false,
+  };
+  next.tsumoAvailable = checkWinConcealed([...hand, drawn], next.playerFuro.length) && canTsumoWithYaku(next, drawn, baseCache);
+  return next;
+}
+
+export function applyDeclareKan(cur: State, option: NakiOption, baseCache?: BaseScoreCache): State | null {
   if (!cur.wall.length || cur.doraCount >= 5 || cur.wanpai.length < 14) return null;
   if (cur.isRiichi) {
     if (cur.phase !== 'playerDiscard' || option.type !== 'ankan') return null;
@@ -222,6 +246,7 @@ export function applyDeclareKan(cur: State, option: NakiOption): State | null {
   const tsumoAvailable = won && canTsumoWithYaku(
     { ...cur, playerHand: newHand, playerFuro: newFuroList, playerDrawnTile: rinshan, wanpai: newWanpai, doraCount: newDoraCount, wall: newWall, drawnFromRinshan: true, isIppatsu: false },
     rinshan,
+    baseCache,
   );
 
   return {
@@ -229,9 +254,10 @@ export function applyDeclareKan(cur: State, option: NakiOption): State | null {
     playerHand: newHand,
     playerFuro: newFuroList,
     playerDrawnTile: rinshan,
-    ...(cur.mode === 'four' && isDaiminkan ? { nextSeat: seatAfter(cur.playerWind) } : {}),
+    ...(isTableMode(cur) && isDaiminkan ? { nextSeat: nextSeat(cur, cur.playerWind) } : {}),
     drawnFromRinshan: true,
-    ...(cur.mode === 'four' ? { temporaryFuriten: false } : {}),
+    drawnFromNuki: false,
+    ...(isTableMode(cur) ? { temporaryFuriten: false } : {}),
     wall: newWall,
     wanpai: newWanpai,
     doraCount: newDoraCount,
@@ -246,7 +272,7 @@ export function applyDeclareKan(cur: State, option: NakiOption): State | null {
 
 export function applyDeclareRiichi(cur: State): State | null {
   if (cur.phase !== 'playerDiscard') return null;
-  if (cur.mode === 'four' && !hasFuturePlayerDraw(cur)) return null;
+  if (isTableMode(cur) && !hasFuturePlayerDraw(cur)) return null;
   return { ...cur, phase: 'riichiSelect' as Phase };
 }
 
