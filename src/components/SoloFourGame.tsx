@@ -32,6 +32,7 @@ export default function SoloFourGame({ onHome, onMode }: { onHome: () => void; o
   }));
   const [showResult, setShowResult] = useState(true);
   const [showWall, setShowWall] = useState(false);
+  const [revealTiles, setRevealTiles] = useState(true);
   const [scale, setScale] = useState(1);
   const lastActionAt = useRef(-Infinity);
   const state = history.entries[history.index].state;
@@ -83,11 +84,20 @@ export default function SoloFourGame({ onHome, onMode }: { onHome: () => void; o
           onRestart={restart} modeDetails={<div className="text-center text-xs leading-6 text-emerald-200">
             <p>{SEAT_NAMES[state.roundWind]}場・全席手動操作</p>
             <p className="text-amber-200">{SEAT_NAMES[state.view]}家の視点</p>
-            <p>手牌・暗槓は全牌公開</p>
+            <div className="mt-2 flex flex-col gap-1">
+              <span>牌の表示</span>
+              <button type="button" aria-label="牌の公開" aria-pressed={revealTiles}
+                onClick={() => setRevealTiles(current => !current)}
+                className={`rounded-lg border px-2 py-2 text-sm font-bold ${revealTiles ? 'border-amber-500 bg-amber-500 text-black hover:bg-amber-400' : 'border-emerald-700 bg-emerald-950 text-white hover:bg-emerald-800'}`}>
+                {revealTiles ? '公開' : '非公開'}
+              </button>
+            </div>
+            <p className="mt-1 leading-4">他家の手牌・未公開の<br />カンドラ表示牌</p>
+            <p>暗槓は全牌公開</p>
           </div>} />
         <div className="flex flex-col flex-1 min-h-0 gap-0 overflow-hidden mx-[168px] my-3 rounded-xl border border-emerald-800 bg-[#073b2d]">
           <div className="flex-1 min-h-0">
-            <FourPlayerTable state={perspective} embedded publicSeats={state.seats} activeWind={state.turn} />
+            <FourPlayerTable state={perspective} embedded publicSeats={state.seats} activeWind={state.turn} revealTiles={revealTiles} />
           </div>
           <div className="h-14 shrink-0 flex items-center justify-center gap-3">
             {state.phase === 'response' && response && <NakiRonButtons largeChoices phase="naki" lastCpuDiscard={state.pending!.tile}

@@ -26,8 +26,8 @@ const positions = [
 ];
 
 /** Pure table view shared by live play and AI replay. */
-export default function FourPlayerTable({ state, embedded = false, compact = false, publicSeats, activeWind }: {
-  state: State; embedded?: boolean; compact?: boolean; publicSeats?: Record<Wind, PublicSeat>; activeWind?: Wind;
+export default function FourPlayerTable({ state, embedded = false, compact = false, publicSeats, activeWind, revealTiles = true }: {
+  state: State; embedded?: boolean; compact?: boolean; publicSeats?: Record<Wind, PublicSeat>; activeWind?: Wind; revealTiles?: boolean;
 }) {
   const { playerWind, playerDiscards, opponents = [], wanpai, doraCount } = state;
   const allFuro = publicSeats ? Object.values(publicSeats).flatMap(seat => seat.furo) : state.playerFuro;
@@ -49,11 +49,11 @@ export default function FourPlayerTable({ state, embedded = false, compact = fal
       const opponent = opponents.find(p => p.wind === wind);
       const publicSeat = publicSeats?.[wind];
       const position = handPositions[positionIndex(relative)]!;
-      return <div key={wind} data-table-hand={wind} data-relative-seat={relative} aria-label={`${windKanji[wind]}家の${publicSeat ? '公開手牌' : '伏せ牌'}`} className="absolute flex items-end gap-0.5"
+      return <div key={wind} data-table-hand={wind} data-relative-seat={relative} aria-label={`${windKanji[wind]}家の${publicSeat && revealTiles ? '公開手牌' : '伏せ牌'}`} className="absolute flex items-end gap-0.5"
         style={{ left: position.left, top: position.top, transform: `translate(-50%, -50%) rotate(${position.angle}deg)` }}>
         {publicSeat ? <>
-          {publicSeat.hand.map(tile => <TileCard key={tile.id} tile={tile} size="xs" dora={isDora(tile)} className="shrink-0" />)}
-          {publicSeat.drawn && <TileCard tile={publicSeat.drawn} size="xs" dora={isDora(publicSeat.drawn)} className="ml-2 shrink-0" />}
+          {publicSeat.hand.map(tile => <TileCard key={tile.id} tile={tile} size="xs" faceDown={!revealTiles} dora={isDora(tile)} className="shrink-0" />)}
+          {publicSeat.drawn && <TileCard tile={publicSeat.drawn} size="xs" faceDown={!revealTiles} dora={isDora(publicSeat.drawn)} className="ml-2 shrink-0" />}
           {publicSeat.furo.length > 0 && <div className="ml-4"><TableMelds furo={publicSeat.furo} wind={wind} isDora={isDora} /></div>}
         </> : Array.from({ length: 13 }, (_, i) => <TileCard key={i} tile={opponent?.hand[i] ?? { id: `back-${i}`, suit: 'man', value: 1 }}
           size="xs" faceDown className="!w-6 shrink-0" />)}
@@ -106,7 +106,7 @@ export default function FourPlayerTable({ state, embedded = false, compact = fal
       </>}
       <div aria-label="ドラ表示牌" className="flex justify-center gap-0.5 mt-1">
         {Array.from({ length: 5 }, (_, i) => <TileCard key={i} tile={wanpai[4 + i] ?? { id: `indicator-${i}`, suit: 'man', value: 1 } as Tile}
-          size="xs" faceDown={!publicSeats && i >= doraCount} className={`!w-8 ${publicSeats && i >= doraCount ? 'opacity-40' : ''}`} />)}
+          size="xs" faceDown={(!publicSeats || !revealTiles) && i >= doraCount} className={`!w-8 ${publicSeats && revealTiles && i >= doraCount ? 'opacity-40' : ''}`} />)}
       </div>
       </div>
     </div>
