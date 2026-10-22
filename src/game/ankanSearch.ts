@@ -7,6 +7,7 @@ import { enumerateTenpaiCandidates, type TenpaiCandidate } from '@/game/tenpaiCa
 import { buildHandInput } from '@/game/scoreAdapter';
 import { analyzeSearchHand, type SearchContext } from '@/game/searchContext';
 import { isPlayerWallIndex, playerDrawOffset } from '@/game/seatFlow';
+import { searchScoreCeiling } from '@/game/searchScoreCeiling';
 import {
   applyPlayerDraw, applyCpuTurn, applyPlayerDiscard, applyDeclareKan,
   applyPassNaki, applyPassTsumo, applyDeclareTsumo, applyCallRon,
@@ -39,6 +40,8 @@ export function searchWithAnkan(
   const started = Date.now();
   const deadline = Math.min(started + maxDurationMs, context?.deadline ?? Infinity);
   let best = baseline;
+  const ceiling = searchScoreCeiling(initial);
+  const stopped = () => !!context?.shouldStop() || (best?.bestScore ?? -1) >= ceiling;
   let bestDraws = Infinity;
   let visited = 0;
   let cacheHits = 0;
@@ -80,7 +83,7 @@ export function searchWithAnkan(
     let state = initial;
     const line: SolverAction[] = [];
     const completed = new Set<number>();
-    for (let step = 0; step < 320 && Date.now() < stageDeadline; step++) {
+    for (let step = 0; step < 320 && Date.now() < stageDeadline && !stopped(); step++) {
       visited++;
       if (state.phase === 'exhausted') {
         if (completed.size === kanFaces.length && (best?.bestScore ?? -1) < TENPAI_DRAW_POINTS && drawSettlement(state)?.tenpai) {
@@ -163,7 +166,7 @@ export function searchWithAnkan(
     }
   };
 
-  for (let kanCount = 1; kanCount <= maxKans && Date.now() < deadline; kanCount++) {
+  for (let kanCount = 1; kanCount <= maxKans && Date.now() < deadline && !stopped(); kanCount++) {
     // Reserve half of the total time for two kans. Unused time carries over.
     stageDeadline = maxKans === 2 && kanCount === 1 ? Math.min(deadline, started + maxDurationMs / 2) : deadline;
     const liveWall = initial.wall.slice(0, -kanCount);
@@ -189,7 +192,7 @@ export function searchWithAnkan(
       : faces.flatMap((f, i) => faces.slice(i + 1).map(g => [f, g]));
     sets.sort((a, b) => a.reduce((n, f) => n + readyAt(f), 0) - b.reduce((n, f) => n + readyAt(f), 0));
     for (const kanFaces of sets) {
-      if (Date.now() >= stageDeadline) break;
+      if (Date.now() >= stageDeadline || stopped()) break;
       // At least the first quad must be obtainable without any rinshan draw.
       if (!kanFaces.some(f => beforeKanCounts[f] >= 4)) continue;
       combinations++;
@@ -200,9 +203,9 @@ export function searchWithAnkan(
           return { type: 'ankan', tiles: quad, calledTile: quad[0] };
         }) };
       const winningFaces = new Set([...liveWall, ...rinshan].map(face));
-      const targets = enumerateTenpaiCandidates(targetState, { shouldStop: () => Date.now() >= stageDeadline });
+      const targets = enumerateTenpaiCandidates(targetState, { shouldStop: () => Date.now() >= stageDeadline || stopped() });
       for (const target of targets) {
-        if (Date.now() >= stageDeadline) break;
+        if (Date.now() >= stageDeadline || stopped()) break;
         if ((best?.bestScore ?? -1) >= TENPAI_DRAW_POINTS && !target.waits.some(wait => winningFaces.has(wait))) continue;
         run(kanFaces, target, 0);
         if (!initial.isRiichi) for (let nth = 1; nth <= kanCount; nth++) run(kanFaces, target, nth);

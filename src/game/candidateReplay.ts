@@ -3,6 +3,7 @@ import type { State } from '@/game/gameState';
 import { sortHand } from '@/gameLogic';
 import { analyzeSearchHand, type SearchContext } from '@/game/searchContext';
 import { threePlayerScoreUpperBound } from '@/game/scoreUpperBound';
+import { searchScoreCeiling } from '@/game/searchScoreCeiling';
 import { drawStride, playerDrawOffset } from '@/game/seatFlow';
 import { enumerateTenpaiCandidates, findCandidateWinOpportunities, type CandidateWinOpportunity } from '@/game/tenpaiCandidates';
 
@@ -146,6 +147,8 @@ export function replayCandidateOpportunity(
 
 export function evaluateCandidateWins(initial: State, options: CandidateSearchOptions = {}): CandidateReplay[] {
   const { context, minimumScore = -1, stats } = options;
+  const ceiling = searchScoreCeiling(initial);
+  if (minimumScore >= ceiling || context?.shouldStop()) return [];
   const candidates = enumerateTenpaiCandidates(initial, { shouldStop: context?.shouldStop });
   if (stats) stats.targets += candidates.length;
   const pool = [...initial.playerHand, ...initial.wall.filter((_, i) =>

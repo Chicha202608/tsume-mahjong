@@ -6,6 +6,7 @@ import { isPlayerWallIndex, wallSeatAt, nextSeat, isTableMode, drawStride, hasFu
 import { enumerateTenpaiCandidates, type TenpaiCandidate } from '@/game/tenpaiCandidates';
 import { analyzeSearchHand, type SearchContext } from '@/game/searchContext';
 import { threePlayerScoreUpperBound } from '@/game/scoreUpperBound';
+import { searchScoreCeiling } from '@/game/searchScoreCeiling';
 import { applyPlayerDraw, applyCpuTurn, applyPlayerDiscard, applyPlayerNakiDiscard,
   applyCallNaki, applyDeclareKan, applyPassNaki, applyPassTsumo, applyCallRon, applyDeclareTsumo, applyNuki, findNukiOptions } from '@/game/transitions';
 
@@ -105,7 +106,9 @@ export function searchWithOpenCalls(initial: State, baseline: SolverResult | nul
   let lowPhase = initial.mode === 'three';
   // Reserve time for the fallback, but try the cheaper high-score search first.
   let stageDeadline = start + maxDurationMs * (allowLowOpen && initial.mode !== 'three' ? 0.5 : 1);
-  const expired = () => Date.now() >= stageDeadline || !!context?.shouldStop();
+  const ceiling = searchScoreCeiling(initial);
+  const timedOut = () => Date.now() >= stageDeadline || Date.now() >= (context?.deadline ?? Infinity);
+  const expired = () => timedOut() || !!context?.shouldStop() || (best?.bestScore ?? -1) >= ceiling;
   const stats: OpenSearchStats = { callCandidates: 0, targets: 0, prunedTargets: 0,
     replayedLines: 0, elapsedMs: 0, timeLimitReached: false, twoCallCandidates: 0, threeCallCandidates: 0, fourCallCandidates: 0,
     kakanPlans: 0, maxOperations: 0, plansByOperations: Array(initial.mode === 'three' ? 13 : 9).fill(0) };
@@ -380,12 +383,12 @@ export function searchWithOpenCalls(initial: State, baseline: SolverResult | nul
     stats.preparedNukiCount = plan.length;
     if (plan.length && !expired()) evaluatePlan(plan, before, true);
   } else enumeratePlans(0,wallSeatAt(initial,0),isPlayerWallIndex(initial,0),initial.playerHand,[]);
-  if (expired()) stats.timeLimitReached = true;
+  if (timedOut()) stats.timeLimitReached = true;
   if (allowLowOpen && !lowPhase && (best?.bestScore ?? 0) < 8000 * unit) {
     lowPhase = true;
     stageDeadline = start + maxDurationMs;
     enumeratePlans(0,wallSeatAt(initial,0),isPlayerWallIndex(initial,0),initial.playerHand,[]);
-    if (expired()) stats.timeLimitReached = true;
+    if (timedOut()) stats.timeLimitReached = true;
   }
   onProgress?.(best);
   stats.elapsedMs = Date.now() - start;
