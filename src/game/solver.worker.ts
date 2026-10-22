@@ -4,6 +4,7 @@ import type { SolverResult } from '@/game/solver';
 import { searchWithAnkan } from '@/game/ankanSearch';
 import { searchWithNuki, searchWithOpenCalls } from '@/game/openSearch';
 import { createSearchContext } from '@/game/searchContext';
+import { searchScoreCeiling } from '@/game/searchScoreCeiling';
 
 /**
  * In three-player mode, first fix the eager north-extraction schedule and
@@ -36,6 +37,11 @@ self.onmessage = (event: MessageEvent<State>) => {
       elapsedMs: 0,
     },
   };
+  const ceiling = searchScoreCeiling(event.data);
+  const deadlineReached = context.shouldStop;
+  // Later stages require a strictly higher score than their baseline, so they
+  // cannot improve the answer once this conservative payout ceiling is reached.
+  context.shouldStop = () => deadlineReached() || (latest.bestScore ?? -1) >= ceiling;
   const publish = (result: SolverResult | null) => {
     latest = result ?? latest;
     self.postMessage({ result: latest, preliminary: true });

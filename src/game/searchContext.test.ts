@@ -46,17 +46,15 @@ describe('one-deal scoring reuse', () => {
     expect(analyzeSearchHand(initial,context)).toBe(ordinary);
   });
 
-  it('filters retained-north answers below the incumbent while reusing their scores', () => {
+  it('skips retained-north enumeration when the incumbent reaches the payout ceiling', () => {
     const initial = fixture();
     const context = createSearchContext(Infinity);
     const stats = {targets:0,prunedTargets:0,replayedOpportunities:0};
     expect(evaluateCandidateWins(initial,{context,minimumScore:48000,stats})).toHaveLength(0);
-    expect(stats.targets).toBeGreaterThan(0);
-    expect(stats.prunedTargets).toBe(stats.targets);
-    const computations = context.stats.scoreComputations;
+    expect(stats.targets).toBe(0);
+    expect(context.stats.scoreComputations).toBe(0);
     evaluateCandidateWins(initial,{context,minimumScore:48000});
-    expect(context.stats.scoreComputations).toBe(computations);
-    expect(context.stats.scoreCacheHits).toBeGreaterThan(0);
+    expect(context.stats.scoreComputations).toBe(0);
   });
 
   it('still reconstructs a stronger kokushi retaining north', () => {
