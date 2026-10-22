@@ -33,6 +33,8 @@ describe('solo mode public information and entry point', () => {
     expect(html).not.toContain('供託');
     expect(html).not.toContain('Back.svg');
     expect(html).not.toContain('伏せ牌');
+    expect(html).toMatch(/<button type="button" aria-label="牌の公開" aria-pressed="true"[^>]*>公開<\/button>/);
+    expect(html).not.toContain('<select');
     expect(html).not.toContain('探索');
     expect(html).not.toContain('AI');
     expect(html).toContain('戻る');
@@ -68,6 +70,61 @@ describe('solo mode public information and entry point', () => {
       furo={[{ type: 'kakan', tiles, calledTile: tiles[0], fromWind: 'west' }]} />);
     expect(kakan.match(/rotate\(90deg\)/g)).toHaveLength(2);
     expect(kakan.match(/alt="一萬"/g)).toHaveLength(4);
+  });
+
+  it.each(SEATS)('hides only the other seats and unrevealed indicators from %s perspective', view => {
+    const state = createSoloState();
+    state.view = view;
+    const render = (revealTiles: boolean) => renderToStaticMarkup(<FourPlayerTable
+      state={soloPerspective(state)} publicSeats={state.seats} activeWind={state.turn} revealTiles={revealTiles} />);
+    const hidden = render(false);
+    const otherSeats = SEATS.filter(wind => wind !== view);
+    const concealedCount = otherSeats.reduce((count, wind) => count + state.seats[wind].hand.length + Number(!!state.seats[wind].drawn), 0);
+    expect(hidden.match(/alt="伏せ牌"/g)).toHaveLength(concealedCount + 4);
+    expect(hidden).not.toContain('公開手牌');
+    expect(hidden).not.toContain(`data-table-hand="${view}"`);
+    for (const wind of otherSeats) {
+      expect(hidden).toContain(`data-table-hand="${wind}"`);
+    }
+    expect(hidden).toContain('w-[215px] h-[178px]');
+    expect(hidden).not.toContain('opacity-40');
+    // Revealing again restores the same table without modifying the deal.
+    const publicAgain = render(true);
+    expect(publicAgain).not.toContain('Back.svg');
+    expect(publicAgain.match(/opacity-40/g)).toHaveLength(4);
+    const rivers = (html: string) => html.slice(html.indexOf('data-river-wind='), html.indexOf('aria-label="ドラ表示牌"'));
+    expect(rivers(hidden)).toBe(rivers(publicAgain));
+  });
+
+  it('keeps melds visible, preserves the drawn-tile gap, and follows indicator counts across kan and rewind', () => {
+    const before = createSoloState(createDeck());
+    const quad = before.seats.east.hand.filter(tile => tile.suit === 'man' && tile.value === 1);
+    const after = applySoloAction(before, { type: 'kan', option: { type: 'ankan', tiles: quad, calledTile: quad[0] } })!;
+    expect(after.doraCount).toBe(2);
+    for (const state of [before, after, before]) {
+      const html = renderToStaticMarkup(<FourPlayerTable state={soloPerspective(state, 'south')}
+        publicSeats={state.seats} revealTiles={false} />);
+      const indicators = html.slice(html.indexOf('aria-label="ドラ表示牌"'));
+      expect(indicators.match(/alt="伏せ牌"/g)).toHaveLength(5 - state.doraCount);
+      expect(indicators.match(/<img /g)).toHaveLength(5);
+      expect(html).toMatch(/title="伏せ牌"[^>]*><img[^>]*alt="伏せ牌"/);
+      expect(html).toContain('ml-2 shrink-0');
+      if (state === after) {
+        expect(html).toContain('data-meld-type="ankan"');
+        expect(html.match(/alt="一萬"/g)).toHaveLength(4);
+        const count = SEATS.filter(w => w !== 'south').reduce((n, w) => n + state.seats[w].hand.length + Number(!!state.seats[w].drawn), 0);
+        expect(html.match(/alt="伏せ牌"/g)).toHaveLength(count + 3);
+      }
+    }
+  });
+
+  it.each([1, 2, 3, 4, 5])('shows exactly %i active indicators when other tiles are hidden', doraCount => {
+    const state = createSoloState();
+    state.doraCount = doraCount;
+    const html = renderToStaticMarkup(<FourPlayerTable state={soloPerspective(state)} publicSeats={state.seats} revealTiles={false} />);
+    const indicators = html.slice(html.indexOf('aria-label="ドラ表示牌"'));
+    expect(indicators.match(/alt="伏せ牌"/g) ?? []).toHaveLength(5 - doraCount);
+    expect(indicators.match(/<img /g)).toHaveLength(5);
   });
 
   it('shows every wall tile and updates highlights for each response viewpoint, then restores them', () => {
