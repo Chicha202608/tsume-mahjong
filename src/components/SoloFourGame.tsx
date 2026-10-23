@@ -77,6 +77,18 @@ export default function SoloFourGame({ onHome, onMode }: { onHome: () => void; o
   return <main className="h-dvh w-full bg-black flex items-center justify-center overflow-hidden">
     <div style={{ width: DESIGN_WIDTH * scale, height: DESIGN_HEIGHT * scale }}>
       <div className="relative bg-[#1a2e1a] text-white flex flex-col overflow-hidden"
+        onDoubleClickCapture={event => {
+          if (isViewingPast || history.pending || showWall || (state.result && showResult)) return;
+          const target = event.target as HTMLElement;
+          if (target.closest('button, input, select, textarea, [role="button"], [data-tile-card]')) return;
+          if (state.phase === 'response' && response) {
+            event.preventDefault();
+            act({ type: 'respond', choice: 'pass' });
+          } else if (state.phase === 'discard' && seat.drawn && canDiscardTile(seat.drawn)) {
+            event.preventDefault();
+            discard(seat.drawn);
+          }
+        }}
         style={{ width: DESIGN_WIDTH, height: DESIGN_HEIGHT, transform: `scale(${scale})`, transformOrigin: 'top left', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
         <Header onHome={onHome} mode="solo-four" onMode={onMode}
           turnCount={perspective.turnCount} maxDraws={18} wallCount={state.wall.length}
