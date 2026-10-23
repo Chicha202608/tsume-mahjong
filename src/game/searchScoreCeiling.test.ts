@@ -12,6 +12,14 @@ const honors = () => [1, 2, 3, 4].flatMap(v => Array.from({ length: 3 }, (_, i) 
   .concat([tile('dragon', 1, 30), tile('dragon', 1, 31)]);
 
 describe('search payout ceiling', () => {
+  it('accepts no-kan sampling states with only dora indicators in the dead wall', () => {
+    const wanpai = Array<Tile>(10);
+    wanpai[4] = tile('pin', 1, 100);
+    wanpai[9] = tile('sou', 1, 101);
+    const state = makeInitialStateBase([], [], [], wanpai, 'south', 'east');
+    expect(searchScoreCeiling(state)).toBe(32000);
+  });
+
   it.each([['east', 48000], ['south', 32000]] as const)('bounds ordinary hands for %s', (wind, expected) => {
     const hand = Array.from({ length: 13 }, (_, i) => tile('pin', i % 9 + 1, i));
     const initial = { ...makeInitialStateBase(hand, [], [], [], wind, 'west'), mode: 'three' as const };

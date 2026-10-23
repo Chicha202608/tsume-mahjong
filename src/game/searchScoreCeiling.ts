@@ -12,6 +12,7 @@ export function searchScoreCeiling(state: State): number {
     ...state.playerFuro.flatMap(f => f.tiles), ...state.wall, ...state.wanpai.slice(0, 4),
     ...(state.lastCpuDiscard ? [state.lastCpuDiscard] : []), ...(state.winTile ? [state.winTile] : [])];
   for (const t of material) {
+    if (!t) continue; // Some no-kan search states only supply the dora indicators.
     const base = t.suit === 'man' ? 0 : t.suit === 'pin' ? 9 : t.suit === 'sou' ? 18 : t.suit === 'wind' ? 27 : 31;
     counts[base + t.value - 1]++;
   }
