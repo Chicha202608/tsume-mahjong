@@ -10,6 +10,7 @@ interface Props {
   onMode?: (mode: GameMode) => void;
   onAI?: () => void;
   modeDetails?: ReactNode;
+  rightDetails?: ReactNode;
   turnCount: number;
   maxDraws: number;
   wallCount: number;
@@ -20,7 +21,7 @@ interface Props {
   onSetupTest?: (mode: TestMode) => void;
 }
 
-export default function Header({ onHome, mode, onMode, onAI, modeDetails, turnCount, maxDraws, wallCount, isViewingPast, historyIndex, historyLength, onRestart, onSetupTest }: Props) {
+export default function Header({ onHome, mode, onMode, onAI, modeDetails, rightDetails, turnCount, maxDraws, wallCount, isViewingPast, historyIndex, historyLength, onRestart, onSetupTest }: Props) {
   if (mode === 'three' || mode === 'four' || mode === 'solo-four') return <header className="contents">
     <nav aria-label="対局メニュー" className="absolute left-2 top-3 bottom-3 w-[148px] rounded-xl border border-emerald-900 bg-[#0f1f0f] p-3 flex flex-col gap-5 text-white">
       <h1 className="font-bold text-xl text-center py-2">詰め麻雀</h1>
@@ -38,6 +39,7 @@ export default function Header({ onHome, mode, onMode, onAI, modeDetails, turnCo
     <nav aria-label="検討メニュー" className="absolute right-2 top-3 bottom-3 w-[148px] rounded-xl border border-emerald-900 bg-[#0f1f0f] p-3 flex flex-col gap-3 text-white">
       {onAI && <button onClick={onAI} className="h-11 rounded-lg border border-emerald-700 hover:bg-emerald-900">AI</button>}
       <button onClick={onRestart} className="h-11 flex items-center justify-center gap-2 rounded-lg bg-green-700 hover:bg-green-600"><RefreshCw size={16} />新局</button>
+      {rightDetails}
       {onSetupTest && <div className="mt-auto pt-4 border-t border-emerald-900"><DebugButtons vertical onSetupTest={onSetupTest} /></div>}
     </nav>
   </header>;

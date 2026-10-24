@@ -96,6 +96,8 @@ export default function SoloFourGame({ onHome, onMode }: { onHome: () => void; o
           onRestart={restart} modeDetails={<div className="text-center text-xs leading-6 text-emerald-200">
             <p>{SEAT_NAMES[state.roundWind]}場・全席手動操作</p>
             <p className="text-amber-200">{SEAT_NAMES[state.view]}家の視点</p>
+          </div>}
+          rightDetails={<div className="text-center text-xs leading-6 text-emerald-200">
             <div className="mt-2 flex flex-col gap-1">
               <span>牌の表示</span>
               <button type="button" aria-label="牌の公開" aria-pressed={revealTiles}
