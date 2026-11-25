@@ -11,6 +11,7 @@ import {
   NakiOption,
 } from '@/gameLogic';
 import { State, makeInitialState, type GameMode } from '@/game/gameState';
+import { makeDailyRound } from '@/game/dailyRound';
 import { hasFuturePlayerDraw } from '@/game/seatFlow';
 import { asFourPlayerTestState, makeThreeNukiTestState, makeFourPonKakanTestState, makeOpenHanemanTestState, makeTwoOpenHanemanTestState, makeThreeOpenHanemanTestState } from '@/game/testScenarios';
 import { makeKanTestState, makeRiichiAnkanTestState, makeOpenIttsuRonTestState, makeOpenIttsuTsumoTestState, makeTwoAnkanTestState, type TestMode } from '@/game/testScenarios';
@@ -84,8 +85,9 @@ export interface GameEngine {
   goToLast: () => void;
 }
 
-export function useGameEngine(initialMode: GameMode = 'two'): GameEngine {
+export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string): GameEngine {
   const [history, setHistory] = useState<State[]>(() => {
+    if (dailyDate) return [makeDailyRound(dailyDate)];
     const example = new URLSearchParams(window.location.search).get('example');
     if (initialMode === 'three') return [example === 'sanma-nuki' ? makeThreeNukiTestState() : makeInitialState(initialMode)];
     if (example === 'four-pon-kakan') return [makeFourPonKakanTestState()];
@@ -114,10 +116,11 @@ export function useGameEngine(initialMode: GameMode = 'two'): GameEngine {
 
   const restart = useCallback(() => {
     clearTimer();
-    setHistory([makeInitialState(state.mode)]);
+    setPendingAction(null);
+    setHistory([dailyDate ? makeDailyRound(dailyDate) : makeInitialState(state.mode)]);
     setHistoryIndex(0);
     setDismissedIndex(-1);
-  }, [clearTimer, state.mode]);
+  }, [clearTimer, dailyDate, state.mode]);
 
   const setMode = useCallback((mode: GameMode) => {
     clearTimer();

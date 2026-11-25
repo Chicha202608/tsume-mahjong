@@ -1,19 +1,23 @@
 import { RefreshCw } from 'lucide-react';
 import type { HandAnalysis } from 'riichi-score';
 import YakuDisplay from '@/components/YakuDisplay';
+import ShareResultLink from '@/components/ShareResultLink';
+import type { DailyShare } from '@/components/dailyShareImage';
 
 interface Props {
   title: string;
   message: string;
-  onRestart: () => void;
+  onRestart?: () => void;
   onOk: () => void;
   isWin?: boolean;
   scoreResult?: HandAnalysis | null;
   solverSummary?: string;
   onShowSolver?: () => void;
+  shareText?: string;
+  dailyShare?: DailyShare;
 }
 
-export default function GameOverOverlay({ title, message, onRestart, onOk, isWin, scoreResult, solverSummary, onShowSolver }: Props) {
+export default function GameOverOverlay({ title, message, onRestart, onOk, isWin, scoreResult, solverSummary, onShowSolver, shareText, dailyShare }: Props) {
   const hasScore = isWin && scoreResult && scoreResult.valid && scoreResult.handInterpretations.length > 0;
   const scoreError = isWin && scoreResult && (!scoreResult.valid || scoreResult.handInterpretations.length === 0);
 
@@ -42,13 +46,14 @@ export default function GameOverOverlay({ title, message, onRestart, onOk, isWin
             OK
           </button>
           {onShowSolver && <button onClick={onShowSolver} className="px-6 py-3 rounded-xl bg-amber-700 hover:bg-amber-600 text-white font-bold text-lg">AIの手順</button>}
-          <button
+          {shareText && <ShareResultLink result={shareText} dailyShare={dailyShare} className="px-6 py-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-600 text-white font-bold text-lg transition-colors" />}
+          {onRestart && <button
             onClick={onRestart}
             className="flex items-center gap-2 px-6 py-3 rounded-xl bg-green-700 hover:bg-green-600 text-white font-bold text-lg transition-colors"
           >
             <RefreshCw size={18} />
             もう一局
-          </button>
+          </button>}
         </div>
       </div>
     </div>

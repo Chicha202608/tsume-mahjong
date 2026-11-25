@@ -13,6 +13,7 @@ import Header from '@/components/Header';
 import NakiRonButtons from '@/components/NakiRonButtons';
 import ConfirmPopup from '@/components/ConfirmPopup';
 import YakuDisplay from '@/components/YakuDisplay';
+import ShareResultLink from '@/components/ShareResultLink';
 import SoloFourWall from '@/components/SoloFourWall';
 
 const buttonStyle = 'rounded-lg border border-emerald-700 bg-emerald-950 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-30';
@@ -36,6 +37,10 @@ export default function SoloFourGame({ onHome, onMode }: { onHome: () => void; o
   const [scale, setScale] = useState(1);
   const lastActionAt = useRef(-Infinity);
   const state = history.entries[history.index].state;
+  const resultScores = state.result?.winners.map(({ wind, analysis }) => {
+    const score = analysis.handInterpretations[0]?.totalWinnings;
+    return score === undefined ? '' : `${SEAT_NAMES[wind]}家 ${score.toLocaleString('ja-JP')}点`;
+  }).filter(Boolean).join('・');
   const seat: SoloSeat = state.seats[state.turn];
   const visibleSeat = state.seats[state.view];
   const perspective = soloPerspective(state);
@@ -148,7 +153,11 @@ export default function SoloFourGame({ onHome, onMode }: { onHome: () => void; o
           <div className="max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-amber-500 bg-[#173322] p-6">
             <h2 className="mb-4 text-2xl font-bold text-amber-200">{outcomeText(state)}</h2>
             {state.result.winners.map(winner => <div key={winner.wind} className="mb-5"><h3 className="mb-2 font-bold">{SEAT_NAMES[winner.wind]}家</h3><YakuDisplay result={winner.analysis} /></div>)}
-            <div className="flex justify-center gap-3"><button className={buttonStyle} onClick={() => setShowResult(false)}>牌譜を見る</button><button className={buttonStyle} onClick={restart}>もう一局</button></div>
+            <div className="flex flex-wrap justify-center gap-3">
+              <button className={buttonStyle} onClick={() => setShowResult(false)}>牌譜を見る</button>
+              <ShareResultLink result={`一人四人麻雀で${outcomeText(state)}${resultScores ? `：${resultScores}` : ''}`} className={buttonStyle} />
+              <button className={buttonStyle} onClick={restart}>もう一局</button>
+            </div>
           </div>
         </div>}
       </div>

@@ -17,7 +17,7 @@ interface Props {
   isViewingPast: boolean;
   historyIndex: number;
   historyLength: number;
-  onRestart: () => void;
+  onRestart?: () => void;
   onSetupTest?: (mode: TestMode) => void;
 }
 
@@ -36,12 +36,12 @@ export default function Header({ onHome, mode, onMode, onAI, modeDetails, rightD
       {modeDetails}
       {(isViewingPast || mode === 'solo-four') && <p className="mt-auto text-center text-sm text-amber-300">牌譜 {historyIndex + 1}/{historyLength}</p>}
     </nav>
-    <nav aria-label="検討メニュー" className="absolute right-2 top-3 bottom-3 w-[148px] rounded-xl border border-emerald-900 bg-[#0f1f0f] p-3 flex flex-col gap-3 text-white">
+    {(onAI || onRestart || rightDetails || onSetupTest) && <nav aria-label="検討メニュー" className="absolute right-2 top-3 bottom-3 w-[148px] rounded-xl border border-emerald-900 bg-[#0f1f0f] p-3 flex flex-col gap-3 text-white">
       {onAI && <button onClick={onAI} className="h-11 rounded-lg border border-emerald-700 hover:bg-emerald-900">AI</button>}
-      <button onClick={onRestart} className="h-11 flex items-center justify-center gap-2 rounded-lg bg-green-700 hover:bg-green-600"><RefreshCw size={16} />新局</button>
+      {onRestart && <button onClick={onRestart} className="h-11 flex items-center justify-center gap-2 rounded-lg bg-green-700 hover:bg-green-600"><RefreshCw size={16} />新局</button>}
       {rightDetails}
       {onSetupTest && <div className="mt-auto pt-4 border-t border-emerald-900"><DebugButtons vertical onSetupTest={onSetupTest} /></div>}
-    </nav>
+    </nav>}
   </header>;
   return (
     <header className="flex items-center justify-between px-6 py-3 bg-[#0f1f0f] border-b border-[#2d4a2d]">
@@ -68,13 +68,13 @@ export default function Header({ onHome, mode, onMode, onAI, modeDetails, rightD
         )}
         {mode === 'two' && <><span>巡目 <span className="text-white font-bold">{turnCount}</span>/{maxDraws}</span>
         <span>山 <span className="text-white font-bold">{wallCount}</span>枚</span></>}
-        <button
+        {onRestart && <button
           onClick={onRestart}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-green-700 hover:bg-green-600 text-white text-sm font-medium transition-colors"
         >
           <RefreshCw size={14} />
           新局
-        </button>
+        </button>}
       </div>
     </header>
   );
