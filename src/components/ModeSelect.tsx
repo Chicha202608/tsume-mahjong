@@ -1,5 +1,6 @@
 import { ArrowRight, Users } from 'lucide-react';
 import type { GameMode } from '@/game/gameState';
+import { dailyRoundSearch } from '@/game/dailyRound';
 
 export type PlayMode = GameMode | 'solo-four';
 
@@ -12,6 +13,13 @@ export default function ModeSelect({ onSelect }: { onSelect: (mode: PlayMode) =>
           <h1 className="text-5xl font-bold tracking-widest sm:text-6xl">詰め麻雀</h1>
           <p className="mt-6 text-emerald-200">遊ぶモードを選んでください</p>
         </header>
+        <a href={dailyRoundSearch('today')} className="mb-5 flex items-center justify-between gap-4 rounded-2xl border border-amber-500 bg-[#1a2e1a] p-7 transition-colors hover:bg-[#243e24] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-400">
+          <span>
+            <span className="block text-2xl font-bold">今日の一局</span>
+            <span className="mt-2 block text-sm text-emerald-200">同じ牌山で挑戦する四人麻雀</span>
+          </span>
+          <ArrowRight aria-hidden="true" className="shrink-0 text-amber-300" size={22} />
+        </a>
         <div className="grid gap-5 sm:grid-cols-2">
           {(['two', 'three', 'four', 'solo-four'] as const).map(mode => (
             <button key={mode} onClick={() => onSelect(mode)} className="group rounded-2xl border border-emerald-700 bg-[#1a2e1a] p-7 text-left transition-colors hover:border-amber-400 hover:bg-[#243e24] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-400">

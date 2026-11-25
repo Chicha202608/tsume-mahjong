@@ -63,6 +63,10 @@ npm run dev
 
 型チェックは `npm run typecheck`、テストは `npm test`、ビルドは `npm run build` で実行できます。
 
+## 日替わり対局の共有URL
+
+Vercelではシステム環境変数 `VERCEL_PROJECT_PRODUCTION_URL` を使い、プレビューから共有しても本番の同じ日付の対局にリンクします。本番ドメインを明示する場合や、Vercelのシステム環境変数を使えない場合は、ビルド環境の `VITE_PUBLIC_SITE_URL` に公開サイトのURL（例 `https://example.com`）を指定します。どちらも未設定のローカル開発では、現在のアドレスで共有リンクを確認できます。
+
 ## コントリビューション
 
 不具合の報告や改善の Pull Request を歓迎します。上部の「Open in Bolt」から Bolt.new で開発を始めることもできます。

@@ -6,6 +6,7 @@ import { useGameEngine } from '@/game/useGameEngine';
 import { scoreHand } from '@/game/scoreAdapter';
 import StatusBar from '@/components/StatusBar';
 import GameOverOverlay from '@/components/GameOverOverlay';
+import { makeDailyShare } from '@/components/dailyShareImage';
 import ConfirmPopup from '@/components/ConfirmPopup';
 import Header from '@/components/Header';
 import DoraIndicator from '@/components/DoraIndicator';
@@ -19,24 +20,42 @@ import FourPlayerTable from '@/components/FourPlayerTable';
 import AIAnalysisModal from '@/components/AIAnalysisModal';
 import type { SolverResult } from '@/game/solver';
 import type { GameMode } from '@/game/gameState';
+import { dailyRoundSearch, millisecondsUntilJapanMidnight, readDailyRoundDate, todayInJapan } from '@/game/dailyRound';
 import ModeSelect, { type PlayMode } from '@/components/ModeSelect';
 import SoloFourGame from '@/components/SoloFourGame';
 
+const modeLabels: Record<GameMode, string> = {
+  two: '二人モード',
+  three: '三人モード',
+  four: '四人モード',
+};
+
 export default function App() {
   const [mode, setSelectedMode] = useState<PlayMode | null>(null);
+  const [dailyDate] = useState(() => readDailyRoundDate(window.location.search));
+
+  useEffect(() => {
+    if (dailyDate && new URLSearchParams(window.location.search).get('daily') === 'today') {
+      window.history.replaceState(null, '', dailyRoundSearch(dailyDate));
+    }
+  }, [dailyDate]);
+
+  if (dailyDate) return <Game initialMode="four" dailyDate={dailyDate} onHome={() => window.location.assign(import.meta.env.BASE_URL)} />;
   if (mode === null) return <ModeSelect onSelect={setSelectedMode} />;
   if (mode === 'solo-four') return <SoloFourGame onHome={() => setSelectedMode(null)} onMode={setSelectedMode} />;
   return <Game initialMode={mode} onHome={() => setSelectedMode(null)} />;
 }
 
-function Game({ initialMode, onHome }: { initialMode: GameMode; onHome: () => void }) {
+function Game({ initialMode, onHome, dailyDate }: { initialMode: GameMode; onHome: () => void; dailyDate?: string }) {
   const [showAI, setShowAI] = useState(false);
   const [showWall, setShowWall] = useState(false);
   const [showScoreModal, setShowScoreModal] = useState(false);
   const [showSolverReplay, setShowSolverReplay] = useState(false);
   const [solverResult, setSolverResult] = useState<SolverResult | null>(null);
   const [solverBusy, setSolverBusy] = useState(false);
-  const engine = useGameEngine(initialMode);
+  const [japanDay, setJapanDay] = useState(todayInJapan);
+  const canShowAI = !dailyDate || dailyDate < japanDay;
+  const engine = useGameEngine(initialMode, dailyDate);
   const {
     state,
     initialState,
@@ -101,12 +120,27 @@ function Game({ initialMode, onHome }: { initialMode: GameMode; onHome: () => vo
   }, [historyIndex, isValidWin]);
 
   useEffect(() => {
-    // Start as soon as the initial deal exists. Restart only when the deal changes.
-    // Searching must not depend on the current phase or history navigation.
+    if (canShowAI) return;
+    const now = new Date();
+    const currentDay = todayInJapan(now);
+    if (currentDay !== japanDay) {
+      setJapanDay(currentDay);
+      return;
+    }
+    const timer = window.setTimeout(() => setJapanDay(todayInJapan()), millisecondsUntilJapanMidnight(now));
+    return () => window.clearTimeout(timer);
+  }, [canShowAI, japanDay]);
+
+  useEffect(() => {
     setShowAI(false);
     setShowWall(false);
     setShowScoreModal(false);
     setShowSolverReplay(false);
+  }, [initialState]);
+
+  useEffect(() => {
+    if (!canShowAI) return;
+    // Searching must not depend on the current phase or history navigation.
     setSolverResult(null);
     setSolverBusy(true);
     const worker = new Worker(new URL('./game/solver.worker.ts', import.meta.url), { type: 'module' });
@@ -124,7 +158,7 @@ function Game({ initialMode, onHome }: { initialMode: GameMode; onHome: () => vo
     };
     worker.postMessage(initialState);
     return () => worker.terminate();
-  }, [initialState]);
+  }, [canShowAI, initialState]);
 
   const solverSummary = !solverResult && solverBusy ? '探索中…' : !solverResult ? '探索結果を取得できませんでした'
     : solverResult.outcome === 'win' && solverResult.bestScore !== null
@@ -135,8 +169,11 @@ function Game({ initialMode, onHome }: { initialMode: GameMode; onHome: () => vo
     : '探索結果：ノーテン';
 
   const settlement = drawSettlement(state);
+  const modeLabel = modeLabels[state.mode ?? 'two'];
+  const drawMessage = settlement?.tenpai ? 'テンパイ流局：3,000点' : 'ノーテン流局：0点';
   const playerScore = settlement ? settlement.score : scoreResult?.handInterpretations.length
     ? Math.max(...scoreResult.handInterpretations.map(hand => hand.totalWinnings)) : null;
+  const scoreLabel = playerScore === null ? undefined : `${playerScore.toLocaleString('ja-JP')}点`;
   const scoreDifference = solverResult && solverResult.bestScore !== null && playerScore !== null
     ? playerScore - solverResult.bestScore : null;
   const comparisonText = scoreDifference === null ? solverSummary
@@ -155,6 +192,8 @@ function Game({ initialMode, onHome }: { initialMode: GameMode; onHome: () => vo
     restart();
   }
 
+  const onRestart = dailyDate ? undefined : handleRestart;
+  const dailyShare = dailyDate ? makeDailyShare(dailyDate, initialState) : undefined;
   const fourPlayer = isTableMode(state);
   const DESIGN_WIDTH = fourPlayer ? 1440 : 1280;
   const DESIGN_HEIGHT = fourPlayer ? 960 : 720;
@@ -186,16 +225,18 @@ function Game({ initialMode, onHome }: { initialMode: GameMode; onHome: () => vo
     }} style={{ width: DESIGN_WIDTH, height: DESIGN_HEIGHT, transform: `scale(${scale})`, transformOrigin: 'top left', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
       <Header
         onHome={onHome}
-        mode={state.mode ?? 'two'} onMode={setMode} onAI={() => setShowAI(true)}
+        mode={state.mode ?? 'two'} onMode={dailyDate ? undefined : setMode} onAI={canShowAI ? () => setShowAI(true) : undefined}
         turnCount={turnCount}
         maxDraws={MAX_DRAWS}
         wallCount={wall.length}
         isViewingPast={isViewingPast}
         historyIndex={historyIndex}
         historyLength={historyLength}
-        onRestart={handleRestart}
-        onSetupTest={state.mode === 'three' ? undefined : setupTestState}
-        modeDetails={state.mode === 'three' ? <p className="text-xs leading-6 text-emerald-200">萬子2〜8なし<br />北抜き・ツモ損あり<br />チーなし</p> : undefined}
+        onRestart={onRestart}
+        onSetupTest={dailyDate || state.mode === 'three' ? undefined : setupTestState}
+        modeDetails={dailyDate
+          ? <p className="text-center text-sm font-bold text-amber-200">日替わり対局<br /><time dateTime={dailyDate}>{dailyDate}</time></p>
+          : state.mode === 'three' ? <p className="text-xs leading-6 text-emerald-200">萬子2〜8なし<br />北抜き・ツモ損あり<br />チーなし</p> : undefined}
       />
 
       {!fourPlayer && <DoraIndicator
@@ -305,11 +346,13 @@ function Game({ initialMode, onHome }: { initialMode: GameMode; onHome: () => vo
       {phase === 'exhausted' && !isViewingPast && dismissedIndex !== historyIndex && (
         <GameOverOverlay
           title="流局"
-          message={settlement?.tenpai ? 'テンパイ流局：3,000点' : 'ノーテン流局：0点'}
-          onRestart={handleRestart}
+          message={drawMessage}
+          shareText={dailyDate ? scoreLabel : `${modeLabel}で${drawMessage}`}
+          dailyShare={dailyShare}
+          onRestart={onRestart}
           onOk={handleDismissWin}
-          solverSummary={comparisonText}
-          onShowSolver={solverResult?.supported && (solverResult.complete || solverResult.line.length > 0) ? () => setShowSolverReplay(true) : undefined}
+          solverSummary={canShowAI ? comparisonText : undefined}
+          onShowSolver={canShowAI && solverResult?.supported && (solverResult.complete || solverResult.line.length > 0) ? () => setShowSolverReplay(true) : undefined}
         />
       )}
 
@@ -318,16 +361,18 @@ function Game({ initialMode, onHome }: { initialMode: GameMode; onHome: () => vo
         <GameOverOverlay
           title={winType === 'ron' ? 'ロン！' : 'ツモ！'}
           message=""
-          onRestart={handleRestart}
+          shareText={dailyDate || !scoreLabel ? scoreLabel : `${modeLabel}で${winType === 'ron' ? 'ロン' : 'ツモ'}：${scoreLabel}`}
+          dailyShare={dailyShare}
+          onRestart={onRestart}
           onOk={handleDismissWin}
           isWin
           scoreResult={scoreResult}
-          solverSummary={comparisonText}
-          onShowSolver={solverResult?.supported && solverResult.line.length > 0 ? () => setShowSolverReplay(true) : undefined}
+          solverSummary={canShowAI ? comparisonText : undefined}
+          onShowSolver={canShowAI && solverResult?.supported && solverResult.line.length > 0 ? () => setShowSolverReplay(true) : undefined}
         />
       )}
-      {showAI && <AIAnalysisModal summary={comparisonText} canReplay={!!solverResult?.supported && (solverResult.complete || solverResult.line.length > 0)} onClose={() => setShowAI(false)} onReplay={() => { setShowAI(false); setShowSolverReplay(true); }} />}
-      {showSolverReplay && solverResult?.supported && (solverResult.complete || solverResult.line.length > 0) && (
+      {canShowAI && showAI && <AIAnalysisModal summary={comparisonText} canReplay={!!solverResult?.supported && (solverResult.complete || solverResult.line.length > 0)} onClose={() => setShowAI(false)} onReplay={() => { setShowAI(false); setShowSolverReplay(true); }} />}
+      {canShowAI && showSolverReplay && solverResult?.supported && (solverResult.complete || solverResult.line.length > 0) && (
         <SolverReplayModal initial={initialState} result={solverResult} onClose={() => setShowSolverReplay(false)} />
       )}
     </div>

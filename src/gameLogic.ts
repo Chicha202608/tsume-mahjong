@@ -28,10 +28,10 @@ export function createDeck(mode?: 'two' | 'three' | 'four'): Tile[] {
   return mode === 'three' ? tiles.filter(t => t.suit !== 'man' || t.value === 1 || t.value === 9) : tiles;
 }
 
-export function shuffle<T>(arr: T[]): T[] {
+export function shuffle<T>(arr: T[], random = Math.random): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(random() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
@@ -390,8 +390,8 @@ export function findKakanOptions(hand: Tile[], drawnTile: Tile | null, furoList:
   return options;
 }
 
-export function initGame() {
-  const deck = shuffle(createDeck());
+export function initGame(random = Math.random) {
+  const deck = shuffle(createDeck(), random);
   const playerHand = sortHand(deck.slice(0, 13));
   const cpuHand = sortHand(deck.slice(13, 26));
   const wanpai = deck.slice(26, 40);

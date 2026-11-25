@@ -45,8 +45,8 @@ export interface State {
 
 const winds: Wind[] = ['east', 'south', 'west', 'north'];
 
-function randomWind(): Wind {
-  return winds[Math.floor(Math.random() * winds.length)];
+function randomWind(random = Math.random): Wind {
+  return winds[Math.floor(random() * winds.length)];
 }
 
 /** Four-seat order, with the CPU uniformly chosen from the other three winds. */
@@ -54,28 +54,28 @@ export function isPlayerUpwind(playerWind: Wind, cpuWind: Wind): boolean {
   return winds.indexOf(playerWind) < winds.indexOf(cpuWind);
 }
 
-export function makeInitialState(mode: GameMode = 'two'): State {
+export function makeInitialState(mode: GameMode = 'two', random = Math.random): State {
   if (mode === 'four' || mode === 'three') {
     const seats = mode === 'three' ? winds.slice(0, 3) : winds;
-    const deck = shuffle(createDeck(mode));
-    const playerWind = seats[Math.floor(Math.random() * seats.length)];
+    const deck = shuffle(createDeck(mode), random);
+    const playerWind = seats[Math.floor(random() * seats.length)];
     const playerHand = sortHand(deck.splice(0, 13));
     const opponents = seats.filter(w => w !== playerWind).map(wind =>
       ({ wind, hand: sortHand(deck.splice(0, 13)), discards: [] as Tile[] }));
     const wanpai = deck.splice(0, 14);
-    return { ...makeInitialStateBase(playerHand, opponents[0].hand, deck, wanpai, playerWind, opponents[0].wind),
+    return { ...makeInitialStateBase(playerHand, opponents[0].hand, deck, wanpai, playerWind, opponents[0].wind, randomWind(random)),
       mode, opponents, playerNuki: [], nextSeat: 'east', phase: playerWind === 'east' ? 'playerDraw' : 'cpuTurn' };
   }
-  const { playerHand, cpuHand, wall, wanpai } = initGame();
-  const playerWind = randomWind();
+  const { playerHand, cpuHand, wall, wanpai } = initGame(random);
+  const playerWind = randomWind(random);
   const otherSeats = winds.filter(w => w !== playerWind);
-  const cpuWind = otherSeats[Math.floor(Math.random() * otherSeats.length)];
-  return makeInitialStateBase(playerHand, cpuHand, wall, wanpai, playerWind, cpuWind);
+  const cpuWind = otherSeats[Math.floor(random() * otherSeats.length)];
+  return makeInitialStateBase(playerHand, cpuHand, wall, wanpai, playerWind, cpuWind, randomWind(random));
 }
 
 export function makeInitialStateBase(
   playerHand: Tile[], cpuHand: Tile[], wall: Tile[], wanpai: Tile[],
-  playerWind: Wind = 'east', cpuWind: Wind = 'south',
+  playerWind: Wind = 'east', cpuWind: Wind = 'south', roundWind: Wind = randomWind(),
 ): State {
   if (playerWind === cpuWind) throw new Error('Player and CPU must occupy different seats');
   return {
@@ -92,7 +92,7 @@ export function makeInitialStateBase(
     isRiichi: false,
     tsumoAvailable: false,
     missedRonAfterRiichi: false,
-    roundWind: randomWind(),
+    roundWind,
     playerWind,
     cpuWind,
     winTile: null,
