@@ -1,5 +1,6 @@
 import { maxRankingNameLength } from '@/game/dailyRankingTypes';
 import type { useDailyRanking } from '@/game/useDailyRanking';
+import DailyRankingTable from '@/components/DailyRankingTable';
 
 export default function DailyRankingPanel({ ranking }: { ranking: ReturnType<typeof useDailyRanking> }) {
   const { result, busy, error, closed, nameSaved, retry, saveName } = ranking;
@@ -11,18 +12,7 @@ export default function DailyRankingPanel({ ranking }: { ranking: ReturnType<typ
       {result && rows && <>
         <p className="my-1 text-sm text-emerald-200">あなたは {result.yours.rank.toLocaleString('ja-JP')} 位 / {result.participants.toLocaleString('ja-JP')} 人</p>
         <div className="my-2 max-h-32 overflow-y-auto">
-          <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-[#10261c] text-emerald-200">
-              <tr><th scope="col" className="px-2 text-left">順位</th><th scope="col" className="px-2 text-left">名前</th><th scope="col" className="px-2 text-right">得点</th></tr>
-            </thead>
-            <tbody>
-              {rows.map(row => <tr key={row.id} className={row.isYou ? 'bg-emerald-900 font-bold' : ''}>
-                <td className="px-2 py-1 tabular-nums">{row.rank.toLocaleString('ja-JP')}</td>
-                <td className="px-2 py-1 break-all"><bdi>{row.name}</bdi>{row.isYou && <span className="ml-1 text-emerald-200">（あなた）</span>}</td>
-                <td className="px-2 py-1 text-right whitespace-nowrap tabular-nums">{row.score.toLocaleString('ja-JP')} 点</td>
-              </tr>)}
-            </tbody>
-          </table>
+          <DailyRankingTable rows={rows} />
         </div>
         {!closed && <form onSubmit={event => {
           event.preventDefault();
