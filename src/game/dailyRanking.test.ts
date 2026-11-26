@@ -72,9 +72,18 @@ describe('daily ranking', () => {
     expect((await dailyRankingRequest(request('PATCH', { date, token, name: '　 ' }), env)).status).toBe(200);
     expect(JSON.parse(String(store.mock.calls[1][1]?.body))).toMatchObject({ p_score: null, p_name: '名無し', p_player_key: submitted.p_player_key });
 
+    const lookup = new Request(`https://play.example/api/daily-ranking?date=${date}`, {
+      headers: { 'X-Daily-Ranking-Token': token },
+    });
+    const saved = await dailyRankingRequest(lookup, env);
+    expect(saved.status).toBe(200);
+    expect(saved.headers.get('Cache-Control')).toBe('no-store');
+    expect(JSON.parse(String(store.mock.calls[2][1]?.body))).toMatchObject({ p_score: null, p_name: null, p_player_key: submitted.p_player_key });
+    expect((await dailyRankingRequest(new Request(lookup.url), env)).status).toBe(400);
+
     expect((await dailyRankingRequest(request('POST', { date: '2026-11-25', token, moves }), env)).status).toBe(409);
     expect((await dailyRankingRequest(request('POST', { date, token, moves: ['ron'] }), env)).status).toBe(422);
     expect((await dailyRankingRequest(request('PATCH', { date, token, name: 'あ'.repeat(21) }), env)).status).toBe(400);
-    expect(store).toHaveBeenCalledTimes(2);
+    expect(store).toHaveBeenCalledTimes(3);
   });
 });

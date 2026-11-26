@@ -10,14 +10,18 @@ interface RankingEntry {
   moves: readonly string[];
 }
 
+function readSavedEntry(date: string): RankingEntry | undefined {
+  const saved = localStorage.getItem(storageKey);
+  if (!saved) return undefined;
+  const entry: RankingEntry | null = JSON.parse(saved);
+  if (entry?.date === date && typeof entry.token === 'string' && Array.isArray(entry.moves)) return entry;
+}
+
 function saveFirstEntry(date: string, moves: readonly string[]): Promise<RankingEntry> | RankingEntry {
   const save = () => {
     if (date !== todayInJapan()) throw new Error('closed');
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
-      const entry: RankingEntry = JSON.parse(saved);
-      if (entry.date === date && typeof entry.token === 'string' && Array.isArray(entry.moves)) return entry;
-    }
+    const existing = readSavedEntry(date);
+    if (existing) return existing;
     const entry: RankingEntry = { date, token: crypto.randomUUID(), moves };
     localStorage.setItem(storageKey, JSON.stringify(entry));
     return entry;
@@ -39,7 +43,7 @@ async function requestRanking(method: 'POST' | 'PATCH', body: object): Promise<D
   return response.json();
 }
 
-export function useDailyRanking(date: string | undefined, moves: readonly string[] | undefined) {
+export function useDailyRanking(date: string | undefined) {
   const firstMoves = useRef<readonly string[]>();
   const entry = useRef<RankingEntry>();
   const inFlight = useRef(false);
@@ -48,6 +52,28 @@ export function useDailyRanking(date: string | undefined, moves: readonly string
   const [error, setError] = useState('');
   const [closed, setClosed] = useState(false);
   const [nameSaved, setNameSaved] = useState(false);
+
+  useEffect(() => {
+    if (!date) return;
+    const controller = new AbortController();
+    async function restoreRegistration(roundDate: string) {
+      try {
+        const saved = readSavedEntry(roundDate);
+        if (!saved) return;
+        const response = await fetch(`/api/daily-ranking?date=${encodeURIComponent(roundDate)}`, {
+          headers: { 'X-Daily-Ranking-Token': saved.token },
+          signal: controller.signal,
+        });
+        if (!response.ok) return;
+        const previous: DailyRanking = await response.json();
+        if (!controller.signal.aborted) setResult(current => current ?? previous);
+      } catch {
+        // Keep the first attempt protected until the server confirms its registration.
+      }
+    }
+    void restoreRegistration(date);
+    return () => controller.abort();
+  }, [date]);
 
   const send = useCallback(async (method: 'POST' | 'PATCH', name?: string) => {
     if (!date || !firstMoves.current || inFlight.current) return;
@@ -72,14 +98,14 @@ export function useDailyRanking(date: string | undefined, moves: readonly string
     }
   }, [date]);
 
-  useEffect(() => {
-    if (!date || !moves || firstMoves.current) return;
+  const record = useCallback((moves: readonly string[]) => {
+    if (!date || firstMoves.current) return;
     firstMoves.current = moves;
     void send('POST');
-  }, [date, moves, send]);
+  }, [date, send]);
 
   return {
-    result, busy, error, closed, nameSaved,
+    result, busy, error, closed, nameSaved, record,
     retry: () => void send('POST'),
     saveName: (name: string) => void send('PATCH', name),
   };

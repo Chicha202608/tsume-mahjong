@@ -11,18 +11,22 @@ function respond(data: unknown, status = 200): Response {
 }
 
 export async function dailyRankingRequest(request: Request, env: { url?: string; secret?: string }): Promise<Response> {
-  if (request.method !== 'POST' && request.method !== 'PATCH') {
-    return new Response(null, { status: 405, headers: { Allow: 'POST, PATCH' } });
+  if (request.method !== 'GET' && request.method !== 'POST' && request.method !== 'PATCH') {
+    return new Response(null, { status: 405, headers: { Allow: 'GET, POST, PATCH' } });
   }
   const { url, secret } = env;
   if (!url || !secret) return respond({ error: 'unavailable' }, 503);
 
   let body: Record<string, unknown>;
   try {
-    const raw = await request.text();
-    if (raw.length > 8192) return respond({ error: 'invalid' }, 413);
-    body = JSON.parse(raw);
-    if (!body || typeof body !== 'object' || Array.isArray(body)) return respond({ error: 'invalid' }, 400);
+    if (request.method === 'GET') {
+      body = { date: new URL(request.url).searchParams.get('date'), token: request.headers.get('X-Daily-Ranking-Token') };
+    } else {
+      const raw = await request.text();
+      if (raw.length > 8192) return respond({ error: 'invalid' }, 413);
+      body = JSON.parse(raw);
+      if (!body || typeof body !== 'object' || Array.isArray(body)) return respond({ error: 'invalid' }, 400);
+    }
   } catch {
     return respond({ error: 'invalid' }, 400);
   }
@@ -47,7 +51,7 @@ export async function dailyRankingRequest(request: Request, env: { url?: string;
       return respond({ error: 'invalid' }, 422);
     }
     if (score === null) return respond({ error: 'invalid' }, 422);
-  } else {
+  } else if (request.method === 'PATCH') {
     if (typeof name !== 'string') return respond({ error: 'invalid_name' }, 400);
     nickname = name.trim();
     if ([...nickname].length > maxRankingNameLength || /[\p{Cc}\u202A-\u202E\u2066-\u2069]/u.test(nickname)) {

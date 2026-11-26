@@ -89,7 +89,7 @@ export interface GameEngine {
   goToLast: () => void;
 }
 
-export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string, ranked = false): GameEngine {
+export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string, ranked = false, canRewrite = true): GameEngine {
   const [history, setHistory] = useState<RecordedState[]>(() => {
     if (dailyDate) return [makeDailyRound(dailyDate)];
     const example = new URLSearchParams(window.location.search).get('example');
@@ -107,7 +107,7 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string,
 
   const state = history[historyIndex] ?? history[0] ?? makeInitialState();
   const isViewingPast = historyIndex < history.length - 1;
-  const canUndo = historyIndex > 1;
+  const canUndo = canRewrite && historyIndex > 1;
   const canStepBack = historyIndex > 0;
   const canStepForward = historyIndex < history.length - 1;
   const rankingMoves = useMemo(() => {
@@ -231,6 +231,7 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string,
       message: string,
       rankingMove?: string,
     ) => {
+      if (isViewingPast && !canRewrite) return;
       const record = (prev: RecordedState[]) => {
         const cur = prev[historyIndex];
         const next = cur ? applyFn(cur) : null;
@@ -257,7 +258,7 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string,
       setHistory(record);
       setHistoryIndex(prev => prev + 1);
     },
-    [historyIndex, isViewingPast, history, ranked],
+    [historyIndex, isViewingPast, history, ranked, canRewrite],
   );
 
   // --- Player action callbacks (exposed to UI) ---
@@ -361,7 +362,7 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string,
   // --- History navigation callbacks ---
 
   const matta = useCallback(() => {
-    if (historyIndex === 0) return;
+    if (!canRewrite || historyIndex === 0) return;
     const idx = findMattaIndex(history, historyIndex);
     const rewind = (target: number) => {
       clearTimer();
@@ -380,7 +381,7 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string,
       return;
     }
     rewind(idx);
-  }, [historyIndex, history, isViewingPast, clearTimer]);
+  }, [canRewrite, historyIndex, history, isViewingPast, clearTimer]);
 
   const stepBack = useCallback(() => {
     if (historyIndex <= 0) return;

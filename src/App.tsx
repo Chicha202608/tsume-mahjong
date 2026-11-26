@@ -58,7 +58,9 @@ function Game({ initialMode, onHome, dailyDate }: { initialMode: GameMode; onHom
   const [japanDay, setJapanDay] = useState(todayInJapan);
   const [ranked] = useState(() => import.meta.env.VITE_DAILY_RANKING_ENABLED === 'true' && dailyDate === todayInJapan());
   const canShowAI = !dailyDate || dailyDate < japanDay;
-  const engine = useGameEngine(initialMode, dailyDate, ranked);
+  const ranking = useDailyRanking(ranked ? dailyDate : undefined);
+  const canRewrite = !ranked || canShowAI || !!ranking.result;
+  const engine = useGameEngine(initialMode, dailyDate, ranked, canRewrite);
   const {
     state,
     initialState,
@@ -102,10 +104,13 @@ function Game({ initialMode, onHome, dailyDate }: { initialMode: GameMode; onHom
   } = engine;
 
   const { playerHand, playerDrawnTile, cpuHand, wall, fullWall, wallDrawnCount, wanpai, playerDiscards, cpuDiscards, playerFuro, phase, turnCount, lastCpuDiscard, nakiOptions, ronAvailable, winType, doraCount, isRiichi, tsumoAvailable, roundWind, playerWind } = state;
-  const ranking = useDailyRanking(ranked ? dailyDate : undefined, rankingMoves);
-  const rankingStarted = !!(rankingMoves || ranking.result || ranking.busy || ranking.error);
-  const lockHistory = ranked && !canShowAI && !rankingStarted;
-  const rankingPanel = ranked && rankingStarted ? <DailyRankingPanel ranking={ranking} /> : undefined;
+  const { record: recordRanking } = ranking;
+  useEffect(() => {
+    if (rankingMoves) recordRanking(rankingMoves);
+  }, [rankingMoves, recordRanking]);
+  const readOnlyHistory = isViewingPast && !canRewrite;
+  const rankingPanel = ranked && (rankingMoves || ranking.result || ranking.busy || ranking.error)
+    ? <DailyRankingPanel ranking={ranking} /> : undefined;
 
   const scoreResult = useMemo(() => {
     if (phase !== 'win') return null;
@@ -244,7 +249,9 @@ function Game({ initialMode, onHome, dailyDate }: { initialMode: GameMode; onHom
         onSetupTest={dailyDate || state.mode === 'three' ? undefined : setupTestState}
         modeDetails={dailyDate
           ? <div className="text-center"><p className="text-sm font-bold text-amber-200">日替わり対局<br /><time dateTime={dailyDate}>{dailyDate}</time></p>
-            {lockHistory && <p className="mt-2 text-xs text-emerald-200">初回の結果をランキングに記録します。牌譜は対局後に確認できます。</p>}</div>
+            {ranked && !canShowAI && <p className="mt-2 text-xs text-emerald-200">{ranking.result
+              ? '初回結果は登録済みです。待ったで打ち直せます。'
+              : '初回の結果をランキングに記録します。待ったは登録後に使えます。'}</p>}</div>
           : state.mode === 'three' ? <p className="text-xs leading-6 text-emerald-200">萬子2〜8なし<br />北抜き・ツモ損あり<br />チーなし</p> : undefined}
       />
 
@@ -281,6 +288,7 @@ function Game({ initialMode, onHome, dailyDate }: { initialMode: GameMode; onHom
           {fourPlayer && !isViewingPast && phase === 'playerDiscard' && [...ankanOptions, ...kakanOptions].map((option, i) => <button key={i} onClick={() => declareKan(option)} className="rounded-lg bg-purple-700 px-4 py-2 text-white">{option.type === 'ankan' ? '暗槓' : '加槓'} {option.tiles[0].value}{option.tiles[0].suit === 'pin' ? 'p' : option.tiles[0].suit === 'sou' ? 's' : option.tiles[0].suit === 'man' ? 'm' : 'z'}</button>)}
           <NakiRonButtons
             largeChoices={fourPlayer}
+            readOnly={readOnlyHistory}
             phase={phase}
             lastCpuDiscard={lastCpuDiscard}
             ronAvailable={ronAvailable}
@@ -317,9 +325,10 @@ function Game({ initialMode, onHome, dailyDate }: { initialMode: GameMode; onHom
           onPassTsumo={passTsumo}
           onDeclareRiichi={declareRiichi}
           onShowWall={() => setShowWall(true)}
-          canUndo={!lockHistory && canUndo}
-          canStepBack={!lockHistory && canStepBack}
-          canStepForward={!lockHistory && canStepForward}
+          readOnly={readOnlyHistory}
+          canUndo={canUndo}
+          canStepBack={canStepBack}
+          canStepForward={canStepForward}
           onMatta={matta}
           onStepBack={stepBack}
           onStepForward={stepForward}

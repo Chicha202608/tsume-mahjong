@@ -8,6 +8,7 @@ import TableMelds from '@/components/TableMelds';
 interface Props {
   fourPlayer?: boolean;
   publicTiles?: boolean;
+  readOnly?: boolean;
   playerWind?: Wind;
   canDiscardTile?: (tile: Tile) => boolean;
   playerHand: Tile[];
@@ -39,7 +40,7 @@ interface Props {
 
 export default function HandSection({
   fourPlayer = false,
-  publicTiles = false, playerWind = 'east', canDiscardTile,
+  publicTiles = false, readOnly = false, playerWind = 'east', canDiscardTile,
   playerHand, playerDrawnTile, playerFuro, phase, isRiichi,
   canTsumo, canRiichi, riichiValidTiles, isDora,
   onDiscard, onNakiDiscard, onRiichiDiscard,
@@ -70,7 +71,7 @@ export default function HandSection({
           />
         </div>
         <div className="flex items-center gap-2 flex-nowrap py-1 px-1 flex-1 justify-start">
-          {canRiichi && (
+          {!readOnly && canRiichi && (
             <button
               onClick={onDeclareRiichi}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold text-sm transition-all shadow-md whitespace-nowrap shrink-0"
@@ -80,7 +81,7 @@ export default function HandSection({
             </button>
           )}
           <div className="w-[76px] shrink-0 flex justify-center">
-            {canTsumo && (
+            {!readOnly && canTsumo && (
               <button
                 onClick={onDeclareTsumo}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-500 hover:bg-yellow-400 active:scale-95 text-yellow-900 font-bold text-sm transition-all shadow-md animate-pulse whitespace-nowrap"
@@ -91,7 +92,7 @@ export default function HandSection({
             )}
           </div>
           <div className="w-[110px] shrink-0 flex justify-center">
-            {canTsumo && onPassTsumo && (
+            {!readOnly && canTsumo && onPassTsumo && (
               <button
                 onClick={onPassTsumo}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-600 hover:bg-gray-500 active:scale-95 text-white font-bold text-sm transition-all shadow-md whitespace-nowrap"
@@ -117,7 +118,7 @@ export default function HandSection({
                   dora={isDora(tile)}
                   className={`w-full h-full object-contain ${isRiichiInvalid || (blocked && (phase === 'playerDiscard' || phase === 'playerNakiDiscard')) ? 'opacity-30 grayscale pointer-events-none' : ''}`}
                   onClick={
-                    blocked ? undefined :
+                    readOnly || blocked ? undefined :
                     phase === 'playerDiscard' && !isRiichi ? () => onDiscard(tile) :
                     phase === 'playerNakiDiscard' ? () => onNakiDiscard(tile) :
                     phase === 'riichiSelect' && !isRiichiInvalid ? () => onRiichiDiscard(tile) :
@@ -135,7 +136,7 @@ export default function HandSection({
                 dora={isDora(playerDrawnTile)}
                 className={`w-full h-full object-contain ${phase === 'riichiSelect' && !riichiValidTiles.has(playerDrawnTile.id) ? 'opacity-30 grayscale pointer-events-none' : ''}`}
                 onClick={
-                  canDiscardTile && !canDiscardTile(playerDrawnTile) ? undefined :
+                  readOnly || (canDiscardTile && !canDiscardTile(playerDrawnTile)) ? undefined :
                   phase === 'playerDiscard' ? () => onDiscard(playerDrawnTile) :
                   phase === 'playerNakiDiscard' ? () => onNakiDiscard(playerDrawnTile) :
                   phase === 'riichiSelect' && riichiValidTiles.has(playerDrawnTile.id) ? () => onRiichiDiscard(playerDrawnTile) :
