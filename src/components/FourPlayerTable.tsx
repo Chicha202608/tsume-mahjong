@@ -25,11 +25,12 @@ const positions = [
   { x: 'calc(50% - 285px)', y: '50%', angle: 90 },
 ];
 
+const liveSideSeatY = '330px';
 const liveFourPlayerRivers = [
-  { x: '50%', y: 'calc(100% - 170px)', angle: 0 },
-  { x: 'calc(50% + 305px)', y: '50%', angle: -90 },
+  { x: '50%', y: 'min(503px, calc(100% - 166px))', angle: 0 },
+  { x: 'calc(50% + 305px)', y: liveSideSeatY, angle: -90 },
   { x: '50%', y: '262px', angle: 180 },
-  { x: 'calc(50% - 305px)', y: '50%', angle: 90 },
+  { x: 'calc(50% - 305px)', y: liveSideSeatY, angle: 90 },
 ];
 
 /** Pure table view shared by live play and AI replay. */
@@ -48,10 +49,11 @@ export default function FourPlayerTable({ state, embedded = false, compact = fal
   const relatives = state.mode === 'three' ? [0, 1, 2] : [0, 1, 2, 3];
   const positionIndex = (relative: number) => state.mode === 'three' && relative === 2 ? 3 : relative;
   const sideHandOffset = spacious ? 472 : compact ? 410 : 430;
+  const sideHandY = spacious ? liveSideSeatY : '50%';
   const handPositions = [null,
-    { left: `calc(50% + ${sideHandOffset}px)`, top: '50%', angle: -90 },
+    { left: `calc(50% + ${sideHandOffset}px)`, top: sideHandY, angle: -90 },
     { left: '50%', top: spacious ? '30px' : publicSeats ? '32px' : '24px', angle: 180 },
-    { left: `calc(50% - ${sideHandOffset}px)`, top: '50%', angle: 90 }];
+    { left: `calc(50% - ${sideHandOffset}px)`, top: sideHandY, angle: 90 }];
   return <div data-four-table data-three-table={state.mode === 'three' ? '' : undefined} className={`relative h-full w-full min-h-0 overflow-hidden ${embedded ? '' : 'rounded-xl border border-emerald-800 bg-[#073b2d]'}`}>
     {relatives.slice(1).map(relative => {
       const wind = nextSeat(state, playerWind, relative);
@@ -108,7 +110,7 @@ export default function FourPlayerTable({ state, embedded = false, compact = fal
       {relatives.map(relativeSeat => {
         const wind: Wind = nextSeat(state, playerWind, relativeSeat);
         const relative = positionIndex(relativeSeat);
-        const style: CSSProperties = relative === 0 ? { left: '50%', bottom: spacious ? '-1px' : publicSeats ? '-4px' : '-20px', transform: 'translateX(-50%)' }
+        const style: CSSProperties = relative === 0 ? { left: '50%', bottom: spacious ? '5px' : publicSeats ? '-4px' : '-20px', transform: 'translateX(-50%)' }
           : relative === 2 ? { left: '50%', top: spacious ? '0' : publicSeats ? '-2px' : '-22px', transform: 'translateX(-50%)' }
           : { top: '50%', [relative === 1 ? 'right' : 'left']: '-24px', transform: 'translateY(-50%)' };
         const active = activeWind ? activeWind === wind : state.phase === 'cpuTurn' ? state.nextSeat === wind : relative === 0;
