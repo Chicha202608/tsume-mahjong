@@ -1,5 +1,5 @@
-import { Tile, Phase, Furo, Wind } from '@/types';
-import { initGame, createDeck, shuffle, sortHand, NakiOption } from '@/gameLogic';
+import { Tile, Phase, Furo, Wind } from '../types';
+import { initGame, createDeck, shuffle, sortHand, NakiOption } from '../gameLogic';
 
 export type GameMode = 'two' | 'three' | 'four';
 

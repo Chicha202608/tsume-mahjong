@@ -1,5 +1,5 @@
-import { isTableMode } from '@/game/seatFlow';
-import { Tile, Phase, Furo } from '@/types';
+import { isTableMode } from './seatFlow';
+import { Tile, Phase, Furo } from '../types';
 import {
   sortHand,
   checkWinConcealed,
@@ -10,10 +10,10 @@ import {
   getWaits,
   isFuriten,
   NakiOption,
-} from '@/gameLogic';
-import { State } from '@/game/gameState';
-import { canRonWithYaku, canTsumoWithYaku, type BaseScoreCache } from '@/game/scoreAdapter';
-import { nextSeat, afterCpuPhase, hasFuturePlayerDraw } from '@/game/seatFlow';
+} from '../gameLogic';
+import { State } from './gameState';
+import { canRonWithYaku, canTsumoWithYaku, type BaseScoreCache } from './scoreAdapter';
+import { nextSeat, afterCpuPhase, hasFuturePlayerDraw } from './seatFlow';
 
 export const MAX_DRAWS = 18;
 

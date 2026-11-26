@@ -1,7 +1,7 @@
-import { isTableMode } from '@/game/seatFlow';
-import { Tile, Furo, Wind } from '@/types';
-import { State } from '@/game/gameState';
-import { nextDoraTile, sameTile } from '@/gameLogic';
+import { isTableMode } from './seatFlow';
+import { Tile, Furo, Wind } from '../types';
+import { State } from './gameState';
+import { nextDoraTile, sameTile } from '../gameLogic';
 import {
   calculate,
   createGameState,

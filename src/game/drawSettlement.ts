@@ -1,6 +1,6 @@
-import type { State } from '@/game/gameState';
-import { checkTenpai } from '@/gameLogic';
-import { enumerateTenpaiCandidates } from '@/game/tenpaiCandidates';
+import type { State } from './gameState';
+import { checkTenpai } from '../gameLogic';
+import { enumerateTenpaiCandidates } from './tenpaiCandidates';
 
 export const TENPAI_DRAW_POINTS = 3000;
 

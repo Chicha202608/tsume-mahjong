@@ -26,7 +26,7 @@ interface Props {
   onDeclareTsumo: () => void;
   onPassTsumo?: () => void;
   onDeclareRiichi: () => void;
-  onShowWall: () => void;
+  onShowWall?: () => void;
   canUndo: boolean;
   canStepBack: boolean;
   canStepForward: boolean;
@@ -53,7 +53,7 @@ export default function HandSection({
           <h2 className="text-green-400 text-sm font-semibold tracking-widest uppercase shrink-0">
             手牌
           </h2>
-          <button onClick={onShowWall} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 text-white font-bold text-sm shrink-0">
+          <button onClick={onShowWall} disabled={!onShowWall} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 text-white font-bold text-sm shrink-0 disabled:opacity-30">
             <Layers size={14} />山
           </button>
         </div>

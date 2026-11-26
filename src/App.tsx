@@ -6,6 +6,7 @@ import { useGameEngine } from '@/game/useGameEngine';
 import { scoreHand } from '@/game/scoreAdapter';
 import StatusBar from '@/components/StatusBar';
 import GameOverOverlay from '@/components/GameOverOverlay';
+import DailyRankingPanel from '@/components/DailyRankingPanel';
 import { makeDailyShare } from '@/components/dailyShareImage';
 import ConfirmPopup from '@/components/ConfirmPopup';
 import Header from '@/components/Header';
@@ -23,6 +24,7 @@ import type { GameMode } from '@/game/gameState';
 import { dailyRoundSearch, millisecondsUntilJapanMidnight, readDailyRoundDate, todayInJapan } from '@/game/dailyRound';
 import ModeSelect, { type PlayMode } from '@/components/ModeSelect';
 import SoloFourGame from '@/components/SoloFourGame';
+import { useDailyRanking } from '@/game/useDailyRanking';
 
 const modeLabels: Record<GameMode, string> = {
   two: '二人モード',
@@ -54,11 +56,13 @@ function Game({ initialMode, onHome, dailyDate }: { initialMode: GameMode; onHom
   const [solverResult, setSolverResult] = useState<SolverResult | null>(null);
   const [solverBusy, setSolverBusy] = useState(false);
   const [japanDay, setJapanDay] = useState(todayInJapan);
+  const [ranked] = useState(() => import.meta.env.VITE_DAILY_RANKING_ENABLED === 'true' && dailyDate === todayInJapan());
   const canShowAI = !dailyDate || dailyDate < japanDay;
-  const engine = useGameEngine(initialMode, dailyDate);
+  const engine = useGameEngine(initialMode, dailyDate, ranked);
   const {
     state,
     initialState,
+    rankingMoves,
     isViewingPast,
     canUndo,
     canStepBack,
@@ -98,6 +102,10 @@ function Game({ initialMode, onHome, dailyDate }: { initialMode: GameMode; onHom
   } = engine;
 
   const { playerHand, playerDrawnTile, cpuHand, wall, fullWall, wallDrawnCount, wanpai, playerDiscards, cpuDiscards, playerFuro, phase, turnCount, lastCpuDiscard, nakiOptions, ronAvailable, winType, doraCount, isRiichi, tsumoAvailable, roundWind, playerWind } = state;
+  const ranking = useDailyRanking(ranked ? dailyDate : undefined, rankingMoves);
+  const rankingStarted = !!(rankingMoves || ranking.result || ranking.busy || ranking.error);
+  const lockReview = ranked && !canShowAI && !rankingStarted;
+  const rankingPanel = ranked && rankingStarted ? <DailyRankingPanel ranking={ranking} /> : undefined;
 
   const scoreResult = useMemo(() => {
     if (phase !== 'win') return null;
@@ -235,7 +243,8 @@ function Game({ initialMode, onHome, dailyDate }: { initialMode: GameMode; onHom
         onRestart={onRestart}
         onSetupTest={dailyDate || state.mode === 'three' ? undefined : setupTestState}
         modeDetails={dailyDate
-          ? <p className="text-center text-sm font-bold text-amber-200">日替わり対局<br /><time dateTime={dailyDate}>{dailyDate}</time></p>
+          ? <div className="text-center"><p className="text-sm font-bold text-amber-200">日替わり対局<br /><time dateTime={dailyDate}>{dailyDate}</time></p>
+            {lockReview && <p className="mt-2 text-xs text-emerald-200">初回の結果をランキングに記録します。山と牌譜は対局後に確認できます。</p>}</div>
           : state.mode === 'three' ? <p className="text-xs leading-6 text-emerald-200">萬子2〜8なし<br />北抜き・ツモ損あり<br />チーなし</p> : undefined}
       />
 
@@ -307,10 +316,10 @@ function Game({ initialMode, onHome, dailyDate }: { initialMode: GameMode; onHom
           onDeclareTsumo={declareTsumo}
           onPassTsumo={passTsumo}
           onDeclareRiichi={declareRiichi}
-          onShowWall={() => setShowWall(true)}
-          canUndo={canUndo}
-          canStepBack={canStepBack}
-          canStepForward={canStepForward}
+          onShowWall={lockReview ? undefined : () => setShowWall(true)}
+          canUndo={!lockReview && canUndo}
+          canStepBack={!lockReview && canStepBack}
+          canStepForward={!lockReview && canStepForward}
           onMatta={matta}
           onStepBack={stepBack}
           onStepForward={stepForward}
@@ -349,6 +358,7 @@ function Game({ initialMode, onHome, dailyDate }: { initialMode: GameMode; onHom
           message={drawMessage}
           shareText={dailyDate ? scoreLabel : `${modeLabel}で${drawMessage}`}
           dailyShare={dailyShare}
+          ranking={rankingPanel}
           onRestart={onRestart}
           onOk={handleDismissWin}
           solverSummary={canShowAI ? comparisonText : undefined}
@@ -363,6 +373,7 @@ function Game({ initialMode, onHome, dailyDate }: { initialMode: GameMode; onHom
           message=""
           shareText={dailyDate || !scoreLabel ? scoreLabel : `${modeLabel}で${winType === 'ron' ? 'ロン' : 'ツモ'}：${scoreLabel}`}
           dailyShare={dailyShare}
+          ranking={rankingPanel}
           onRestart={onRestart}
           onOk={handleDismissWin}
           isWin

@@ -43,7 +43,7 @@ export function actionMatchesNext(
   }
 }
 
-export function commitNewState(prev: State[], idx: number, newState: State | null): State[] {
+export function commitNewState<T extends State>(prev: T[], idx: number, newState: T | null): T[] {
   if (!newState) return prev;
   const truncated = prev.slice(0, idx + 1);
   return [...truncated, newState];

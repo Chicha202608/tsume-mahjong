@@ -3,6 +3,7 @@ import type { HandAnalysis } from 'riichi-score';
 import YakuDisplay from '@/components/YakuDisplay';
 import ShareResultLink from '@/components/ShareResultLink';
 import type { DailyShare } from '@/components/dailyShareImage';
+import type { ReactNode } from 'react';
 
 interface Props {
   title: string;
@@ -15,15 +16,16 @@ interface Props {
   onShowSolver?: () => void;
   shareText?: string;
   dailyShare?: DailyShare;
+  ranking?: ReactNode;
 }
 
-export default function GameOverOverlay({ title, message, onRestart, onOk, isWin, scoreResult, solverSummary, onShowSolver, shareText, dailyShare }: Props) {
+export default function GameOverOverlay({ title, message, onRestart, onOk, isWin, scoreResult, solverSummary, onShowSolver, shareText, dailyShare, ranking }: Props) {
   const hasScore = isWin && scoreResult && scoreResult.valid && scoreResult.handInterpretations.length > 0;
   const scoreError = isWin && scoreResult && (!scoreResult.valid || scoreResult.handInterpretations.length === 0);
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className={`border rounded-2xl p-10 flex flex-col items-center gap-5 shadow-2xl max-w-[min(94vw,42rem)] max-h-[92dvh] overflow-y-auto ${isWin ? 'bg-[#2a2a1a] border-yellow-500' : 'bg-[#1a2e1a] border-green-700'}`}>
+      <div className={`border rounded-2xl p-10 flex flex-col items-center gap-5 shadow-2xl max-w-[min(94vw,42rem)] ${ranking ? 'w-[42rem] max-h-[92%]' : 'max-h-[92dvh]'} overflow-y-auto ${isWin ? 'bg-[#2a2a1a] border-yellow-500' : 'bg-[#1a2e1a] border-green-700'}`}>
         {title !== 'ツモ！' && title !== 'ロン！' && (
           <h2 className="text-4xl font-black text-white">{title}</h2>
         )}
@@ -38,6 +40,7 @@ export default function GameOverOverlay({ title, message, onRestart, onOk, isWin
         )}
 
         {solverSummary && <p className="text-yellow-200 font-bold text-center">{solverSummary}</p>}
+        {ranking}
         <div className="flex flex-wrap justify-center gap-3 mt-2">
           <button
             onClick={onOk}
