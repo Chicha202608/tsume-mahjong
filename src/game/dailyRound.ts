@@ -1,4 +1,4 @@
-import { makeInitialState } from '@/game/gameState';
+import { makeInitialState } from './gameState.js';
 
 const japanTimeOffsetMs = 9 * 60 * 60 * 1000;
 

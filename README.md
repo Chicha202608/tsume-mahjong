@@ -67,6 +67,20 @@ npm run dev
 
 Vercelではシステム環境変数 `VERCEL_PROJECT_PRODUCTION_URL` を使い、プレビューから共有しても本番の同じ日付の対局にリンクします。本番ドメインを明示する場合や、Vercelのシステム環境変数を使えない場合は、ビルド環境の `VITE_PUBLIC_SITE_URL` に公開サイトのURL（例 `https://example.com`）を指定します。どちらも未設定のローカル開発では、現在のアドレスで共有リンクを確認できます。
 
+## 今日のランキング
+
+Supabaseに `supabase/migrations/20261126000000_daily_ranking.sql` を適用し、Vercelの対象環境に次の環境変数を設定して再デプロイします。
+
+| 環境変数 | 値 |
+| --- | --- |
+| `SUPABASE_URL` | SupabaseのProject URL |
+| `SUPABASE_SECRET_KEY` | サーバー用の `sb_secret_…` キー |
+| `VITE_DAILY_RANKING_ENABLED` | `true` |
+
+クライアントに公開するのは有効化フラグだけです。APIを含めてローカルで動かす場合は、同じ環境変数を使って `vercel dev` を実行します。
+
+日本時間の当日分について、VercelのAPIが配牌から操作を再現して採点し、ブラウザーごとに最初に終えた結果を記録します。結果画面には得点順に上位10件と自分の順位を表示します。同点は同順位です。ニックネームは任意で、初期表示は「名無し」です。
+
 ## コントリビューション
 
 不具合の報告や改善の Pull Request を歓迎します。上部の「Open in Bolt」から Bolt.new で開発を始めることもできます。

@@ -1,5 +1,5 @@
 import { isTableMode } from '@/game/seatFlow';
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Tile } from '@/types';
 import {
   findLegalAnkanOptions,
@@ -12,6 +12,7 @@ import {
 } from '@/gameLogic';
 import { State, makeInitialState, type GameMode } from '@/game/gameState';
 import { makeDailyRound } from '@/game/dailyRound';
+import { rankingCall } from '@/game/dailyRankingReplay';
 import { hasFuturePlayerDraw } from '@/game/seatFlow';
 import { asFourPlayerTestState, makeThreeNukiTestState, makeFourPonKakanTestState, makeOpenHanemanTestState, makeTwoOpenHanemanTestState, makeThreeOpenHanemanTestState } from '@/game/testScenarios';
 import { makeKanTestState, makeRiichiAnkanTestState, makeOpenIttsuRonTestState, makeOpenIttsuTsumoTestState, makeTwoAnkanTestState, type TestMode } from '@/game/testScenarios';
@@ -43,9 +44,12 @@ import {
 const CONFIRM_MESSAGE = 'これ以降の牌譜は消去されますが、よろしいですか？';
 const MATTACONFIRM_MESSAGE = 'この局面まで戻って打ち直しますか？（これ以降の牌譜は消去されます）';
 
+type RecordedState = State & { rankingMove?: string };
+
 export interface GameEngine {
   state: State;
   initialState: State;
+  rankingMoves: readonly string[] | undefined;
   isViewingPast: boolean;
   canUndo: boolean;
   canStepBack: boolean;
@@ -85,8 +89,8 @@ export interface GameEngine {
   goToLast: () => void;
 }
 
-export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string): GameEngine {
-  const [history, setHistory] = useState<State[]>(() => {
+export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string, ranked = false, canRewrite = true): GameEngine {
+  const [history, setHistory] = useState<RecordedState[]>(() => {
     if (dailyDate) return [makeDailyRound(dailyDate)];
     const example = new URLSearchParams(window.location.search).get('example');
     if (initialMode === 'three') return [example === 'sanma-nuki' ? makeThreeNukiTestState() : makeInitialState(initialMode)];
@@ -103,9 +107,13 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string)
 
   const state = history[historyIndex] ?? history[0] ?? makeInitialState();
   const isViewingPast = historyIndex < history.length - 1;
-  const canUndo = historyIndex > 1;
+  const canUndo = canRewrite && historyIndex > 1;
   const canStepBack = historyIndex > 0;
   const canStepForward = historyIndex < history.length - 1;
+  const rankingMoves = useMemo(() => {
+    if (!ranked || isViewingPast || (state.phase !== 'win' && state.phase !== 'exhausted')) return undefined;
+    return history.flatMap(entry => entry.rankingMove ? [entry.rankingMove] : []);
+  }, [history, isViewingPast, ranked, state.phase]);
 
   const clearTimer = useCallback(() => {
     if (timeoutRef.current) {
@@ -196,19 +204,19 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string)
     setHistory(prev => {
       const cur = prev[historyIndex];
       const newState = cur ? applyPlayerDraw(cur) : null;
-      return commitNewState(prev, historyIndex, newState);
+      return commitNewState(prev, historyIndex, ranked && newState ? { ...newState, rankingMove: undefined } : newState);
     });
     setHistoryIndex(prev => prev + 1);
-  }, [historyIndex]);
+  }, [historyIndex, ranked]);
 
   const cpuTurn = useCallback(() => {
     setHistory(prev => {
       const cur = prev[historyIndex];
       const newState = cur ? applyCpuTurn(cur) : null;
-      return commitNewState(prev, historyIndex, newState);
+      return commitNewState(prev, historyIndex, ranked && newState ? { ...newState, rankingMove: undefined } : newState);
     });
     setHistoryIndex(prev => prev + 1);
-  }, [historyIndex]);
+  }, [historyIndex, ranked]);
 
   // --- performAction: common pattern for player callbacks ---
   //
@@ -221,7 +229,14 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string)
       applyFn: (cur: State) => State | null,
       matchFn: ((cur: State, next: State) => boolean) | null,
       message: string,
+      rankingMove?: string,
     ) => {
+      if (isViewingPast && !canRewrite) return;
+      const record = (prev: RecordedState[]) => {
+        const cur = prev[historyIndex];
+        const next = cur ? applyFn(cur) : null;
+        return commitNewState(prev, historyIndex, ranked && next ? { ...next, rankingMove } : next);
+      };
       if (isViewingPast && matchFn) {
         const cur = history[historyIndex];
         const next = history[historyIndex + 1];
@@ -234,24 +249,16 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string)
         setPendingAction({
           message,
           action: () => {
-            setHistory(prev => {
-              const c = prev[historyIndex];
-              const newState = c ? applyFn(c) : null;
-              return commitNewState(prev, historyIndex, newState);
-            });
+            setHistory(record);
             setHistoryIndex(prev => prev + 1);
           },
         });
         return;
       }
-      setHistory(prev => {
-        const cur = prev[historyIndex];
-        const newState = cur ? applyFn(cur) : null;
-        return commitNewState(prev, historyIndex, newState);
-      });
+      setHistory(record);
       setHistoryIndex(prev => prev + 1);
     },
-    [historyIndex, isViewingPast, history],
+    [historyIndex, isViewingPast, history, ranked, canRewrite],
   );
 
   // --- Player action callbacks (exposed to UI) ---
@@ -261,6 +268,7 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string)
       (cur) => applyPlayerDiscard(cur, tile),
       (cur, next) => actionMatchesNext(cur, next, 'playerDiscard', tile),
       CONFIRM_MESSAGE,
+      `discard:${tile.id}`,
     );
   }, [performAction]);
 
@@ -269,6 +277,7 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string)
       (cur) => applyPlayerNakiDiscard(cur, tile),
       (cur, next) => actionMatchesNext(cur, next, 'playerNakiDiscard', tile),
       CONFIRM_MESSAGE,
+      `discard:${tile.id}`,
     );
   }, [performAction]);
 
@@ -277,6 +286,7 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string)
       (cur) => applyRiichiDiscard(cur, tile),
       (cur, next) => riichiDiscardMatchesNext(cur, next, tile),
       CONFIRM_MESSAGE,
+      `discard:${tile.id}`,
     );
   }, [performAction]);
 
@@ -285,6 +295,7 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string)
       (cur) => applyCallRon(cur),
       (cur, next) => actionMatchesNext(cur, next, 'callRon'),
       CONFIRM_MESSAGE,
+      'ron',
     );
   }, [performAction]);
 
@@ -293,6 +304,7 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string)
       (cur) => applyCallNaki(cur, option),
       (cur, next) => actionMatchesNext(cur, next, 'callNaki', undefined, option),
       CONFIRM_MESSAGE,
+      rankingCall(option),
     );
   }, [performAction]);
 
@@ -301,6 +313,7 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string)
       (cur) => applyPassNaki(cur),
       (cur, next) => actionMatchesNext(cur, next, 'passNaki'),
       CONFIRM_MESSAGE,
+      'passNaki',
     );
   }, [performAction]);
 
@@ -309,6 +322,7 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string)
       (cur) => applyPassTsumo(cur),
       (cur, next) => actionMatchesNext(cur, next, 'passTsumo'),
       CONFIRM_MESSAGE,
+      'passTsumo',
     );
   }, [performAction]);
 
@@ -317,6 +331,7 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string)
       (cur) => applyDeclareTsumo(cur),
       (cur, next) => actionMatchesNext(cur, next, 'declareTsumo'),
       CONFIRM_MESSAGE,
+      'tsumo',
     );
   }, [performAction]);
 
@@ -325,6 +340,7 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string)
       (cur) => applyDeclareKan(cur, option),
       null,
       CONFIRM_MESSAGE,
+      rankingCall(option),
     );
   }, [performAction]);
 
@@ -333,6 +349,7 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string)
       (cur) => applyDeclareRiichi(cur),
       null,
       CONFIRM_MESSAGE,
+      'riichi',
     );
   }, [performAction]);
 
@@ -345,7 +362,7 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string)
   // --- History navigation callbacks ---
 
   const matta = useCallback(() => {
-    if (historyIndex === 0) return;
+    if (!canRewrite || historyIndex === 0) return;
     const idx = findMattaIndex(history, historyIndex);
     const rewind = (target: number) => {
       clearTimer();
@@ -364,7 +381,7 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string)
       return;
     }
     rewind(idx);
-  }, [historyIndex, history, isViewingPast, clearTimer]);
+  }, [canRewrite, historyIndex, history, isViewingPast, clearTimer]);
 
   const stepBack = useCallback(() => {
     if (historyIndex <= 0) return;
@@ -464,6 +481,7 @@ export function useGameEngine(initialMode: GameMode = 'two', dailyDate?: string)
   return {
     state,
     initialState: history[0],
+    rankingMoves,
     isViewingPast,
     canUndo,
     canStepBack,

@@ -7,6 +7,7 @@ import * as gameEngine from '@/game/useGameEngine';
 afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
   vi.unstubAllGlobals();
 });
 
@@ -48,6 +49,19 @@ describe('daily round', () => {
 
     vi.stubGlobal('window', { location: new URL('https://tsume.example/?daily=2026-11-25&example=four-pon-kakan') });
     expect(renderToStaticMarkup(<App />)).toBe(original);
+  });
+
+  it('allows wall inspection on the first turn of a ranked daily round', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-25T00:00:00Z'));
+    vi.stubEnv('VITE_DAILY_RANKING_ENABLED', 'true');
+    vi.stubGlobal('window', { location: new URL('https://tsume.example/?daily=2026-11-25') });
+
+    const round = renderToStaticMarkup(<App />);
+    const wallButton = round.match(/<button\b[^>]*>(?:(?!<\/button>)[\s\S])*?<\/svg>山<\/button>/)?.[0];
+    expect(round).toContain('初回の結果をランキングに記録します。');
+    expect(wallButton).toBeDefined();
+    expect(wallButton).not.toMatch(/<button\b[^>]*\bdisabled\b/);
   });
 
   it('hides analysis through the end of today’s round and restores it for yesterday’s round', () => {

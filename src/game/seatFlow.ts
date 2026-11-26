@@ -1,5 +1,5 @@
-import type { Wind } from '@/types';
-import type { State } from '@/game/gameState';
+import type { Wind } from '../types.js';
+import type { State } from './gameState.js';
 
 export const SEATS: Wind[] = ['east', 'south', 'west', 'north'];
 export const activeSeats = (state: State): Wind[] => state.mode === 'three' ? SEATS.slice(0, 3) : SEATS;
