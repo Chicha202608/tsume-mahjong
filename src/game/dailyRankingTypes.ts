@@ -13,3 +13,9 @@ export interface DailyRanking {
   yours: DailyRankingRow;
   participants: number;
 }
+
+export interface DailyRankingBoard {
+  date: string;
+  rows: DailyRankingRow[];
+  participants: number;
+}

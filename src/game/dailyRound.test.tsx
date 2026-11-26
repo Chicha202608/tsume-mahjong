@@ -40,6 +40,14 @@ describe('daily round', () => {
     vi.stubGlobal('window', { location: new URL('https://tsume.example/') });
     const home = renderToStaticMarkup(<App />);
     expect(home).toContain('href="?daily=today"');
+    expect(home).not.toContain('今日のランキング');
+
+    vi.stubEnv('VITE_DAILY_RANKING_ENABLED', 'true');
+    const rankedHome = renderToStaticMarkup(<App />);
+    expect(rankedHome).toContain('href="?daily=today"');
+    expect(rankedHome).toMatch(/aria-haspopup="dialog"[^>]*>今日のランキング<\/button>/);
+    expect(rankedHome).not.toMatch(/<dialog[^>]*\bopen(?:=|\s|>)/);
+    vi.unstubAllEnvs();
 
     vi.stubGlobal('window', { location: new URL('https://tsume.example/?daily=2026-11-25') });
     const original = renderToStaticMarkup(<App />);

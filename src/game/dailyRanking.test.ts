@@ -31,6 +31,36 @@ afterEach(() => {
 });
 
 describe('daily ranking', () => {
+  it('returns the current Japanese day’s top scores with tied ranks and no player keys', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-25T15:00:00Z'));
+    const env = { url: 'https://db.example', secret: 'sb_secret_test' };
+    const request = new Request('https://play.example/api/daily-ranking?view=board&date=2026-11-25');
+    const store = vi.fn<typeof fetch>().mockResolvedValueOnce(Response.json([
+      { id: 42, nickname: '白牌', score: 8000, player_key: 'private' },
+      { id: 49, nickname: '名無し', score: 8000 },
+      { id: 12, nickname: '東', score: 3000 },
+    ], { headers: { 'Content-Range': '0-2/12' } })).mockResolvedValueOnce(
+      Response.json([], { headers: { 'Content-Range': '*/0' } }),
+    );
+    vi.stubGlobal('fetch', store);
+
+    const board = await (await dailyRankingRequest(request, env)).json();
+    expect(board).toEqual({ date, participants: 12, rows: [
+      { id: '42', name: '白牌', score: 8000, rank: 1, isYou: false },
+      { id: '49', name: '名無し', score: 8000, rank: 1, isYou: false },
+      { id: '12', name: '東', score: 3000, rank: 3, isYou: false },
+    ] });
+    const [target, options] = store.mock.calls[0];
+    const url = new URL(String(target));
+    expect(url.pathname).toBe('/rest/v1/daily_ranking_results');
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      select: 'id,nickname,score', round_date: `eq.${date}`, order: 'score.desc,id.asc', limit: '10',
+    });
+    expect(new Headers(options?.headers).get('Prefer')).toBe('count=exact');
+    expect(await (await dailyRankingRequest(request, env)).json()).toEqual({ date, participants: 0, rows: [] });
+  });
+
   it('scores a full replay and rejects forged actions and incomplete or extended games', () => {
     const { moves, score } = playToDraw();
     expect(replayDailyScore(date, moves)).toBe(score);

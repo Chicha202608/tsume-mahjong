@@ -1,6 +1,6 @@
 import { readDailyRoundDate, todayInJapan } from '../src/game/dailyRound.js';
 import { maxRankingMoves, replayDailyScore } from '../src/game/dailyRankingReplay.js';
-import { maxRankingNameLength } from '../src/game/dailyRankingTypes.js';
+import { maxRankingNameLength, type DailyRankingBoard } from '../src/game/dailyRankingTypes.js';
 
 declare const process: { env: Record<string, string | undefined> };
 
@@ -8,6 +8,35 @@ const tokenPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0
 
 function respond(data: unknown, status = 200): Response {
   return Response.json(data, { status, headers: { 'Cache-Control': 'no-store' } });
+}
+
+async function readRankingBoard(date: string, url: string, secret: string): Promise<Response> {
+  try {
+    const target = new URL('/rest/v1/daily_ranking_results', url);
+    target.search = new URLSearchParams({
+      select: 'id,nickname,score',
+      round_date: `eq.${date}`,
+      order: 'score.desc,id.asc',
+      limit: '10',
+    }).toString();
+    const upstream = await fetch(target, {
+      headers: { apikey: secret, Prefer: 'count=exact' },
+      signal: AbortSignal.timeout(8000),
+    });
+    const count = upstream.headers.get('Content-Range')?.match(/\/(\d+)$/)?.[1];
+    if (!upstream.ok || count === undefined) return respond({ error: 'unavailable' }, 503);
+
+    const entries: { id: number; nickname: string; score: number }[] = await upstream.json();
+    let rank = 0;
+    const rows = entries.map(({ id, nickname, score }, index) => {
+      if (entries[index - 1]?.score !== score) rank = index + 1;
+      return { id: String(id), rank, name: nickname, score, isYou: false };
+    });
+    const board: DailyRankingBoard = { date, rows, participants: Number(count) };
+    return respond(board);
+  } catch {
+    return respond({ error: 'unavailable' }, 503);
+  }
 }
 
 export async function dailyRankingRequest(request: Request, env: { url?: string; secret?: string }): Promise<Response> {
@@ -20,7 +49,9 @@ export async function dailyRankingRequest(request: Request, env: { url?: string;
   let body: Record<string, unknown>;
   try {
     if (request.method === 'GET') {
-      body = { date: new URL(request.url).searchParams.get('date'), token: request.headers.get('X-Daily-Ranking-Token') };
+      const params = new URL(request.url).searchParams;
+      if (params.get('view') === 'board') return readRankingBoard(todayInJapan(), url, secret);
+      body = { date: params.get('date'), token: request.headers.get('X-Daily-Ranking-Token') };
     } else {
       const raw = await request.text();
       if (raw.length > 8192) return respond({ error: 'invalid' }, 413);
