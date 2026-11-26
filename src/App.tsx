@@ -301,7 +301,7 @@ function Game({ initialMode, onHome, dailyDate }: { initialMode: GameMode; onHom
         </div>
 
         {/* Status bar */}
-        <div className={fourPlayer ? "h-7 shrink-0 px-4 flex items-center justify-center" : "shrink-0 px-4 py-2 bg-[#1a2e1a]"}>
+        <div className={fourPlayer ? `shrink-0 px-4 flex items-center justify-center ${state.mode === 'four' ? 'h-5' : 'h-7'}` : "shrink-0 px-4 py-2 bg-[#1a2e1a]"}>
           <StatusBar phase={phase} wallCount={wall.length} isViewingPast={isViewingPast} tsumoAvailable={tsumoAvailable} />
         </div>
 
