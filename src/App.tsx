@@ -104,7 +104,7 @@ function Game({ initialMode, onHome, dailyDate }: { initialMode: GameMode; onHom
   const { playerHand, playerDrawnTile, cpuHand, wall, fullWall, wallDrawnCount, wanpai, playerDiscards, cpuDiscards, playerFuro, phase, turnCount, lastCpuDiscard, nakiOptions, ronAvailable, winType, doraCount, isRiichi, tsumoAvailable, roundWind, playerWind } = state;
   const ranking = useDailyRanking(ranked ? dailyDate : undefined, rankingMoves);
   const rankingStarted = !!(rankingMoves || ranking.result || ranking.busy || ranking.error);
-  const lockReview = ranked && !canShowAI && !rankingStarted;
+  const lockHistory = ranked && !canShowAI && !rankingStarted;
   const rankingPanel = ranked && rankingStarted ? <DailyRankingPanel ranking={ranking} /> : undefined;
 
   const scoreResult = useMemo(() => {
@@ -244,7 +244,7 @@ function Game({ initialMode, onHome, dailyDate }: { initialMode: GameMode; onHom
         onSetupTest={dailyDate || state.mode === 'three' ? undefined : setupTestState}
         modeDetails={dailyDate
           ? <div className="text-center"><p className="text-sm font-bold text-amber-200">日替わり対局<br /><time dateTime={dailyDate}>{dailyDate}</time></p>
-            {lockReview && <p className="mt-2 text-xs text-emerald-200">初回の結果をランキングに記録します。山と牌譜は対局後に確認できます。</p>}</div>
+            {lockHistory && <p className="mt-2 text-xs text-emerald-200">初回の結果をランキングに記録します。牌譜は対局後に確認できます。</p>}</div>
           : state.mode === 'three' ? <p className="text-xs leading-6 text-emerald-200">萬子2〜8なし<br />北抜き・ツモ損あり<br />チーなし</p> : undefined}
       />
 
@@ -316,10 +316,10 @@ function Game({ initialMode, onHome, dailyDate }: { initialMode: GameMode; onHom
           onDeclareTsumo={declareTsumo}
           onPassTsumo={passTsumo}
           onDeclareRiichi={declareRiichi}
-          onShowWall={lockReview ? undefined : () => setShowWall(true)}
-          canUndo={!lockReview && canUndo}
-          canStepBack={!lockReview && canStepBack}
-          canStepForward={!lockReview && canStepForward}
+          onShowWall={() => setShowWall(true)}
+          canUndo={!lockHistory && canUndo}
+          canStepBack={!lockHistory && canStepBack}
+          canStepForward={!lockHistory && canStepForward}
           onMatta={matta}
           onStepBack={stepBack}
           onStepForward={stepForward}
