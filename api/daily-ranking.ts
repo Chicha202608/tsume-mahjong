@@ -1,6 +1,6 @@
-import { readDailyRoundDate, todayInJapan } from '../src/game/dailyRound';
-import { maxRankingMoves, replayDailyScore } from '../src/game/dailyRankingReplay';
-import { maxRankingNameLength } from '../src/game/dailyRankingTypes';
+import { readDailyRoundDate, todayInJapan } from '../src/game/dailyRound.js';
+import { maxRankingMoves, replayDailyScore } from '../src/game/dailyRankingReplay.js';
+import { maxRankingNameLength } from '../src/game/dailyRankingTypes.js';
 
 declare const process: { env: Record<string, string | undefined> };
 

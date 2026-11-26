@@ -1,13 +1,13 @@
-import { canRiichi, findKakanOptions, findLegalAnkanOptions, isMenzen, validRiichiDiscards, type NakiOption } from '../gameLogic';
-import { makeDailyRound } from './dailyRound';
-import { drawSettlement } from './drawSettlement';
-import type { State } from './gameState';
-import { scoreHand } from './scoreAdapter';
+import { canRiichi, findKakanOptions, findLegalAnkanOptions, isMenzen, validRiichiDiscards, type NakiOption } from '../gameLogic.js';
+import { makeDailyRound } from './dailyRound.js';
+import { drawSettlement } from './drawSettlement.js';
+import type { State } from './gameState.js';
+import { scoreHand } from './scoreAdapter.js';
 import {
   applyCallNaki, applyCallRon, applyCpuTurn, applyDeclareKan, applyDeclareRiichi,
   applyDeclareTsumo, applyPassNaki, applyPassTsumo, applyPlayerDiscard, applyPlayerDraw,
   applyPlayerNakiDiscard, applyRiichiDiscard,
-} from './transitions';
+} from './transitions.js';
 
 export const maxRankingMoves = 150;
 

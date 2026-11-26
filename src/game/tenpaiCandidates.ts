@@ -1,7 +1,7 @@
-import { isTableMode } from './seatFlow';
-import type { Tile, Wind } from '../types';
-import { isPlayerWallIndex, wallSeatAt } from './seatFlow';
-import type { State } from './gameState';
+import { isTableMode } from './seatFlow.js';
+import type { Tile, Wind } from '../types.js';
+import { isPlayerWallIndex, wallSeatAt } from './seatFlow.js';
+import type { State } from './gameState.js';
 
 /**
  * Standard-hand, seven-pairs and kokushi tenpai candidates from initial 13 tiles and future player

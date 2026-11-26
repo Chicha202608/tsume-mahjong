@@ -1,4 +1,4 @@
-import { Tile, Furo } from './types';
+import { Tile, Furo } from './types.js';
 
 export function createDeck(mode?: 'two' | 'three' | 'four'): Tile[] {
   const tiles: Tile[] = [];
